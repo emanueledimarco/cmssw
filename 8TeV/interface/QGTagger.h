@@ -1,6 +1,5 @@
 #ifndef QGTagger_h
 #define QGTagger_h
-
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 
@@ -8,6 +7,8 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/FileInPath.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+
+#include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
 #include "QGLikelihoodCalculator.h"
 #include "QGMLPCalculator.h"
@@ -25,11 +26,13 @@ class QGTagger : public edm::EDProducer {
 
       // ----------member data -------------------------
       edm::InputTag src, srcRho, srcRhoIso;
+      std::string jecService;
       TString dataDir;
       Bool_t useCHS, isPatJet;
       QGLikelihoodCalculator *qgLikelihood;
       QGMLPCalculator *qgMLP;
       std::map<TString, Float_t> variables;
+      const JetCorrector *JEC;           
 };
 
 #endif

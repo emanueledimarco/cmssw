@@ -25,6 +25,7 @@ QGTagger::QGTagger(const edm::ParameterSet& iConfig) :
   src            ( iConfig.getParameter<edm::InputTag>("srcJets")),
   srcRho         ( iConfig.getParameter<edm::InputTag>("srcRho")),
   srcRhoIso      ( iConfig.getParameter<edm::InputTag>("srcRhoIso")),
+  jecService     ( iConfig.getUntrackedParameter<std::string>("jec","")),
   dataDir        ( TString(iConfig.getUntrackedParameter<std::string>("dataDir","QuarkGluonTagger/8TeV/data/"))), 
   useCHS         ( iConfig.getUntrackedParameter<Bool_t>("useCHS", false)),
   isPatJet	 ( iConfig.getUntrackedParameter<Bool_t>("isPatJet", false))
@@ -41,6 +42,8 @@ void QGTagger::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   std::auto_ptr<std::vector<Float_t> > valuesLikelihood(new std::vector<Float_t>());
   std::auto_ptr<std::vector<Float_t> > valuesMLP(new std::vector<Float_t>());
   produces<edm::ValueMap<Float_t> >("QGTagger");
+
+  if(jecService != "") JEC = JetCorrector::getJetCorrector(jecService,iSetup);
 
   //Get rhokt6PFJets and primary vertex
   edm::Handle<Double_t> rho, rhoIso;
@@ -63,6 +66,7 @@ void QGTagger::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     for(std::vector<pat::Jet>::const_iterator patJet = patJets->begin(); patJet != patJets->end(); ++patJet){
       if(patJet->isPFJet()){
         reco::PFJet *jet = (reco::PFJet*) &*patJet;
+        variables["pt"] = jet->pt();
         calcVariables(jet, vC_MLP, "MLP");
         valuesMLP->push_back(qgMLP->QGvalue(variables));
         calcVariables(jet, vC_likelihood, "Likelihood");
@@ -73,6 +77,8 @@ void QGTagger::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     }
   } else {
     for(reco::PFJetCollection::const_iterator pfJet = pfJets->begin(); pfJet != pfJets->end(); ++pfJet){
+      if(jecService == "") variables["pt"] = pfJet->pt();
+      else variables["pt"] = pfJet->pt()*JEC->correction(*pfJet, iEvent, iSetup);
       calcVariables(&*pfJet, vC_MLP, "MLP");
       valuesMLP->push_back(qgMLP->QGvalue(variables));
       calcVariables(&*pfJet, vC_likelihood, "Likelihood");
@@ -97,7 +103,6 @@ void QGTagger::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
 
 void QGTagger::calcVariables(const reco::PFJet *jet, edm::Handle<reco::VertexCollection> vC, TString type){
-  variables["pt"] = jet->pt();
   variables["eta"] = jet->eta();
   Bool_t useQC = true;
   if(fabs(jet->eta()) > 2.5 && type == "MLP") useQC = false;		//In MLP: no QC in forward region
@@ -189,6 +194,7 @@ void QGTagger::fillDescriptions(edm::ConfigurationDescriptions& descriptions){
   desc.add<edm::InputTag>("srcRho");
   desc.add<edm::InputTag>("srcRhoIso");
   desc.addUntracked<std::string>("dataDir","QuarkGluonTagger/8TeV/data/");
+  desc.addUntracked<std::string>("jec","");
   desc.addUntracked<Bool_t>("useCHS", false);
   desc.addUntracked<Bool_t>("isPatJet", false);
   descriptions.add("QGTagger", desc);

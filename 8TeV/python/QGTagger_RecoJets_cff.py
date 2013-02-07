@@ -12,7 +12,8 @@ goodOfflinePrimaryVertices = cms.EDFilter("PrimaryVertexObjectFilter",
 kt6PFJets = kt6PFJets.clone( rParam = 0.6, doRhoFastjet = True )
 
 #needed for Likelihood tagger
-kt6PFJetsIso = kt6PFJets.clone( rParam = 0.6, doRhoFastjet = True )
+from RecoJets.JetProducers.kt4PFJets_cfi import *
+kt6PFJetsIso = kt4PFJets.clone( rParam = 0.6, doRhoFastjet = True )
 kt6PFJetsIso.Rho_EtaMax = cms.double(2.5)
 
 

@@ -34,7 +34,7 @@ QGTagger::QGTagger(const edm::ParameterSet& iConfig) :
   produces<edm::ValueMap<Float_t> >("qgMLP");
 
   qgLikelihood 	= new QGLikelihoodCalculator(dataDir, useCHS);
-  qgMLP		= new QGMLPCalculator("MLP", dataDir, true); //TO DO: add CHS option for MLP
+  qgMLP		= new QGMLPCalculator("MLP", dataDir, true);
 }
 
 
@@ -55,7 +55,7 @@ void QGTagger::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   edm::Handle<reco::VertexCollection> vC_likelihood;
   iEvent.getByLabel("offlinePrimaryVerticesWithBS", vC_likelihood);
   edm::Handle<reco::VertexCollection> vC_MLP;
-  iEvent.getByLabel("goodOfflinePrimaryVertices", vC_MLP);
+  iEvent.getByLabel("goodOfflinePrimaryVerticesQG", vC_MLP);
 
   edm::Handle<reco::PFJetCollection> pfJets;
   edm::Handle<std::vector<pat::Jet> > patJets;
@@ -65,15 +65,15 @@ void QGTagger::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   if(isPatJet){
     for(std::vector<pat::Jet>::const_iterator patJet = patJets->begin(); patJet != patJets->end(); ++patJet){
       if(patJet->isPFJet()){
-        reco::PFJet *jet = (reco::PFJet*) &*patJet;
-        variables["pt"] = jet->pt();
-        calcVariables(jet, vC_MLP, "MLP");
+        variables["pt"] = patJet->pt();
+        calcVariables(&*patJet, vC_MLP, "MLP");
         valuesMLP->push_back(qgMLP->QGvalue(variables));
-        calcVariables(jet, vC_likelihood, "Likelihood");
+        calcVariables(&*patJet, vC_likelihood, "Likelihood");
         valuesLikelihood->push_back(qgLikelihood->QGvalue(variables));
+      } else {
+        valuesMLP->push_back(-999);
+        valuesLikelihood->push_back(-1);
       }
-      valuesMLP->push_back(-999);
-      valuesLikelihood->push_back(-1);
     }
   } else {
     for(reco::PFJetCollection::const_iterator pfJet = pfJets->begin(); pfJet != pfJets->end(); ++pfJet){
@@ -102,7 +102,7 @@ void QGTagger::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 }
 
 
-void QGTagger::calcVariables(const reco::PFJet *jet, edm::Handle<reco::VertexCollection> vC, TString type){
+template <class jetClass> void QGTagger::calcVariables(const jetClass *jet, edm::Handle<reco::VertexCollection> vC, TString type){
   variables["eta"] = jet->eta();
   Bool_t useQC = true;
   if(fabs(jet->eta()) > 2.5 && type == "MLP") useQC = false;		//In MLP: no QC in forward region
@@ -193,7 +193,7 @@ void QGTagger::fillDescriptions(edm::ConfigurationDescriptions& descriptions){
   desc.add<edm::InputTag>("srcJets");
   desc.add<edm::InputTag>("srcRho");
   desc.add<edm::InputTag>("srcRhoIso");
-  desc.addUntracked<std::string>("dataDir","QuarkGluonTagger/8TeV/data/");
+  desc.addUntracked<std::string>("dataDir","QuarkGluonTagger/EightTeV/data/");
   desc.addUntracked<std::string>("jec","");
   desc.addUntracked<Bool_t>("useCHS", false);
   desc.addUntracked<Bool_t>("isPatJet", false);

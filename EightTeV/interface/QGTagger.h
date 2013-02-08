@@ -22,7 +22,7 @@ class QGTagger : public edm::EDProducer {
 
    private:
       virtual void produce(edm::Event&, const edm::EventSetup&);
-      void calcVariables(const reco::PFJet *jet, edm::Handle<reco::VertexCollection> vC, TString type);
+      template <class jetClass> void calcVariables(const jetClass *jet, edm::Handle<reco::VertexCollection> vC, TString type);
 
       // ----------member data -------------------------
       edm::InputTag src, srcRho, srcRhoIso;

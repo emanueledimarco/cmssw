@@ -66,12 +66,14 @@ void QGTagger::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     for(std::vector<pat::Jet>::const_iterator patJet = patJets->begin(); patJet != patJets->end(); ++patJet){
       if(patJet->isPFJet()){
         variables["pt"] = patJet->pt();
-        calcVariables(&*patJet, vC_MLP, "MLP");
-        valuesMLP->push_back(qgMLP->QGvalue(variables));
+        if((*vC_MLP.product()).size() > 0){
+          calcVariables(&*patJet, vC_MLP, "MLP");
+          valuesMLP->push_back(qgMLP->QGvalue(variables));
+        } else valuesMLP->push_back(-998);
         calcVariables(&*patJet, vC_likelihood, "Likelihood");
         valuesLikelihood->push_back(qgLikelihood->QGvalue(variables));
       } else {
-        valuesMLP->push_back(-999);
+        valuesMLP->push_back(-997);
         valuesLikelihood->push_back(-1);
       }
     }
@@ -79,8 +81,10 @@ void QGTagger::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     for(reco::PFJetCollection::const_iterator pfJet = pfJets->begin(); pfJet != pfJets->end(); ++pfJet){
       if(jecService == "") variables["pt"] = pfJet->pt();
       else variables["pt"] = pfJet->pt()*JEC->correction(*pfJet, iEvent, iSetup);
-      calcVariables(&*pfJet, vC_MLP, "MLP");
-      valuesMLP->push_back(qgMLP->QGvalue(variables));
+      if((*vC_MLP.product()).size() > 0){
+        calcVariables(&*pfJet, vC_MLP, "MLP");
+        valuesMLP->push_back(qgMLP->QGvalue(variables));
+      } else valuesMLP->push_back(-998);
       calcVariables(&*pfJet, vC_likelihood, "Likelihood");
       valuesLikelihood->push_back(qgLikelihood->QGvalue(variables));
     }

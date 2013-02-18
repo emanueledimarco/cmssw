@@ -116,7 +116,6 @@ float QGLikelihoodCalculator::computeQGLikelihoodPU( float pt, float rhoPF, int 
 float QGLikelihoodCalculator::computeQGLikelihood2012( float pt, float eta, float rho, int nPFCandidates_QC_ptCut, float ptD_QC, float axis2_QC ) {
 
 
-std::cout << "pt: " << pt << " eta: " << eta << " rho: " << rho << " nPFCandidates_QC_ptCut: " << nPFCandidates_QC_ptCut << " ptD_QC: " << ptD_QC << " axis2_QC: " << axis2_QC << std::endl;
 // in forward use inclusive 127-4000 bin
 if( fabs(eta)>2.5 && pt>127. ) pt = 128.;
 

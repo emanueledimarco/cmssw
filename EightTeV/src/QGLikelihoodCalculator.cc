@@ -15,6 +15,7 @@ using namespace std;
 
 QGLikelihoodCalculator::QGLikelihoodCalculator( const TString dataDir, Bool_t chs){
   TString histoFileName = "ReducedHisto_2012.root";
+  if(chs) histoFileName = "ReducedHisto_2012_CHS.root";
   histoFile_ = TFile::Open(TString(edm::FileInPath(dataDir + histoFileName).fullPath()));
 
   nPtBins_ = 21;

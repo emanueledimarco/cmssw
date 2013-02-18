@@ -18,18 +18,13 @@ QGLikelihoodCalculator::QGLikelihoodCalculator( const TString dataDir, Bool_t ch
   histoFile_ = TFile::Open(TString(edm::FileInPath(dataDir + histoFileName).fullPath()));
 
   nPtBins_ = 21;
-  nRhoBins_ = 25 ;
+  nRhoBins_ = 45 ;
 
 }
 
 // ADD map destructor
 QGLikelihoodCalculator::~QGLikelihoodCalculator()
 {
-map<string,TH1F*>::iterator it;
-for(it=plots_.begin();it!=plots_.end();it++)
-	{
-	delete it->second;
-	}
 }
 
 
@@ -120,6 +115,11 @@ float QGLikelihoodCalculator::computeQGLikelihoodPU( float pt, float rhoPF, int 
 //new
 float QGLikelihoodCalculator::computeQGLikelihood2012( float pt, float eta, float rho, int nPFCandidates_QC_ptCut, float ptD_QC, float axis2_QC ) {
 
+
+std::cout << "pt: " << pt << " eta: " << eta << " rho: " << rho << " nPFCandidates_QC_ptCut: " << nPFCandidates_QC_ptCut << " ptD_QC: " << ptD_QC << " axis2_QC: " << axis2_QC << std::endl;
+// in forward use inclusive 127-4000 bin
+if( fabs(eta)>2.5 && pt>127. ) pt = 128.;
+
 std::vector<std::string> varName;
 //varName.push_back("nPFCand_QCJet0");
 if( fabs(eta)<2.5 ) {
@@ -176,7 +176,7 @@ rhoMax=floor(rhoMax);
 
 for(unsigned int i=0;i<vars.size();i++){
 //get Histo
-	float Qi,Gi,mQ,mG;
+	float Qi(1),Gi(1),mQ,mG;
 	#ifdef DEBUG
 	fprintf(stderr,"var %d = %s, value = %f\n",i,varName[i].c_str(), vars[i]);
 	#endif
@@ -184,7 +184,11 @@ for(unsigned int i=0;i<vars.size();i++){
 	#ifdef DEBUG
 	fprintf(stderr,"looking for histo: %s\n", histoName );
 	#endif
-	if( plots_[histoName] == NULL ){plots_[histoName]=(TH1F*)histoFile_->Get(histoName); }
+	if( plots_[histoName] == NULL ) { //first time 
+        plots_[histoName]=(TH1F*)histoFile_->Get(histoName); 
+        if( plots_[histoName]->GetEntries()<50 ) plots_[histoName]->Rebin(5); // try to make it more stable
+        else if( plots_[histoName]->GetEntries()<500 ) plots_[histoName]->Rebin(2); // try to make it more stable
+      }
 	if( plots_[histoName] == NULL ) fprintf(stderr,"Histo %s does not exists\n",histoName); //DEBUG
 	plots_[ histoName]->Scale(1./plots_[histoName]->Integral("width")); 
 
@@ -195,7 +199,11 @@ for(unsigned int i=0;i<vars.size();i++){
 	#ifdef DEBUG
 	fprintf(stderr,"looking for histo: %s\n", histoName );
 	#endif
-	if( plots_[histoName] == NULL ){plots_[histoName]=(TH1F*)histoFile_->Get(histoName);}
+	if( plots_[histoName] == NULL ) { // first time
+        plots_[histoName]=(TH1F*)histoFile_->Get(histoName);
+        if( plots_[histoName]->GetEntries()<50 ) plots_[histoName]->Rebin(5); // try to make it more stable
+        else if( plots_[histoName]->GetEntries()<500 ) plots_[histoName]->Rebin(2); // try to make it more stable
+      }
 	if( plots_[histoName] == NULL ) fprintf(stderr,"Histo %s does not exists\n",histoName); //DEBUG
 	plots_[ histoName]->Scale(1./plots_[histoName]->Integral("width")); 
 	Gi=plots_[histoName]->GetBinContent(plots_[histoName]->FindBin(vars[i]));
@@ -257,6 +265,6 @@ float QGLikelihoodCalculator::likelihoodProduct( float nCharged, float nNeutral,
 
 
 Float_t QGLikelihoodCalculator::QGvalue(std::map<TString, Float_t> variables){
-  return computeQGLikelihood2012(variables["pt"], variables["eta"], variables["rho"], variables["mult"], variables["ptD"], variables["axis2"]); 
+  return computeQGLikelihood2012(variables["pt"], variables["eta"], variables["rhoIso"], variables["mult"], variables["ptD"], variables["axis2"]); 
 }
 

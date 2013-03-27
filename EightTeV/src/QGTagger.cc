@@ -1,5 +1,4 @@
 /* Authors: andrea.carlo.marini@cern.ch, tom.cornelis@cern.ch
- * Data: Jan 2013
  */
 #include <memory>
 #include <TROOT.h>
@@ -30,8 +29,10 @@ QGTagger::QGTagger(const edm::ParameterSet& iConfig) :
   useCHS         ( iConfig.getUntrackedParameter<Bool_t>("useCHS", false)),
   isPatJet	 ( iConfig.getUntrackedParameter<Bool_t>("isPatJet", false))
 {
-  produces<edm::ValueMap<Float_t> >("qgLikelihood");
-  produces<edm::ValueMap<Float_t> >("qgMLP");
+  for(TString product : {"qg","axis1", "axis2","mult","ptD"}){
+    produces<edm::ValueMap<Float_t>>((product + "Likelihood").Data());
+    produces<edm::ValueMap<Float_t>>((product + "MLP").Data());
+  }
 
   qgLikelihood 	= new QGLikelihoodCalculator(dataDir, useCHS);
   qgMLP		= new QGMLPCalculator("MLP", dataDir, true);
@@ -39,9 +40,11 @@ QGTagger::QGTagger(const edm::ParameterSet& iConfig) :
 
 
 void QGTagger::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
-  std::auto_ptr<std::vector<Float_t> > valuesLikelihood(new std::vector<Float_t>());
-  std::auto_ptr<std::vector<Float_t> > valuesMLP(new std::vector<Float_t>());
-  produces<edm::ValueMap<Float_t> >("QGTagger");
+  std::map<TString, std::vector<Float_t>* > products;
+  for(TString product : {"qg","axis1", "axis2","mult","ptD"}){
+    products[product + "Likelihood"] = new std::vector<Float_t>;
+    products[product + "MLP"] = new std::vector<Float_t>;
+  }
 
   if(jecService != "") JEC = JetCorrector::getJetCorrector(jecService,iSetup);
 
@@ -68,13 +71,15 @@ void QGTagger::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         variables["pt"] = patJet->pt();
         if((*vC_MLP.product()).size() > 0){
           calcVariables(&*patJet, vC_MLP, "MLP");
-          valuesMLP->push_back(qgMLP->QGvalue(variables));
-        } else valuesMLP->push_back(-998);
+          products["qgMLP"]->push_back(qgMLP->QGvalue(variables));
+          for(TString product : {"axis1", "axis2","mult","ptD"}) products[product + "MLP"]->push_back(variables[product]);
+        } else products["qgMLP"]->push_back(-998);
         calcVariables(&*patJet, vC_likelihood, "Likelihood");
-        valuesLikelihood->push_back(qgLikelihood->QGvalue(variables));
+        products["qgLikelihood"]->push_back(qgLikelihood->QGvalue(variables));
+        for(TString product : {"axis1", "axis2","mult","ptD"}) products[product + "Likelihood"]->push_back(variables[product]);
       } else {
-        valuesMLP->push_back(-997);
-        valuesLikelihood->push_back(-1);
+        products["qgMLP"]->push_back(-997);
+        products["qgLikelihood"]->push_back(-1);
       }
     }
   } else {
@@ -83,26 +88,25 @@ void QGTagger::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       else variables["pt"] = pfJet->pt()*JEC->correction(*pfJet, iEvent, iSetup);
       if((*vC_MLP.product()).size() > 0){
         calcVariables(&*pfJet, vC_MLP, "MLP");
-        valuesMLP->push_back(qgMLP->QGvalue(variables));
-      } else valuesMLP->push_back(-998);
+        products["qgMLP"]->push_back(qgMLP->QGvalue(variables));
+        for(TString product : {"axis1", "axis2","mult","ptD"}) products[product + "MLP"]->push_back(variables[product]);
+      } else products["qgMLP"]->push_back(-998);
       calcVariables(&*pfJet, vC_likelihood, "Likelihood");
-      valuesLikelihood->push_back(qgLikelihood->QGvalue(variables));
+      products["qgLikelihood"]->push_back(qgLikelihood->QGvalue(variables));
+      for(TString product : {"axis1", "axis2","mult","ptD"}) products[product + "Likelihood"]->push_back(variables[product]);
     }
   }
 
-  std::auto_ptr<edm::ValueMap<Float_t> > outLikelihood(new edm::ValueMap<Float_t>());
-  std::auto_ptr<edm::ValueMap<Float_t> > outMLP(new edm::ValueMap<Float_t>());
-  edm::ValueMap<Float_t>::Filler fillerLikelihood(*outLikelihood);
-  edm::ValueMap<Float_t>::Filler fillerMLP(*outMLP);
-  if(isPatJet)  fillerLikelihood.insert(patJets, valuesLikelihood->begin(), valuesLikelihood->end());
-  else 		fillerLikelihood.insert(pfJets, valuesLikelihood->begin(), valuesLikelihood->end());
-  if(isPatJet)	fillerMLP.insert(patJets, valuesMLP->begin(), valuesMLP->end());
-  else  	fillerMLP.insert(pfJets, valuesMLP->begin(), valuesMLP->end());
-  fillerLikelihood.fill();
-  fillerMLP.fill();
-  // put value map into event
-  iEvent.put(outLikelihood, "qgLikelihood");
-  iEvent.put(outMLP, "qgMLP");
+
+  for(std::map<TString, std::vector<Float_t>* >::iterator product = products.begin(); product != products.end(); ++product){
+    std::auto_ptr<edm::ValueMap<Float_t>> out(new edm::ValueMap<Float_t>());
+    edm::ValueMap<Float_t>::Filler filler(*out);
+    if(isPatJet) filler.insert(patJets, product->second->begin(), product->second->end());
+    else 	 filler.insert(pfJets, product->second->begin(), product->second->end());
+    filler.fill();
+    iEvent.put(out, (product->first).Data());
+    delete product->second;
+  }
 }
 
 

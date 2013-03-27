@@ -30,7 +30,7 @@ QGTagger::QGTagger(const edm::ParameterSet& iConfig) :
   isPatJet	 ( iConfig.getUntrackedParameter<Bool_t>("isPatJet", false))
 {
   for(TString product : {"qg","axis1", "axis2","mult","ptD"}){
-    produces<edm::ValueMap<Float_t>>((product + "Likelihood").Data());
+    if(product != "axis1") produces<edm::ValueMap<Float_t>>((product + "Likelihood").Data());
     produces<edm::ValueMap<Float_t>>((product + "MLP").Data());
   }
 
@@ -99,6 +99,7 @@ void QGTagger::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
 
   for(std::map<TString, std::vector<Float_t>* >::iterator product = products.begin(); product != products.end(); ++product){
+    if(product->first == "axis1Likelihood") continue;
     std::auto_ptr<edm::ValueMap<Float_t>> out(new edm::ValueMap<Float_t>());
     edm::ValueMap<Float_t>::Filler filler(*out);
     if(isPatJet) filler.insert(patJets, product->second->begin(), product->second->end());

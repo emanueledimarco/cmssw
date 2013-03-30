@@ -91,8 +91,10 @@ void QGTagger::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       if((*vC_MLP.product()).size() > 0){
         calcVariables(&*pfJet, vC_MLP, "MLP");
         products["qgMLP"]->push_back(qgMLP->QGvalue(variables));
-        for(TString product : {"axis1", "axis2","mult","ptD"}) products[product + "MLP"]->push_back(variables[product]);
+        //for(TString product : {"axis1", "axis2","mult","ptD"}) products[product + "MLP"]->push_back(variables[product]);
       } else products["qgMLP"]->push_back(-998);
+	//in any case
+        for(TString product : {"axis1", "axis2","mult","ptD"}) products[product + "MLP"]->push_back(variables[product]);
       calcVariables(&*pfJet, vC_likelihood, "Likelihood");
       products["qgLikelihood"]->push_back(qgLikelihood->QGvalue(variables));
       for(TString product : {"axis1", "axis2","mult","ptD"}) products[product + "Likelihood"]->push_back(variables[product]);

@@ -72,8 +72,10 @@ void QGTagger::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         if((*vC_MLP.product()).size() > 0){
           calcVariables(&*patJet, vC_MLP, "MLP");
           products["qgMLP"]->push_back(qgMLP->QGvalue(variables));
-          for(TString product : {"axis1", "axis2","mult","ptD"}) products[product + "MLP"]->push_back(variables[product]);
+        //  for(TString product : {"axis1", "axis2","mult","ptD"}) products[product + "MLP"]->push_back(variables[product]);
         } else products["qgMLP"]->push_back(-998);
+	//in any case -- otherwise use if then ELSE in this case too
+        for(TString product : {"axis1", "axis2","mult","ptD"}) products[product + "MLP"]->push_back(variables[product]);
         calcVariables(&*patJet, vC_likelihood, "Likelihood");
         products["qgLikelihood"]->push_back(qgLikelihood->QGvalue(variables));
         for(TString product : {"axis1", "axis2","mult","ptD"}) products[product + "Likelihood"]->push_back(variables[product]);
@@ -81,8 +83,8 @@ void QGTagger::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         products["qgMLP"]->push_back(-997);
         products["qgLikelihood"]->push_back(-1);
       }
-    }
-  } else {
+    } //loop on PAT jets
+  } else { //NOT PAT
     for(reco::PFJetCollection::const_iterator pfJet = pfJets->begin(); pfJet != pfJets->end(); ++pfJet){
       if(jecService == "") variables["pt"] = pfJet->pt();
       else variables["pt"] = pfJet->pt()*JEC->correction(*pfJet, iEvent, iSetup);

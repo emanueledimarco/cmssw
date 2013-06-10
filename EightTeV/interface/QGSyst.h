@@ -25,15 +25,7 @@ public:
 	std::pair<float,float> EtaRange;	
 	std::pair<float,float> RhoRange;	
 	std::string tag;
-	bool isInside(float pt,float eta,float rho) const
-		{
-		if( ( pt<=PtRange.second) && (PtRange.first<pt) && 
-		    (RhoRange.first<=rho) && (rho<RhoRange.second) && 
-		    (EtaRange.first <= eta) && (eta<EtaRange.second) ) return true;
-		else { 
-			//printf("pt eta rho (%.0f,%.1f,%.1f) outside of (%.0f-%.0f),(%.1f,%.1f),(%.1f,%.1f\n)\n",pt,eta,rho,PtRange.first,PtRange.second,EtaRange.first,EtaRange.second,RhoRange.first,RhoRange.second); //debug
-			return false;} 
-		}
+	bool isInside(float pt,float eta,float rho) const;
 	bool operator<(const QGSystBin& rhs) const;
 };
 

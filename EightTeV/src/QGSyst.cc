@@ -64,3 +64,26 @@ float QGSyst::Smear(float pt,float eta, float rho, float x){
 	return -99;
 }
 
+
+bool QGSystBin::operator<(const QGSystBin& rhs) const {
+
+	if( !(this->PtRange.first   == rhs.PtRange.first) )   return (this->PtRange.first   < rhs.PtRange.first);
+	if( !(this->PtRange.second  == rhs.PtRange.second) )  return (this->PtRange.second  < rhs.PtRange.second);
+	if( !(this->EtaRange.first  == rhs.EtaRange.first) )  return (this->EtaRange.first  < rhs.EtaRange.first);
+	if( !(this->EtaRange.second == rhs.EtaRange.second) ) return (this->EtaRange.second < rhs.EtaRange.second);
+	if( !(this->RhoRange.first  == rhs.RhoRange.first) )  return (this->RhoRange.first  < rhs.RhoRange.first);
+	if( !(this->RhoRange.second == rhs.RhoRange.second) ) return (this->RhoRange.second < rhs.RhoRange.second);
+	return (this->tag < rhs.tag) ;
+	return false; //never here
+}
+
+
+bool QGSystBin::isInside(float pt,float eta,float rho) const {
+	if( ( pt<=PtRange.second) && (PtRange.first<pt) && 
+	    (RhoRange.first<=rho) && (rho<RhoRange.second) && 
+	    (EtaRange.first <= eta) && (eta<EtaRange.second) ) return true;
+	else { 
+		//printf("pt eta rho (%.0f,%.1f,%.1f) outside of (%.0f-%.0f),(%.1f,%.1f),(%.1f,%.1f\n)\n",pt,eta,rho,PtRange.first,PtRange.second,EtaRange.first,EtaRange.second,RhoRange.first,RhoRange.second); //debug
+		return false;
+	} 
+}

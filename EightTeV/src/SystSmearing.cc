@@ -58,10 +58,10 @@ const bool operator<(const Bin&a,const Bin&b)
 	return false; //never here
 }
 
-class Syst {
+class QGSyst {
 public:
-	Syst();
-	~Syst();
+	QGSyst();
+	~QGSyst();
 	float Smear(float pt,float eta, float rho, float x);
 	void SetTagger(std::string tag){tagger_=tag;};
 	std::string GetTagger(){ return tagger_;};
@@ -79,17 +79,17 @@ private:
 #ifndef SYST_C
 #define SYST_C
 //-------- Constructor -------
-Syst::Syst()
+QGSyst::QGSyst()
 {
 	tagger_="QGLHisto";
 }
 //-------- Destructor -------
-Syst::~Syst()
+QGSyst::~QGSyst()
 {
 	if(database_.is_open()) database_.close();
 }
 //----------Read Database ----------
-void Syst::ReadDatabase(std::string fileName)
+void QGSyst::ReadDatabase(std::string fileName)
 {
 	database_.open(fileName.c_str(),std::ios::in);
 	if( !database_.is_open() ) { std::cerr<<"ERROR: File "<<fileName<<" not open"<<std::endl; return;}
@@ -115,7 +115,7 @@ void Syst::ReadDatabase(std::string fileName)
 	database_.close();
 }
 
-float Syst::function(float x0, float a ,float b,float min,float max)
+float QGSyst::function(float x0, float a ,float b,float min,float max)
 {
 using namespace TMath;
 float x=(x0-min)/(max-min); 
@@ -128,7 +128,7 @@ return x1*(max-min)+min;
  
 }
 
-float Syst::Smear(float pt,float eta, float rho, float x){
+float QGSyst::Smear(float pt,float eta, float rho, float x){
 	for(std::map<Bin,Parameters>::iterator it= corrections_.begin();it!=corrections_.end();it++)
 		{
 		if(it->first.tag.find(tagger_) == std::string::npos)continue;

@@ -10,13 +10,16 @@
 
 
 
-void drawSinglePlot( DrawBase* db, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, float ptMax, float etaMin, float etaMaxi, float rhoMin, float rhoMax );
+void drawSinglePlot( DrawBase* db, TH1D* h1_data, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, float ptMax, float etaMin, float etaMaxi, float rhoMin, float rhoMax );
 
 int main() {
 
 
   TFile* file = TFile::Open("/afs/cern.ch/user/a/amarini/work/GluonTag/ZJet/ZJet_DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball_Summer12_DR53X-PU_S10_START53_V7A-v1_2.root");
   TTree* tree = (TTree*)file->Get("tree_passedEvents");
+
+  TFile* file_data = TFile::Open("/afs/cern.ch/user/a/amarini/work/GluonTag/ZJet/ZJet_DoubleMu-Run2012C.root");
+  TTree* tree_data = (TTree*)file_data->Get("tree_passedEvents");
 
 
   float rho;
@@ -27,6 +30,14 @@ int main() {
   tree->SetBranchAddress("etaJet0", &etaJet );
   float qglJet;
   tree->SetBranchAddress("QGLikelihood2012Jet0", &qglJet );
+  int nvertex; 
+  tree->SetBranchAddress("nvertex", &nvertex );
+  float mZ;
+  tree->SetBranchAddress("mZ", &mZ );
+  float ptD_QCJet;
+  tree->SetBranchAddress("ptD_QCJet0", &ptD_QCJet );
+  float betaStarJet;
+  tree->SetBranchAddress("betaStarJet0", &betaStarJet );
 
   QGSyst qgsyst;
   qgsyst.ReadDatabase("../data/SystDatabase.txt");
@@ -75,6 +86,9 @@ int main() {
     tree->GetEntry(iEntry);
 
     if( rho>15. ) continue;
+    if( mZ<70. || mZ>110. ) continue;
+    if( ptD_QCJet <=0. ) continue;
+    if( fabs(etaJet)<2.5 && betaStarJet > 0.2 * log( (float)nvertex - 0.67) ) continue;
 
 
     if( fabs(etaJet)<2. ) {
@@ -120,15 +134,96 @@ int main() {
   }
 
 
+  // now switch to data:
+  tree_data->SetBranchAddress("nvertex", &nvertex );
+  tree_data->SetBranchAddress("mZ", &mZ );
+  tree_data->SetBranchAddress("rhoPF", &rho );
+  tree_data->SetBranchAddress("ptJet0", &ptJet );
+  tree_data->SetBranchAddress("etaJet0", &etaJet );
+  tree_data->SetBranchAddress("ptD_QCJet0", &ptD_QCJet );
+  tree_data->SetBranchAddress("QGLikelihood2012Jet0", &qglJet );
+  tree_data->SetBranchAddress("betaStarJet0", &betaStarJet );
+
+
+
+  TH1D* h1_data_qglJet_pt3050_eta02_rho015 = new TH1D("data_qglJet_pt3050_eta02_rho015", "", 100, 0., 1.0001);
+  h1_data_qglJet_pt3050_eta02_rho015->Sumw2();
+
+  TH1D* h1_data_qglJet_pt5080_eta02_rho015 = new TH1D("data_qglJet_pt5080_eta02_rho015", "", 100, 0., 1.0001);
+  h1_data_qglJet_pt5080_eta02_rho015->Sumw2();
+
+  TH1D* h1_data_qglJet_pt80120_eta02_rho015 = new TH1D("data_qglJet_pt80120_eta02_rho015", "", 100, 0., 1.0001);
+  h1_data_qglJet_pt80120_eta02_rho015->Sumw2();
+
+
+  TH1D* h1_data_qglJet_pt3050_eta35_rho015 = new TH1D("data_qglJet_pt3050_eta35_rho015", "", 100, 0., 1.0001);
+  h1_data_qglJet_pt3050_eta35_rho015->Sumw2();
+
+  TH1D* h1_data_qglJet_pt5080_eta35_rho015 = new TH1D("data_qglJet_pt5080_eta35_rho015", "", 100, 0., 1.0001);
+  h1_data_qglJet_pt5080_eta35_rho015->Sumw2();
+
+  TH1D* h1_data_qglJet_pt80120_eta35_rho015 = new TH1D("data_qglJet_pt80120_eta35_rho015", "", 100, 0., 1.0001);
+  h1_data_qglJet_pt80120_eta35_rho015->Sumw2();
+
+
+  int nentries_data = tree_data->GetEntries();
+
+  for( unsigned iEntry = 0; iEntry < nentries_data; ++iEntry ) {
+
+    tree_data->GetEntry(iEntry);
+
+    if( rho>15. ) continue;
+    if( mZ<70. || mZ>110. ) continue;
+    if( ptD_QCJet <=0. ) continue;
+    if( fabs(etaJet)<2.5 && betaStarJet > 0.2 * log( (float)nvertex - 0.67) ) continue;
+
+
+    if( fabs(etaJet)<2. ) {
+
+      if( ptJet > 30. && ptJet < 50. ) {
+
+        h1_data_qglJet_pt3050_eta02_rho015->Fill( qglJet );
+
+      } else if( ptJet > 50. && ptJet < 80. ) {
+
+        h1_data_qglJet_pt5080_eta02_rho015->Fill( qglJet );
+
+      } else if( ptJet > 80. && ptJet < 120. ) {
+
+        h1_data_qglJet_pt80120_eta02_rho015->Fill( qglJet );
+
+      } 
+
+    } else if( fabs(etaJet)>3. && fabs(etaJet)<5. ) {
+
+      if( ptJet > 30. && ptJet < 50. ) {
+
+        h1_data_qglJet_pt3050_eta35_rho015->Fill( qglJet );
+
+      } else if( ptJet > 50. && ptJet < 80. ) {
+
+        h1_data_qglJet_pt5080_eta35_rho015->Fill( qglJet );
+
+      } else if( ptJet > 80. && ptJet < 120. ) {
+
+        h1_data_qglJet_pt80120_eta35_rho015->Fill( qglJet );
+
+      } 
+
+    } // eta
+
+  }
+
+
   DrawBase* db = new DrawBase("provaSyst");
   
-  drawSinglePlot( db, h1_qglJet_pt3050_eta02_rho015, h1_qglJetSyst_pt3050_eta02_rho015, 30., 50., 0., 2., 0., 15.);
-  drawSinglePlot( db, h1_qglJet_pt5080_eta02_rho015, h1_qglJetSyst_pt5080_eta02_rho015, 50., 80., 0., 2., 0., 15.);
-  drawSinglePlot( db, h1_qglJet_pt80120_eta02_rho015, h1_qglJetSyst_pt80120_eta02_rho015, 80., 120., 0., 2., 0., 15.);
+  drawSinglePlot( db, h1_data_qglJet_pt3050_eta02_rho015, h1_qglJet_pt3050_eta02_rho015, h1_qglJetSyst_pt3050_eta02_rho015, 30., 50., 0., 2., 0., 15.);
+  drawSinglePlot( db, h1_data_qglJet_pt5080_eta02_rho015, h1_qglJet_pt5080_eta02_rho015, h1_qglJetSyst_pt5080_eta02_rho015, 50., 80., 0., 2., 0., 15.);
+  drawSinglePlot( db, h1_data_qglJet_pt80120_eta02_rho015,h1_qglJet_pt80120_eta02_rho015, h1_qglJetSyst_pt80120_eta02_rho015, 80., 120., 0., 2., 0., 15.);
 
-  drawSinglePlot( db, h1_qglJet_pt3050_eta35_rho015, h1_qglJetSyst_pt3050_eta35_rho015, 30., 50., 3., 5., 0., 15.);
-  drawSinglePlot( db, h1_qglJet_pt5080_eta35_rho015, h1_qglJetSyst_pt5080_eta35_rho015, 50., 80., 3., 5., 0., 15.);
-  drawSinglePlot( db, h1_qglJet_pt80120_eta35_rho015, h1_qglJetSyst_pt80120_eta35_rho015, 80., 120., 3., 5., 0., 15.);
+  drawSinglePlot( db, h1_data_qglJet_pt3050_eta35_rho015, h1_qglJet_pt3050_eta35_rho015, h1_qglJetSyst_pt3050_eta35_rho015, 30., 50., 3., 5., 0., 15.);
+  drawSinglePlot( db, h1_data_qglJet_pt5080_eta35_rho015, h1_qglJet_pt5080_eta35_rho015, h1_qglJetSyst_pt5080_eta35_rho015, 50., 80., 3., 5., 0., 15.);
+  drawSinglePlot( db, h1_data_qglJet_pt80120_eta35_rho015,h1_qglJet_pt80120_eta35_rho015, h1_qglJetSyst_pt80120_eta35_rho015, 80., 120., 3., 5., 0., 15.);
 
 
 
@@ -152,6 +247,19 @@ int main() {
   h1_qglJet_pt80120_eta35_rho015->Write();
   h1_qglJetSyst_pt80120_eta35_rho015->Write();
 
+
+  h1_data_qglJet_pt3050_eta02_rho015->Write();
+  
+  h1_data_qglJet_pt5080_eta02_rho015->Write();
+  
+  h1_data_qglJet_pt80120_eta02_rho015->Write();
+
+  h1_data_qglJet_pt3050_eta35_rho015->Write();
+  
+  h1_data_qglJet_pt5080_eta35_rho015->Write();
+  
+  h1_data_qglJet_pt80120_eta35_rho015->Write();
+
   outfile->Close();
   
 
@@ -161,7 +269,7 @@ int main() {
 }
 
 
-void drawSinglePlot( DrawBase* db, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax ) {
+void drawSinglePlot( DrawBase* db, TH1D* h1_data, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax ) {
 
 
   TCanvas* c1 = new TCanvas("c1", "", 600, 600);
@@ -169,13 +277,16 @@ void drawSinglePlot( DrawBase* db, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, 
 
   h1_qgl->Rebin(2);
   h1_qglSyst->Rebin(2);
+  h1_data->Rebin(2);
 
+  h1_qgl->SetLineStyle(2);
   h1_qgl->SetLineWidth(2);
   h1_qglSyst->SetLineWidth(2);
+  h1_data->SetMarkerStyle(20);
 
   float ymax = h1_qgl->GetMaximum() / h1_qgl->Integral();
 
-  TH2D* h2_axes = new TH2D("axes", "", 10, 0., 1.0001, 10, 0., 1.3*ymax);
+  TH2D* h2_axes = new TH2D("axes", "", 10, 0., 1.0001, 10, 0., 1.4*ymax);
   h2_axes->SetXTitle("QG LD");
   h2_axes->SetYTitle("Normalized to Unity");
 
@@ -184,6 +295,7 @@ void drawSinglePlot( DrawBase* db, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, 
   h2_axes->Draw();
   h1_qgl->DrawNormalized("Histo same");
   h1_qglSyst->DrawNormalized("Histo same");
+  h1_data->DrawNormalized("P same");
 
   char legendTitle[500];
   sprintf( legendTitle, "p_{T}(%.0f-%.0f), #eta(%.1f-%.1f), #rho(%.0f-%.0f)", ptMin, ptMax, etaMin, etaMax, rhoMin, rhoMax);
@@ -191,6 +303,7 @@ void drawSinglePlot( DrawBase* db, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, 
   TLegend* legend = new TLegend(0.25, 0.7, 0.75, 0.9, legendTitle);
   legend->SetFillColor(0);
   legend->SetTextSize(0.038);
+  legend->AddEntry( h1_data, "Data", "p" );
   legend->AddEntry( h1_qgl, "Before Smearing", "F" );
   legend->AddEntry( h1_qglSyst, "After Smearing", "F" );
   legend->Draw("same");

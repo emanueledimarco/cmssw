@@ -100,6 +100,11 @@ int main( int argc, char* argv[] ) {
   TH1D* h1_qglJetSyst_pt80120_eta02_rho040 = new TH1D("qglJetSyst_pt80120_eta02_rho040", "", 100, 0., 1.0001);
   h1_qglJetSyst_pt80120_eta02_rho040->Sumw2();
 
+  TH1D* h1_qglJet_pt120250_eta02_rho040 = new TH1D("qglJet_pt120250_eta02_rho040", "", 100, 0., 1.0001);
+  h1_qglJet_pt120250_eta02_rho040->Sumw2();
+  TH1D* h1_qglJetSyst_pt120250_eta02_rho040 = new TH1D("qglJetSyst_pt120250_eta02_rho040", "", 100, 0., 1.0001);
+  h1_qglJetSyst_pt120250_eta02_rho040->Sumw2();
+
 
   TH1D* h1_qglJet_pt3050_eta35_rho040 = new TH1D("qglJet_pt3050_eta35_rho040", "", 100, 0., 1.0001);
   h1_qglJet_pt3050_eta35_rho040->Sumw2();
@@ -115,6 +120,7 @@ int main( int argc, char* argv[] ) {
   h1_qglJet_pt80120_eta35_rho040->Sumw2();
   TH1D* h1_qglJetSyst_pt80120_eta35_rho040 = new TH1D("qglJetSyst_pt80120_eta35_rho040", "", 100, 0., 1.0001);
   h1_qglJetSyst_pt80120_eta35_rho040->Sumw2();
+
 
 
   int nentries = tree->GetEntries();
@@ -142,8 +148,8 @@ int main( int argc, char* argv[] ) {
       if( fabs(pdgIdPartJet)>0 && fabs(pdgIdPartJet)<6 ) type = "quark";
       else if( pdgIdPartJet==21 ) type = "gluon";
       else { // both 0 and -999
-        smearJet = false;
-        //type = "gluon";
+        //smearJet = false;
+        type = "gluon";
         //std::cout << "Unknown jet PDG ID (" << pdgIdPartJet << "). Will use gluon instead." << std::endl;
       }
     }
@@ -166,6 +172,11 @@ int main( int argc, char* argv[] ) {
 
         h1_qglJet_pt80120_eta02_rho040->Fill( qglJet, puweight );
         h1_qglJetSyst_pt80120_eta02_rho040->Fill( qglJetSyst, puweight );
+
+      } else if( ptJet > 120. && ptJet < 250. ) {
+
+        h1_qglJet_pt120250_eta02_rho040->Fill( qglJet, puweight );
+        h1_qglJetSyst_pt120250_eta02_rho040->Fill( qglJetSyst, puweight );
 
       } 
 
@@ -222,6 +233,9 @@ int main( int argc, char* argv[] ) {
   TH1D* h1_data_qglJet_pt80120_eta02_rho040 = new TH1D("data_qglJet_pt80120_eta02_rho040", "", 100, 0., 1.0001);
   h1_data_qglJet_pt80120_eta02_rho040->Sumw2();
 
+  TH1D* h1_data_qglJet_pt120250_eta02_rho040 = new TH1D("data_qglJet_pt120250_eta02_rho040", "", 100, 0., 1.0001);
+  h1_data_qglJet_pt120250_eta02_rho040->Sumw2();
+
 
   TH1D* h1_data_qglJet_pt3050_eta35_rho040 = new TH1D("data_qglJet_pt3050_eta35_rho040", "", 100, 0., 1.0001);
   h1_data_qglJet_pt3050_eta35_rho040->Sumw2();
@@ -263,6 +277,10 @@ int main( int argc, char* argv[] ) {
 
         h1_data_qglJet_pt80120_eta02_rho040->Fill( qglJet );
 
+      } else if( ptJet > 120. && ptJet < 250. ) {
+
+        h1_data_qglJet_pt120250_eta02_rho040->Fill( qglJet );
+
       } 
 
     } else if( fabs(etaJet)>3. && fabs(etaJet)<5. ) {
@@ -291,6 +309,7 @@ int main( int argc, char* argv[] ) {
   drawSinglePlot( db, h1_data_qglJet_pt3050_eta02_rho040, h1_qglJet_pt3050_eta02_rho040, h1_qglJetSyst_pt3050_eta02_rho040, 30., 50., 0., 2., 0., 40.);
   drawSinglePlot( db, h1_data_qglJet_pt5080_eta02_rho040, h1_qglJet_pt5080_eta02_rho040, h1_qglJetSyst_pt5080_eta02_rho040, 50., 80., 0., 2., 0., 40.);
   drawSinglePlot( db, h1_data_qglJet_pt80120_eta02_rho040,h1_qglJet_pt80120_eta02_rho040, h1_qglJetSyst_pt80120_eta02_rho040, 80., 120., 0., 2., 0., 40.);
+  drawSinglePlot( db, h1_data_qglJet_pt120250_eta02_rho040,h1_qglJet_pt120250_eta02_rho040, h1_qglJetSyst_pt120250_eta02_rho040, 120., 250., 0., 2., 0., 40.);
 
   drawSinglePlot( db, h1_data_qglJet_pt3050_eta35_rho040, h1_qglJet_pt3050_eta35_rho040, h1_qglJetSyst_pt3050_eta35_rho040, 30., 50., 3., 5., 0., 40.);
   drawSinglePlot( db, h1_data_qglJet_pt5080_eta35_rho040, h1_qglJet_pt5080_eta35_rho040, h1_qglJetSyst_pt5080_eta35_rho040, 50., 80., 3., 5., 0., 40.);
@@ -315,6 +334,9 @@ int main( int argc, char* argv[] ) {
   h1_qglJet_pt80120_eta02_rho040->Write();
   h1_qglJetSyst_pt80120_eta02_rho040->Write();
 
+  h1_qglJet_pt120250_eta02_rho040->Write();
+  h1_qglJetSyst_pt120250_eta02_rho040->Write();
+
   h1_qglJet_pt3050_eta35_rho040->Write();
   h1_qglJetSyst_pt3050_eta35_rho040->Write();
   
@@ -330,6 +352,8 @@ int main( int argc, char* argv[] ) {
   h1_data_qglJet_pt5080_eta02_rho040->Write();
   
   h1_data_qglJet_pt80120_eta02_rho040->Write();
+
+  h1_data_qglJet_pt120250_eta02_rho040->Write();
 
   h1_data_qglJet_pt3050_eta35_rho040->Write();
   

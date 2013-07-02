@@ -3,23 +3,44 @@
 #include "../interface/QGSyst.h"
 #include "TFile.h"
 #include "TTree.h"
+#include "TChain.h"
 #include "TH1D.h"
 #include "TCanvas.h"
 #include "TLegend.h"
 #include "DrawBase.h"
 
 
+bool doubleMin = false;
+
 
 void drawSinglePlot( DrawBase* db, TH1D* h1_data, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, float ptMax, float etaMin, float etaMaxi, float rhoMin, float rhoMax );
 
-int main() {
+int main( int argc, char* argv[] ) {
+
+
+  std::string outfilename = "prova_doubleMin.root";
+
+  if( argc>1 ) {
+    std::string doubleMin_src(argv[1]);
+    if( doubleMin_src != "false" ) {
+      doubleMin = true;
+      std::cout << "-> Switching ON double min" << std::endl;
+      outfilename = "prova_doubleMin.root";
+    }
+  }
+
+
+  TFile* file_puWeights = TFile::Open("puWeights.root");
+  TH1D* h1_puweights = (TH1D*)file_puWeights->Get("puweights");
 
 
   TFile* file = TFile::Open("/afs/cern.ch/user/a/amarini/work/GluonTag/ZJet/ZJet_DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball_Summer12_DR53X-PU_S10_START53_V7A-v1_2.root");
   TTree* tree = (TTree*)file->Get("tree_passedEvents");
 
-  TFile* file_data = TFile::Open("/afs/cern.ch/user/a/amarini/work/GluonTag/ZJet/ZJet_DoubleMu-Run2012C.root");
-  TTree* tree_data = (TTree*)file_data->Get("tree_passedEvents");
+  //TFile* file_data = TFile::Open("/afs/cern.ch/user/a/amarini/work/GluonTag/ZJet/ZJet_DoubleMu-Run2012AB.root");
+  TChain* tree_data = new TChain("tree_passedEvents");
+  tree_data->Add("/afs/cern.ch/user/a/amarini/work/GluonTag/ZJet/ZJet_DoubleMu-Run2012*.root");
+  //TTree* tree_data = (TTree*)file_data->Get("tree_passedEvents");
 
 
   float rho;
@@ -28,55 +49,72 @@ int main() {
   tree->SetBranchAddress("ptJet0", &ptJet );
   float etaJet;
   tree->SetBranchAddress("etaJet0", &etaJet );
+  int pdgIdPartJet;
+  tree->SetBranchAddress("pdgIdPartJet0", &pdgIdPartJet );
   float qglJet;
-  tree->SetBranchAddress("QGLikelihood2012Jet0", &qglJet );
+  tree->SetBranchAddress("QGLHisto", &qglJet );
   int nvertex; 
   tree->SetBranchAddress("nvertex", &nvertex );
+  float deltaPhi_jet;
+  tree->SetBranchAddress("deltaPhi_jet", &deltaPhi_jet );
   float mZ;
   tree->SetBranchAddress("mZ", &mZ );
+  float ptZ;
+  tree->SetBranchAddress("ptZ", &ptZ );
   float ptD_QCJet;
   tree->SetBranchAddress("ptD_QCJet0", &ptD_QCJet );
   float betaStarJet;
   tree->SetBranchAddress("betaStarJet0", &betaStarJet );
+  bool btagged;
+  tree->SetBranchAddress("btagged", &btagged );
+
 
   QGSyst qgsyst;
-  qgsyst.ReadDatabase("../data/SystDatabase.txt");
+  if( doubleMin )
+    qgsyst.ReadDatabaseDoubleMin("../data/SystDatabase_doubleMin.txt");
+  else
+    qgsyst.ReadDatabase("../data/SystDatabase.txt");
   qgsyst.SetTagger("QGLHisto");
 
 
-  TFile* outfile = TFile::Open("prova.root", "RECREATE");
+  TFile* outfile = TFile::Open(outfilename.c_str(), "RECREATE");
   outfile->cd(); 
 
-  TH1D* h1_qglJet_pt3050_eta02_rho015 = new TH1D("qglJet_pt3050_eta02_rho015", "", 100, 0., 1.0001);
-  h1_qglJet_pt3050_eta02_rho015->Sumw2();
-  TH1D* h1_qglJetSyst_pt3050_eta02_rho015 = new TH1D("qglJetSyst_pt3050_eta02_rho015", "", 100, 0., 1.0001);
-  h1_qglJetSyst_pt3050_eta02_rho015->Sumw2();
+  TH1D* h1_ptZ = new TH1D("ptZ", "", 100, 0., 100.);
+  h1_ptZ->Sumw2();
+  TH1D* h1_rho = new TH1D("rho", "", 40, 0., 40.);
+  h1_rho->Sumw2();
 
-  TH1D* h1_qglJet_pt5080_eta02_rho015 = new TH1D("qglJet_pt5080_eta02_rho015", "", 100, 0., 1.0001);
-  h1_qglJet_pt5080_eta02_rho015->Sumw2();
-  TH1D* h1_qglJetSyst_pt5080_eta02_rho015 = new TH1D("qglJetSyst_pt5080_eta02_rho015", "", 100, 0., 1.0001);
-  h1_qglJetSyst_pt5080_eta02_rho015->Sumw2();
+  TH1D* h1_qglJet_pt3050_eta02_rho040 = new TH1D("qglJet_pt3050_eta02_rho040", "", 100, 0., 1.0001);
+  h1_qglJet_pt3050_eta02_rho040->Sumw2();
+  TH1D* h1_qglJetSyst_pt3050_eta02_rho040 = new TH1D("qglJetSyst_pt3050_eta02_rho040", "", 100, 0., 1.0001);
+  h1_qglJetSyst_pt3050_eta02_rho040->Sumw2();
 
-  TH1D* h1_qglJet_pt80120_eta02_rho015 = new TH1D("qglJet_pt80120_eta02_rho015", "", 100, 0., 1.0001);
-  h1_qglJet_pt80120_eta02_rho015->Sumw2();
-  TH1D* h1_qglJetSyst_pt80120_eta02_rho015 = new TH1D("qglJetSyst_pt80120_eta02_rho015", "", 100, 0., 1.0001);
-  h1_qglJetSyst_pt80120_eta02_rho015->Sumw2();
+  TH1D* h1_qglJet_pt5080_eta02_rho040 = new TH1D("qglJet_pt5080_eta02_rho040", "", 100, 0., 1.0001);
+  h1_qglJet_pt5080_eta02_rho040->Sumw2();
+  TH1D* h1_qglJetSyst_pt5080_eta02_rho040 = new TH1D("qglJetSyst_pt5080_eta02_rho040", "", 100, 0., 1.0001);
+  h1_qglJetSyst_pt5080_eta02_rho040->Sumw2();
+
+  TH1D* h1_qglJet_pt80120_eta02_rho040 = new TH1D("qglJet_pt80120_eta02_rho040", "", 100, 0., 1.0001);
+  h1_qglJet_pt80120_eta02_rho040->Sumw2();
+  TH1D* h1_qglJetSyst_pt80120_eta02_rho040 = new TH1D("qglJetSyst_pt80120_eta02_rho040", "", 100, 0., 1.0001);
+  h1_qglJetSyst_pt80120_eta02_rho040->Sumw2();
 
 
-  TH1D* h1_qglJet_pt3050_eta35_rho015 = new TH1D("qglJet_pt3050_eta35_rho015", "", 100, 0., 1.0001);
-  h1_qglJet_pt3050_eta35_rho015->Sumw2();
-  TH1D* h1_qglJetSyst_pt3050_eta35_rho015 = new TH1D("qglJetSyst_pt3050_eta35_rho015", "", 100, 0., 1.0001);
-  h1_qglJetSyst_pt3050_eta35_rho015->Sumw2();
+  TH1D* h1_qglJet_pt3050_eta35_rho040 = new TH1D("qglJet_pt3050_eta35_rho040", "", 100, 0., 1.0001);
+  h1_qglJet_pt3050_eta35_rho040->Sumw2();
+  TH1D* h1_qglJetSyst_pt3050_eta35_rho040 = new TH1D("qglJetSyst_pt3050_eta35_rho040", "", 100, 0., 1.0001);
+  h1_qglJetSyst_pt3050_eta35_rho040->Sumw2();
 
-  TH1D* h1_qglJet_pt5080_eta35_rho015 = new TH1D("qglJet_pt5080_eta35_rho015", "", 100, 0., 1.0001);
-  h1_qglJet_pt5080_eta35_rho015->Sumw2();
-  TH1D* h1_qglJetSyst_pt5080_eta35_rho015 = new TH1D("qglJetSyst_pt5080_eta35_rho015", "", 100, 0., 1.0001);
-  h1_qglJetSyst_pt5080_eta35_rho015->Sumw2();
+  TH1D* h1_qglJet_pt5080_eta35_rho040 = new TH1D("qglJet_pt5080_eta35_rho040", "", 100, 0., 1.0001);
+  h1_qglJet_pt5080_eta35_rho040->Sumw2();
+  TH1D* h1_qglJetSyst_pt5080_eta35_rho040 = new TH1D("qglJetSyst_pt5080_eta35_rho040", "", 100, 0., 1.0001);
+  h1_qglJetSyst_pt5080_eta35_rho040->Sumw2();
 
-  TH1D* h1_qglJet_pt80120_eta35_rho015 = new TH1D("qglJet_pt80120_eta35_rho015", "", 100, 0., 1.0001);
-  h1_qglJet_pt80120_eta35_rho015->Sumw2();
-  TH1D* h1_qglJetSyst_pt80120_eta35_rho015 = new TH1D("qglJetSyst_pt80120_eta35_rho015", "", 100, 0., 1.0001);
-  h1_qglJetSyst_pt80120_eta35_rho015->Sumw2();
+  TH1D* h1_qglJet_pt80120_eta35_rho040 = new TH1D("qglJet_pt80120_eta35_rho040", "", 100, 0., 1.0001);
+  h1_qglJet_pt80120_eta35_rho040->Sumw2();
+  TH1D* h1_qglJetSyst_pt80120_eta35_rho040 = new TH1D("qglJetSyst_pt80120_eta35_rho040", "", 100, 0., 1.0001);
+  h1_qglJetSyst_pt80120_eta35_rho040->Sumw2();
 
 
   int nentries = tree->GetEntries();
@@ -85,28 +123,49 @@ int main() {
 
     tree->GetEntry(iEntry);
 
-    if( rho>15. ) continue;
+    if( rho>40. ) continue;
     if( mZ<70. || mZ>110. ) continue;
+    if( deltaPhi_jet < 3.1415-0.5 ) continue;
     if( ptD_QCJet <=0. ) continue;
     if( fabs(etaJet)<2.5 && betaStarJet > 0.2 * log( (float)nvertex - 0.67) ) continue;
+    if( btagged ) continue;
 
+    float puweight = h1_puweights->GetBinContent((int)rho);
+
+    h1_ptZ->Fill( ptZ, puweight );
+    h1_rho->Fill( rho, puweight );
+
+    bool smearJet = true;
+
+    std::string type = "all";
+    if( doubleMin ) {
+      if( fabs(pdgIdPartJet)>0 && fabs(pdgIdPartJet)<6 ) type = "quark";
+      else if( pdgIdPartJet==21 ) type = "gluon";
+      else { // both 0 and -999
+        smearJet = false;
+        //type = "gluon";
+        //std::cout << "Unknown jet PDG ID (" << pdgIdPartJet << "). Will use gluon instead." << std::endl;
+      }
+    }
+
+    float qglJetSyst = (smearJet) ? qgsyst.Smear(ptJet, etaJet, rho, qglJet, type) : qglJet;
 
     if( fabs(etaJet)<2. ) {
 
       if( ptJet > 30. && ptJet < 50. ) {
 
-        h1_qglJet_pt3050_eta02_rho015->Fill( qglJet );
-        h1_qglJetSyst_pt3050_eta02_rho015->Fill( qgsyst.Smear(ptJet, etaJet, rho, qglJet) );
+        h1_qglJet_pt3050_eta02_rho040->Fill( qglJet, puweight );
+        h1_qglJetSyst_pt3050_eta02_rho040->Fill( qglJetSyst, puweight );
 
       } else if( ptJet > 50. && ptJet < 80. ) {
 
-        h1_qglJet_pt5080_eta02_rho015->Fill( qglJet );
-        h1_qglJetSyst_pt5080_eta02_rho015->Fill( qgsyst.Smear(ptJet, etaJet, rho, qglJet) );
+        h1_qglJet_pt5080_eta02_rho040->Fill( qglJet, puweight );
+        h1_qglJetSyst_pt5080_eta02_rho040->Fill( qglJetSyst, puweight );
 
       } else if( ptJet > 80. && ptJet < 120. ) {
 
-        h1_qglJet_pt80120_eta02_rho015->Fill( qglJet );
-        h1_qglJetSyst_pt80120_eta02_rho015->Fill( qgsyst.Smear(ptJet, etaJet, rho, qglJet) );
+        h1_qglJet_pt80120_eta02_rho040->Fill( qglJet, puweight );
+        h1_qglJetSyst_pt80120_eta02_rho040->Fill( qglJetSyst, puweight );
 
       } 
 
@@ -114,18 +173,18 @@ int main() {
 
       if( ptJet > 30. && ptJet < 50. ) {
 
-        h1_qglJet_pt3050_eta35_rho015->Fill( qglJet );
-        h1_qglJetSyst_pt3050_eta35_rho015->Fill( qgsyst.Smear(ptJet, etaJet, rho, qglJet) );
+        h1_qglJet_pt3050_eta35_rho040->Fill( qglJet, puweight );
+        h1_qglJetSyst_pt3050_eta35_rho040->Fill( qglJetSyst, puweight );
 
       } else if( ptJet > 50. && ptJet < 80. ) {
 
-        h1_qglJet_pt5080_eta35_rho015->Fill( qglJet );
-        h1_qglJetSyst_pt5080_eta35_rho015->Fill( qgsyst.Smear(ptJet, etaJet, rho, qglJet) );
+        h1_qglJet_pt5080_eta35_rho040->Fill( qglJet, puweight );
+        h1_qglJetSyst_pt5080_eta35_rho040->Fill( qglJetSyst, puweight );
 
       } else if( ptJet > 80. && ptJet < 120. ) {
 
-        h1_qglJet_pt80120_eta35_rho015->Fill( qglJet );
-        h1_qglJetSyst_pt80120_eta35_rho015->Fill( qgsyst.Smear(ptJet, etaJet, rho, qglJet) );
+        h1_qglJet_pt80120_eta35_rho040->Fill( qglJet, puweight );
+        h1_qglJetSyst_pt80120_eta35_rho040->Fill( qglJetSyst, puweight );
 
       } 
 
@@ -137,33 +196,41 @@ int main() {
   // now switch to data:
   tree_data->SetBranchAddress("nvertex", &nvertex );
   tree_data->SetBranchAddress("mZ", &mZ );
+  tree_data->SetBranchAddress("ptZ", &ptZ );
+  tree_data->SetBranchAddress("deltaPhi_jet", &deltaPhi_jet );
   tree_data->SetBranchAddress("rhoPF", &rho );
   tree_data->SetBranchAddress("ptJet0", &ptJet );
   tree_data->SetBranchAddress("etaJet0", &etaJet );
   tree_data->SetBranchAddress("ptD_QCJet0", &ptD_QCJet );
-  tree_data->SetBranchAddress("QGLikelihood2012Jet0", &qglJet );
+  tree_data->SetBranchAddress("QGLHisto", &qglJet );
+  float qglJetFwd;
+  tree_data->SetBranchAddress("QGLHistoFwd", &qglJetFwd );
   tree_data->SetBranchAddress("betaStarJet0", &betaStarJet );
 
 
+  TH1D* h1_data_ptZ = new TH1D("data_ptZ", "", 100, 0., 100.);
+  h1_data_ptZ->Sumw2();
+  TH1D* h1_data_rho = new TH1D("data_rho", "", 40, 0., 40.);
+  h1_data_rho->Sumw2();
 
-  TH1D* h1_data_qglJet_pt3050_eta02_rho015 = new TH1D("data_qglJet_pt3050_eta02_rho015", "", 100, 0., 1.0001);
-  h1_data_qglJet_pt3050_eta02_rho015->Sumw2();
+  TH1D* h1_data_qglJet_pt3050_eta02_rho040 = new TH1D("data_qglJet_pt3050_eta02_rho040", "", 100, 0., 1.0001);
+  h1_data_qglJet_pt3050_eta02_rho040->Sumw2();
 
-  TH1D* h1_data_qglJet_pt5080_eta02_rho015 = new TH1D("data_qglJet_pt5080_eta02_rho015", "", 100, 0., 1.0001);
-  h1_data_qglJet_pt5080_eta02_rho015->Sumw2();
+  TH1D* h1_data_qglJet_pt5080_eta02_rho040 = new TH1D("data_qglJet_pt5080_eta02_rho040", "", 100, 0., 1.0001);
+  h1_data_qglJet_pt5080_eta02_rho040->Sumw2();
 
-  TH1D* h1_data_qglJet_pt80120_eta02_rho015 = new TH1D("data_qglJet_pt80120_eta02_rho015", "", 100, 0., 1.0001);
-  h1_data_qglJet_pt80120_eta02_rho015->Sumw2();
+  TH1D* h1_data_qglJet_pt80120_eta02_rho040 = new TH1D("data_qglJet_pt80120_eta02_rho040", "", 100, 0., 1.0001);
+  h1_data_qglJet_pt80120_eta02_rho040->Sumw2();
 
 
-  TH1D* h1_data_qglJet_pt3050_eta35_rho015 = new TH1D("data_qglJet_pt3050_eta35_rho015", "", 100, 0., 1.0001);
-  h1_data_qglJet_pt3050_eta35_rho015->Sumw2();
+  TH1D* h1_data_qglJet_pt3050_eta35_rho040 = new TH1D("data_qglJet_pt3050_eta35_rho040", "", 100, 0., 1.0001);
+  h1_data_qglJet_pt3050_eta35_rho040->Sumw2();
 
-  TH1D* h1_data_qglJet_pt5080_eta35_rho015 = new TH1D("data_qglJet_pt5080_eta35_rho015", "", 100, 0., 1.0001);
-  h1_data_qglJet_pt5080_eta35_rho015->Sumw2();
+  TH1D* h1_data_qglJet_pt5080_eta35_rho040 = new TH1D("data_qglJet_pt5080_eta35_rho040", "", 100, 0., 1.0001);
+  h1_data_qglJet_pt5080_eta35_rho040->Sumw2();
 
-  TH1D* h1_data_qglJet_pt80120_eta35_rho015 = new TH1D("data_qglJet_pt80120_eta35_rho015", "", 100, 0., 1.0001);
-  h1_data_qglJet_pt80120_eta35_rho015->Sumw2();
+  TH1D* h1_data_qglJet_pt80120_eta35_rho040 = new TH1D("data_qglJet_pt80120_eta35_rho040", "", 100, 0., 1.0001);
+  h1_data_qglJet_pt80120_eta35_rho040->Sumw2();
 
 
   int nentries_data = tree_data->GetEntries();
@@ -172,25 +239,29 @@ int main() {
 
     tree_data->GetEntry(iEntry);
 
-    if( rho>15. ) continue;
+    if( rho>40. ) continue;
     if( mZ<70. || mZ>110. ) continue;
+    if( deltaPhi_jet < 3.1415-0.5 ) continue;
     if( ptD_QCJet <=0. ) continue;
     if( fabs(etaJet)<2.5 && betaStarJet > 0.2 * log( (float)nvertex - 0.67) ) continue;
+    if( btagged ) continue;
 
+    h1_data_ptZ->Fill( ptZ );
+    h1_data_rho->Fill( rho );
 
     if( fabs(etaJet)<2. ) {
 
       if( ptJet > 30. && ptJet < 50. ) {
 
-        h1_data_qglJet_pt3050_eta02_rho015->Fill( qglJet );
+        h1_data_qglJet_pt3050_eta02_rho040->Fill( qglJet );
 
       } else if( ptJet > 50. && ptJet < 80. ) {
 
-        h1_data_qglJet_pt5080_eta02_rho015->Fill( qglJet );
+        h1_data_qglJet_pt5080_eta02_rho040->Fill( qglJet );
 
       } else if( ptJet > 80. && ptJet < 120. ) {
 
-        h1_data_qglJet_pt80120_eta02_rho015->Fill( qglJet );
+        h1_data_qglJet_pt80120_eta02_rho040->Fill( qglJet );
 
       } 
 
@@ -198,15 +269,15 @@ int main() {
 
       if( ptJet > 30. && ptJet < 50. ) {
 
-        h1_data_qglJet_pt3050_eta35_rho015->Fill( qglJet );
+        h1_data_qglJet_pt3050_eta35_rho040->Fill( qglJetFwd );
 
       } else if( ptJet > 50. && ptJet < 80. ) {
 
-        h1_data_qglJet_pt5080_eta35_rho015->Fill( qglJet );
+        h1_data_qglJet_pt5080_eta35_rho040->Fill( qglJetFwd );
 
       } else if( ptJet > 80. && ptJet < 120. ) {
 
-        h1_data_qglJet_pt80120_eta35_rho015->Fill( qglJet );
+        h1_data_qglJet_pt80120_eta35_rho040->Fill( qglJetFwd );
 
       } 
 
@@ -217,48 +288,54 @@ int main() {
 
   DrawBase* db = new DrawBase("provaSyst");
   
-  drawSinglePlot( db, h1_data_qglJet_pt3050_eta02_rho015, h1_qglJet_pt3050_eta02_rho015, h1_qglJetSyst_pt3050_eta02_rho015, 30., 50., 0., 2., 0., 15.);
-  drawSinglePlot( db, h1_data_qglJet_pt5080_eta02_rho015, h1_qglJet_pt5080_eta02_rho015, h1_qglJetSyst_pt5080_eta02_rho015, 50., 80., 0., 2., 0., 15.);
-  drawSinglePlot( db, h1_data_qglJet_pt80120_eta02_rho015,h1_qglJet_pt80120_eta02_rho015, h1_qglJetSyst_pt80120_eta02_rho015, 80., 120., 0., 2., 0., 15.);
+  drawSinglePlot( db, h1_data_qglJet_pt3050_eta02_rho040, h1_qglJet_pt3050_eta02_rho040, h1_qglJetSyst_pt3050_eta02_rho040, 30., 50., 0., 2., 0., 40.);
+  drawSinglePlot( db, h1_data_qglJet_pt5080_eta02_rho040, h1_qglJet_pt5080_eta02_rho040, h1_qglJetSyst_pt5080_eta02_rho040, 50., 80., 0., 2., 0., 40.);
+  drawSinglePlot( db, h1_data_qglJet_pt80120_eta02_rho040,h1_qglJet_pt80120_eta02_rho040, h1_qglJetSyst_pt80120_eta02_rho040, 80., 120., 0., 2., 0., 40.);
 
-  drawSinglePlot( db, h1_data_qglJet_pt3050_eta35_rho015, h1_qglJet_pt3050_eta35_rho015, h1_qglJetSyst_pt3050_eta35_rho015, 30., 50., 3., 5., 0., 15.);
-  drawSinglePlot( db, h1_data_qglJet_pt5080_eta35_rho015, h1_qglJet_pt5080_eta35_rho015, h1_qglJetSyst_pt5080_eta35_rho015, 50., 80., 3., 5., 0., 15.);
-  drawSinglePlot( db, h1_data_qglJet_pt80120_eta35_rho015,h1_qglJet_pt80120_eta35_rho015, h1_qglJetSyst_pt80120_eta35_rho015, 80., 120., 3., 5., 0., 15.);
+  drawSinglePlot( db, h1_data_qglJet_pt3050_eta35_rho040, h1_qglJet_pt3050_eta35_rho040, h1_qglJetSyst_pt3050_eta35_rho040, 30., 50., 3., 5., 0., 40.);
+  drawSinglePlot( db, h1_data_qglJet_pt5080_eta35_rho040, h1_qglJet_pt5080_eta35_rho040, h1_qglJetSyst_pt5080_eta35_rho040, 50., 80., 3., 5., 0., 40.);
+  drawSinglePlot( db, h1_data_qglJet_pt80120_eta35_rho040,h1_qglJet_pt80120_eta35_rho040, h1_qglJetSyst_pt80120_eta35_rho040, 80., 120., 3., 5., 0., 40.);
 
 
 
   outfile->cd();
+ 
+  h1_ptZ->Write();
+  h1_rho->Write();
 
-  h1_qglJet_pt3050_eta02_rho015->Write();
-  h1_qglJetSyst_pt3050_eta02_rho015->Write();
-  
-  h1_qglJet_pt5080_eta02_rho015->Write();
-  h1_qglJetSyst_pt5080_eta02_rho015->Write();
-  
-  h1_qglJet_pt80120_eta02_rho015->Write();
-  h1_qglJetSyst_pt80120_eta02_rho015->Write();
+  h1_data_ptZ->Write();
+  h1_data_rho->Write();
 
-  h1_qglJet_pt3050_eta35_rho015->Write();
-  h1_qglJetSyst_pt3050_eta35_rho015->Write();
+  h1_qglJet_pt3050_eta02_rho040->Write();
+  h1_qglJetSyst_pt3050_eta02_rho040->Write();
   
-  h1_qglJet_pt5080_eta35_rho015->Write();
-  h1_qglJetSyst_pt5080_eta35_rho015->Write();
+  h1_qglJet_pt5080_eta02_rho040->Write();
+  h1_qglJetSyst_pt5080_eta02_rho040->Write();
   
-  h1_qglJet_pt80120_eta35_rho015->Write();
-  h1_qglJetSyst_pt80120_eta35_rho015->Write();
+  h1_qglJet_pt80120_eta02_rho040->Write();
+  h1_qglJetSyst_pt80120_eta02_rho040->Write();
+
+  h1_qglJet_pt3050_eta35_rho040->Write();
+  h1_qglJetSyst_pt3050_eta35_rho040->Write();
+  
+  h1_qglJet_pt5080_eta35_rho040->Write();
+  h1_qglJetSyst_pt5080_eta35_rho040->Write();
+  
+  h1_qglJet_pt80120_eta35_rho040->Write();
+  h1_qglJetSyst_pt80120_eta35_rho040->Write();
 
 
-  h1_data_qglJet_pt3050_eta02_rho015->Write();
+  h1_data_qglJet_pt3050_eta02_rho040->Write();
   
-  h1_data_qglJet_pt5080_eta02_rho015->Write();
+  h1_data_qglJet_pt5080_eta02_rho040->Write();
   
-  h1_data_qglJet_pt80120_eta02_rho015->Write();
+  h1_data_qglJet_pt80120_eta02_rho040->Write();
 
-  h1_data_qglJet_pt3050_eta35_rho015->Write();
+  h1_data_qglJet_pt3050_eta35_rho040->Write();
   
-  h1_data_qglJet_pt5080_eta35_rho015->Write();
+  h1_data_qglJet_pt5080_eta35_rho040->Write();
   
-  h1_data_qglJet_pt80120_eta35_rho015->Write();
+  h1_data_qglJet_pt80120_eta35_rho040->Write();
 
   outfile->Close();
   
@@ -304,12 +381,15 @@ void drawSinglePlot( DrawBase* db, TH1D* h1_data, TH1D* h1_qgl, TH1D* h1_qglSyst
   legend->SetFillColor(0);
   legend->SetTextSize(0.038);
   legend->AddEntry( h1_data, "Data", "p" );
-  legend->AddEntry( h1_qgl, "Before Smearing", "F" );
-  legend->AddEntry( h1_qglSyst, "After Smearing", "F" );
+  legend->AddEntry( h1_qgl, "Before Smearing", "L" );
+  legend->AddEntry( h1_qglSyst, "After Smearing", "L" );
   legend->Draw("same");
 
+  std::string doubleMin_str = "";
+  if( doubleMin ) doubleMin_str = "DM";
+
   char canvasName[500];
-  sprintf( canvasName, "prova_pt%.0f_%.0f_eta%.0f_%.0f_rho%.0f_%.0f.eps", ptMin, ptMax, etaMin, etaMax, rhoMin, rhoMax);
+  sprintf( canvasName, "prova%s_pt%.0f_%.0f_eta%.0f_%.0f_rho%.0f_%.0f.eps", doubleMin_str.c_str(), ptMin, ptMax, etaMin, etaMax, rhoMin, rhoMax);
 
   TPaveText* label_top = db->get_labelTop();
   label_top->Draw("same");

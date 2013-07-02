@@ -40,21 +40,67 @@ void QGSyst::ReadDatabase(std::string fileName)
 	database_.close();
 }
 
+void QGSyst::ReadDatabaseDoubleMin(std::string fileName)
+{
+	database_.open(fileName.c_str(),std::ios::in);
+	if( !database_.is_open() ) { std::cerr<<"ERROR: File "<<fileName<<" not open"<<std::endl; return;}
+	std::string line;
+	while ( database_.good() )
+    		{
+      		std::getline (database_,line);
+      		//cout << line << endl;
+		float pt1,pt2,eta1,eta2,rho1,rho2,a_q,b_q,a_g,b_g,lmin,lmax;
+		char tag[1023],leadchar;
+		sscanf(line.c_str(),"%c",&leadchar);
+		if(  (leadchar=='#') || (leadchar=='!')) continue; 
+		sscanf(line.c_str(),"%s %f %f %f %f %f %f %f %f %f %f %f %f",&tag[0],&pt1,&pt2,&rho1,&rho2,&eta1,&eta2,&a_q,&b_q,&a_g,&b_g,&lmin,&lmax);
+		QGSystBin thisBin;
+			thisBin.PtRange=std::pair<float,float>(pt1,pt2);
+			thisBin.EtaRange=std::pair<float,float>(eta1,eta2);
+			thisBin.RhoRange=std::pair<float,float>(rho1,rho2);
+			thisBin.tag=std::string(tag);
+		QGSystParameters quarkParameters;
+			quarkParameters.a = a_q;
+			quarkParameters.b = b_q;
+			quarkParameters.lmin = lmin;
+			quarkParameters.lmax = lmax;
+		QGSystParameters gluonParameters;
+			gluonParameters.a = a_g;
+			gluonParameters.b = b_g;
+			gluonParameters.lmin = lmin;
+			gluonParameters.lmax = lmax;
+		corrections_quark_[thisBin]=quarkParameters;
+		corrections_gluon_[thisBin]=gluonParameters;
+    		}	
+	database_.close();
+}
+
 float QGSyst::function(float x0, float a ,float b,float min,float max)
 {
 using namespace TMath;
 float x=(x0-min)/(max-min); 
-if(x<0)x=0;
-if(x>1)x=1;
+if(x<0.)x=0.;
+if(x>1.)x=1.;
 
-float x1= (TanH( a* ATanH(2*x-1)+b )/2+.5 ) ;
+float x1= (TanH( a* ATanH(2.*x-1.)+b )/2.+.5 ) ;
+if(x<=0.)x1=0.; //prevent overflow and underflow bins
+if(x>=1.)x1=1.;
 
 return x1*(max-min)+min;
  
 }
 
-float QGSyst::Smear(float pt,float eta, float rho, float x){
-	for(std::map<QGSystBin,QGSystParameters>::iterator it= corrections_.begin();it!=corrections_.end();it++)
+float QGSyst::Smear(float pt,float eta, float rho, float x, const std::string& type){
+
+	std::map<QGSystBin,QGSystParameters>* corrections = &corrections_; //default: all
+	if( type=="quark" ) corrections = &corrections_quark_;
+	else if( type=="gluon" ) corrections = &corrections_gluon_;
+	else if( type!="all" ) {
+		std::cout << "[QGSyst::Smear] Unkown jet type: '" << type << "'. Exiting." << std::endl;
+		exit(199);
+	}
+
+	for(std::map<QGSystBin,QGSystParameters>::iterator it= corrections->begin();it!=corrections->end();it++)
 		{
 		if(it->first.tag.find(tagger_) == std::string::npos)continue;
 		if(it->first.isInside(pt,fabs(eta),rho) )

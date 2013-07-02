@@ -42,15 +42,18 @@ class QGSyst {
 public:
 	QGSyst();
 	~QGSyst();
-	float Smear(float pt,float eta, float rho, float x);
+	float Smear(float pt,float eta, float rho, float x, const std::string& type="all");
 	void SetTagger(std::string tag){tagger_=tag;};
 	std::string GetTagger(){ return tagger_;};
 	void ReadDatabase(std::string fileName);
+	void ReadDatabaseDoubleMin(std::string fileName);
 private:
 	std::string tagger_;
 	//FILE *database_;
 	std::ifstream database_;
 	std::map<QGSystBin,QGSystParameters> corrections_;
+	std::map<QGSystBin,QGSystParameters> corrections_quark_;
+	std::map<QGSystBin,QGSystParameters> corrections_gluon_;
 	float function(float x0, float a ,float b,float min,float max);
 
 };

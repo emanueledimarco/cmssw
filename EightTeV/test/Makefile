@@ -13,8 +13,8 @@ ROOTFLAG = `${ROOTSYS}/bin/root-config --cflags --libs`
 EXTRALIBS  :=  -L$(ROOTSYS)/lib -L$(ROOFIT_LIBDIR)/ -lHtml -lMathCore -lGenVector -lMinuit -lEG -lRooFitCore -lRooFit `root-config --libs` -lTMVA
 
 
-provaSyst: provaSyst.cpp QGSyst.o DrawBase.o fitTools.o 
-	$(CC) -Wall $(INCLUDES) -o provaSyst provaSyst.cpp QGSyst.o DrawBase.o fitTools.o  $(ROOTFLAG) $(EXTRALIBS)
+checkSyst: checkSyst.cpp QGSyst.o DrawBase.o fitTools.o 
+	$(CC) -Wall $(INCLUDES) -o checkSyst checkSyst.cpp QGSyst.o DrawBase.o fitTools.o  $(ROOTFLAG) $(EXTRALIBS)
 
 
 QGSyst.o: $(CMSSW_BASE)/src/QuarkGluonTagger/EightTeV/src/QGSyst.cc

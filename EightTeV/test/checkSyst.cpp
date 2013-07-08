@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <cmath>
 #include "TH1D.h"
 #include "../interface/QGSyst.h"
@@ -13,7 +14,7 @@
 bool doubleMin = true;
 
 
-void drawSinglePlot( DrawBase* db, TH1D* h1_data, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, float ptMax, float etaMin, float etaMaxi, float rhoMin, float rhoMax );
+void drawSinglePlot( DrawBase* db, const std::string& discrim, TH1D* h1_data, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax );
 
 int main( int argc, char* argv[] ) {
 
@@ -27,17 +28,17 @@ int main( int argc, char* argv[] ) {
 
 
 
-  std::string outfilename = "prova_doubleMin";
+  std::string outfilename = "checkSyst_doubleMin";
   if( argc>2 ) {
     std::string doubleMin_str(argv[2]);
     if( doubleMin_str != "false" ) {
       doubleMin = true;
       std::cout << "-> Switching ON double min" << std::endl;
-      outfilename = "prova_doubleMin";
+      outfilename = "checkSyst_doubleMin";
     } else {
       doubleMin = false;
       std::cout << "-> Switching OFF double min" << std::endl;
-      outfilename = "prova";
+      outfilename = "checkSyst";
     }
   }
   outfilename = outfilename + "_" + discrim + ".root";
@@ -52,7 +53,8 @@ int main( int argc, char* argv[] ) {
 
   //TFile* file_data = TFile::Open("/afs/cern.ch/user/a/amarini/work/GluonTag/ZJet/ZJet_DoubleMu-Run2012AB.root");
   TChain* tree_data = new TChain("tree_passedEvents");
-  tree_data->Add("/afs/cern.ch/user/a/amarini/work/GluonTag/ZJet/ZJet_DoubleMu-Run2012*.root");
+  tree_data->Add("/afs/cern.ch/user/a/amarini/work/GluonTag/ZJet/ZJet_Double*.root");
+  std::cout << "tot: " << tree_data->GetEntries() << std::endl;
   //TTree* tree_data = (TTree*)file_data->Get("tree_passedEvents");
 
 
@@ -103,16 +105,17 @@ int main( int argc, char* argv[] ) {
   if( discrim=="QGLMLP" ) xMin = -1.;
 
   int nBins = 50;
+  int nBinsFwd = 25;
 
   TH1D* h1_qglJet_pt3050_eta02_rho040 = new TH1D("qglJet_pt3050_eta02_rho040", "", nBins, xMin, 1.0001);
   h1_qglJet_pt3050_eta02_rho040->Sumw2();
   TH1D* h1_qglJetSyst_pt3050_eta02_rho040 = new TH1D("qglJetSyst_pt3050_eta02_rho040", "", nBins, xMin, 1.0001);
   h1_qglJetSyst_pt3050_eta02_rho040->Sumw2();
 
-  TH1D* h1_qglJet_pt5080_eta02_rho040 = new TH1D("qglJet_pt5080_eta02_rho040", "", nBins, xMin, 1.0001);
-  h1_qglJet_pt5080_eta02_rho040->Sumw2();
-  TH1D* h1_qglJetSyst_pt5080_eta02_rho040 = new TH1D("qglJetSyst_pt5080_eta02_rho040", "", nBins, xMin, 1.0001);
-  h1_qglJetSyst_pt5080_eta02_rho040->Sumw2();
+  TH1D* h1_qglJet_pt5065_eta02_rho040 = new TH1D("qglJet_pt5065_eta02_rho040", "", nBins, xMin, 1.0001);
+  h1_qglJet_pt5065_eta02_rho040->Sumw2();
+  TH1D* h1_qglJetSyst_pt5065_eta02_rho040 = new TH1D("qglJetSyst_pt5065_eta02_rho040", "", nBins, xMin, 1.0001);
+  h1_qglJetSyst_pt5065_eta02_rho040->Sumw2();
 
   TH1D* h1_qglJet_pt80120_eta02_rho040 = new TH1D("qglJet_pt80120_eta02_rho040", "", nBins, xMin, 1.0001);
   h1_qglJet_pt80120_eta02_rho040->Sumw2();
@@ -125,19 +128,19 @@ int main( int argc, char* argv[] ) {
   h1_qglJetSyst_pt120250_eta02_rho040->Sumw2();
 
 
-  TH1D* h1_qglJet_pt3050_eta35_rho040 = new TH1D("qglJet_pt3050_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJet_pt3050_eta35_rho040 = new TH1D("qglJet_pt3050_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJet_pt3050_eta35_rho040->Sumw2();
-  TH1D* h1_qglJetSyst_pt3050_eta35_rho040 = new TH1D("qglJetSyst_pt3050_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJetSyst_pt3050_eta35_rho040 = new TH1D("qglJetSyst_pt3050_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJetSyst_pt3050_eta35_rho040->Sumw2();
 
-  TH1D* h1_qglJet_pt5080_eta35_rho040 = new TH1D("qglJet_pt5080_eta35_rho040", "", nBins, xMin, 1.0001);
-  h1_qglJet_pt5080_eta35_rho040->Sumw2();
-  TH1D* h1_qglJetSyst_pt5080_eta35_rho040 = new TH1D("qglJetSyst_pt5080_eta35_rho040", "", nBins, xMin, 1.0001);
-  h1_qglJetSyst_pt5080_eta35_rho040->Sumw2();
+  TH1D* h1_qglJet_pt5065_eta35_rho040 = new TH1D("qglJet_pt5065_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
+  h1_qglJet_pt5065_eta35_rho040->Sumw2();
+  TH1D* h1_qglJetSyst_pt5065_eta35_rho040 = new TH1D("qglJetSyst_pt5065_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
+  h1_qglJetSyst_pt5065_eta35_rho040->Sumw2();
 
-  TH1D* h1_qglJet_pt80120_eta35_rho040 = new TH1D("qglJet_pt80120_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJet_pt80120_eta35_rho040 = new TH1D("qglJet_pt80120_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJet_pt80120_eta35_rho040->Sumw2();
-  TH1D* h1_qglJetSyst_pt80120_eta35_rho040 = new TH1D("qglJetSyst_pt80120_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJetSyst_pt80120_eta35_rho040 = new TH1D("qglJetSyst_pt80120_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJetSyst_pt80120_eta35_rho040->Sumw2();
 
 
@@ -182,10 +185,10 @@ int main( int argc, char* argv[] ) {
         h1_qglJet_pt3050_eta02_rho040->Fill( qglJet, puweight );
         h1_qglJetSyst_pt3050_eta02_rho040->Fill( qglJetSyst, puweight );
 
-      } else if( ptJet > 50. && ptJet < 80. ) {
+      } else if( ptJet > 50. && ptJet < 65. ) {
 
-        h1_qglJet_pt5080_eta02_rho040->Fill( qglJet, puweight );
-        h1_qglJetSyst_pt5080_eta02_rho040->Fill( qglJetSyst, puweight );
+        h1_qglJet_pt5065_eta02_rho040->Fill( qglJet, puweight );
+        h1_qglJetSyst_pt5065_eta02_rho040->Fill( qglJetSyst, puweight );
 
       } else if( ptJet > 80. && ptJet < 120. ) {
 
@@ -206,10 +209,10 @@ int main( int argc, char* argv[] ) {
         h1_qglJet_pt3050_eta35_rho040->Fill( qglJet, puweight );
         h1_qglJetSyst_pt3050_eta35_rho040->Fill( qglJetSyst, puweight );
 
-      } else if( ptJet > 50. && ptJet < 80. ) {
+      } else if( ptJet > 50. && ptJet < 65. ) {
 
-        h1_qglJet_pt5080_eta35_rho040->Fill( qglJet, puweight );
-        h1_qglJetSyst_pt5080_eta35_rho040->Fill( qglJetSyst, puweight );
+        h1_qglJet_pt5065_eta35_rho040->Fill( qglJet, puweight );
+        h1_qglJetSyst_pt5065_eta35_rho040->Fill( qglJetSyst, puweight );
 
       } else if( ptJet > 80. && ptJet < 120. ) {
 
@@ -224,6 +227,8 @@ int main( int argc, char* argv[] ) {
 
 
   // now switch to data:
+  int event;
+  tree_data->SetBranchAddress("event", &event );
   tree_data->SetBranchAddress("nvertex", &nvertex );
   tree_data->SetBranchAddress("mZ", &mZ );
   tree_data->SetBranchAddress("ptZ", &ptZ );
@@ -247,8 +252,8 @@ int main( int argc, char* argv[] ) {
   TH1D* h1_data_qglJet_pt3050_eta02_rho040 = new TH1D("data_qglJet_pt3050_eta02_rho040", "", nBins, xMin, 1.0001);
   h1_data_qglJet_pt3050_eta02_rho040->Sumw2();
 
-  TH1D* h1_data_qglJet_pt5080_eta02_rho040 = new TH1D("data_qglJet_pt5080_eta02_rho040", "", nBins, xMin, 1.0001);
-  h1_data_qglJet_pt5080_eta02_rho040->Sumw2();
+  TH1D* h1_data_qglJet_pt5065_eta02_rho040 = new TH1D("data_qglJet_pt5065_eta02_rho040", "", nBins, xMin, 1.0001);
+  h1_data_qglJet_pt5065_eta02_rho040->Sumw2();
 
   TH1D* h1_data_qglJet_pt80120_eta02_rho040 = new TH1D("data_qglJet_pt80120_eta02_rho040", "", nBins, xMin, 1.0001);
   h1_data_qglJet_pt80120_eta02_rho040->Sumw2();
@@ -257,13 +262,13 @@ int main( int argc, char* argv[] ) {
   h1_data_qglJet_pt120250_eta02_rho040->Sumw2();
 
 
-  TH1D* h1_data_qglJet_pt3050_eta35_rho040 = new TH1D("data_qglJet_pt3050_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_data_qglJet_pt3050_eta35_rho040 = new TH1D("data_qglJet_pt3050_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_data_qglJet_pt3050_eta35_rho040->Sumw2();
 
-  TH1D* h1_data_qglJet_pt5080_eta35_rho040 = new TH1D("data_qglJet_pt5080_eta35_rho040", "", nBins, xMin, 1.0001);
-  h1_data_qglJet_pt5080_eta35_rho040->Sumw2();
+  TH1D* h1_data_qglJet_pt5065_eta35_rho040 = new TH1D("data_qglJet_pt5065_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
+  h1_data_qglJet_pt5065_eta35_rho040->Sumw2();
 
-  TH1D* h1_data_qglJet_pt80120_eta35_rho040 = new TH1D("data_qglJet_pt80120_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_data_qglJet_pt80120_eta35_rho040 = new TH1D("data_qglJet_pt80120_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_data_qglJet_pt80120_eta35_rho040->Sumw2();
 
 
@@ -289,9 +294,11 @@ int main( int argc, char* argv[] ) {
 
         h1_data_qglJet_pt3050_eta02_rho040->Fill( qglJet );
 
-      } else if( ptJet > 50. && ptJet < 80. ) {
+      } else if( ptJet > 50. && ptJet < 65. ) {
 
-        h1_data_qglJet_pt5080_eta02_rho040->Fill( qglJet );
+//if( ptJet<65. )
+//std::cout << "eventNumber" << event << std::endl;
+        h1_data_qglJet_pt5065_eta02_rho040->Fill( qglJet );
 
       } else if( ptJet > 80. && ptJet < 120. ) {
 
@@ -309,9 +316,9 @@ int main( int argc, char* argv[] ) {
 
         h1_data_qglJet_pt3050_eta35_rho040->Fill( qglJetFwd );
 
-      } else if( ptJet > 50. && ptJet < 80. ) {
+      } else if( ptJet > 50. && ptJet < 65. ) {
 
-        h1_data_qglJet_pt5080_eta35_rho040->Fill( qglJetFwd );
+        h1_data_qglJet_pt5065_eta35_rho040->Fill( qglJetFwd );
 
       } else if( ptJet > 80. && ptJet < 120. ) {
 
@@ -324,17 +331,22 @@ int main( int argc, char* argv[] ) {
   }
 
 
-  DrawBase* db = new DrawBase("provaSyst");
+  DrawBase* db = new DrawBase("checkSystSyst");
   db->add_dataFile(file, "data"); //ok thats the MC file but who cares
-  
-  drawSinglePlot( db, h1_data_qglJet_pt3050_eta02_rho040, h1_qglJet_pt3050_eta02_rho040, h1_qglJetSyst_pt3050_eta02_rho040, 30., 50., 0., 2., 0., 40.);
-  drawSinglePlot( db, h1_data_qglJet_pt5080_eta02_rho040, h1_qglJet_pt5080_eta02_rho040, h1_qglJetSyst_pt5080_eta02_rho040, 50., 80., 0., 2., 0., 40.);
-  drawSinglePlot( db, h1_data_qglJet_pt80120_eta02_rho040,h1_qglJet_pt80120_eta02_rho040, h1_qglJetSyst_pt80120_eta02_rho040, 80., 120., 0., 2., 0., 40.);
-  drawSinglePlot( db, h1_data_qglJet_pt120250_eta02_rho040,h1_qglJet_pt120250_eta02_rho040, h1_qglJetSyst_pt120250_eta02_rho040, 120., 250., 0., 2., 0., 40.);
 
-  drawSinglePlot( db, h1_data_qglJet_pt3050_eta35_rho040, h1_qglJet_pt3050_eta35_rho040, h1_qglJetSyst_pt3050_eta35_rho040, 30., 50., 3., 5., 0., 40.);
-  drawSinglePlot( db, h1_data_qglJet_pt5080_eta35_rho040, h1_qglJet_pt5080_eta35_rho040, h1_qglJetSyst_pt5080_eta35_rho040, 50., 80., 3., 5., 0., 40.);
-  drawSinglePlot( db, h1_data_qglJet_pt80120_eta35_rho040,h1_qglJet_pt80120_eta35_rho040, h1_qglJetSyst_pt80120_eta35_rho040, 80., 120., 3., 5., 0., 40.);
+  std::string outputdir = "checkSystPlots";
+  db->set_outputdir(outputdir);
+  std::string mkdir_command = "mkdir -p " + outputdir;
+  system(mkdir_command.c_str());
+  
+  drawSinglePlot( db, discrim, h1_data_qglJet_pt3050_eta02_rho040, h1_qglJet_pt3050_eta02_rho040, h1_qglJetSyst_pt3050_eta02_rho040, 30., 50., 0., 2., 0., 40.);
+  drawSinglePlot( db, discrim, h1_data_qglJet_pt5065_eta02_rho040, h1_qglJet_pt5065_eta02_rho040, h1_qglJetSyst_pt5065_eta02_rho040, 50., 65., 0., 2., 0., 40.);
+  drawSinglePlot( db, discrim, h1_data_qglJet_pt80120_eta02_rho040,h1_qglJet_pt80120_eta02_rho040, h1_qglJetSyst_pt80120_eta02_rho040, 80., 120., 0., 2., 0., 40.);
+  drawSinglePlot( db, discrim, h1_data_qglJet_pt120250_eta02_rho040,h1_qglJet_pt120250_eta02_rho040, h1_qglJetSyst_pt120250_eta02_rho040, 120., 250., 0., 2., 0., 40.);
+
+  drawSinglePlot( db, discrim, h1_data_qglJet_pt3050_eta35_rho040, h1_qglJet_pt3050_eta35_rho040, h1_qglJetSyst_pt3050_eta35_rho040, 30., 50., 3., 5., 0., 40.);
+  drawSinglePlot( db, discrim, h1_data_qglJet_pt5065_eta35_rho040, h1_qglJet_pt5065_eta35_rho040, h1_qglJetSyst_pt5065_eta35_rho040, 50., 65., 3., 5., 0., 40.);
+  drawSinglePlot( db, discrim, h1_data_qglJet_pt80120_eta35_rho040,h1_qglJet_pt80120_eta35_rho040, h1_qglJetSyst_pt80120_eta35_rho040, 80., 120., 3., 5., 0., 40.);
 
 
 
@@ -349,8 +361,8 @@ int main( int argc, char* argv[] ) {
   h1_qglJet_pt3050_eta02_rho040->Write();
   h1_qglJetSyst_pt3050_eta02_rho040->Write();
   
-  h1_qglJet_pt5080_eta02_rho040->Write();
-  h1_qglJetSyst_pt5080_eta02_rho040->Write();
+  h1_qglJet_pt5065_eta02_rho040->Write();
+  h1_qglJetSyst_pt5065_eta02_rho040->Write();
   
   h1_qglJet_pt80120_eta02_rho040->Write();
   h1_qglJetSyst_pt80120_eta02_rho040->Write();
@@ -361,8 +373,8 @@ int main( int argc, char* argv[] ) {
   h1_qglJet_pt3050_eta35_rho040->Write();
   h1_qglJetSyst_pt3050_eta35_rho040->Write();
   
-  h1_qglJet_pt5080_eta35_rho040->Write();
-  h1_qglJetSyst_pt5080_eta35_rho040->Write();
+  h1_qglJet_pt5065_eta35_rho040->Write();
+  h1_qglJetSyst_pt5065_eta35_rho040->Write();
   
   h1_qglJet_pt80120_eta35_rho040->Write();
   h1_qglJetSyst_pt80120_eta35_rho040->Write();
@@ -370,7 +382,7 @@ int main( int argc, char* argv[] ) {
 
   h1_data_qglJet_pt3050_eta02_rho040->Write();
   
-  h1_data_qglJet_pt5080_eta02_rho040->Write();
+  h1_data_qglJet_pt5065_eta02_rho040->Write();
   
   h1_data_qglJet_pt80120_eta02_rho040->Write();
 
@@ -378,7 +390,7 @@ int main( int argc, char* argv[] ) {
 
   h1_data_qglJet_pt3050_eta35_rho040->Write();
   
-  h1_data_qglJet_pt5080_eta35_rho040->Write();
+  h1_data_qglJet_pt5065_eta35_rho040->Write();
   
   h1_data_qglJet_pt80120_eta35_rho040->Write();
 
@@ -391,7 +403,7 @@ int main( int argc, char* argv[] ) {
 }
 
 
-void drawSinglePlot( DrawBase* db, TH1D* h1_data, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax ) {
+void drawSinglePlot( DrawBase* db, const std::string& discrim, TH1D* h1_data, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax ) {
 
 
   TCanvas* c1 = new TCanvas("c1", "", 600, 600);
@@ -403,23 +415,37 @@ void drawSinglePlot( DrawBase* db, TH1D* h1_data, TH1D* h1_qgl, TH1D* h1_qglSyst
   h1_qglSyst->SetLineWidth(2);
   h1_data->SetMarkerStyle(20);
 
-  float ymax = h1_qgl->GetMaximum() / h1_qgl->Integral();
+  float ymax = h1_data->GetMaximum();
+  if( discrim=="QGLMLP" )
+    ymax *= 1.5;
+  else
+    ymax *= 1.3;
 
-  TH2D* h2_axes = new TH2D("axes", "", 10, 0., 1.0001, 10, 0., 1.4*ymax);
-  h2_axes->SetXTitle("QG LD");
-  h2_axes->SetYTitle("Normalized to Unity");
+  TH2D* h2_axes = new TH2D("axes", "", 10, 0., 1.0001, 10, 0., ymax);
+  if( discrim=="QGLMLP" ) 
+    h2_axes->SetXTitle("Quark-Gluon MLP");
+  else
+    h2_axes->SetXTitle("Quark-Gluon Likelihood");
+  h2_axes->SetYTitle("Events");
 
   h1_qglSyst->SetLineColor(kRed);
 
+  float mcNorm = h1_data->Integral()/h1_qgl->Integral();
+  h1_qgl->Scale(mcNorm);
+  float mcSystNorm = h1_data->Integral()/h1_qglSyst->Integral();
+  h1_qglSyst->Scale(mcSystNorm);
+
   h2_axes->Draw();
-  h1_qgl->DrawNormalized("Histo same");
-  h1_qglSyst->DrawNormalized("Histo same");
-  h1_data->DrawNormalized("P same");
 
   char legendTitle[500];
-  sprintf( legendTitle, "p_{T}(%.0f-%.0f), #eta(%.1f-%.1f), #rho(%.0f-%.0f)", ptMin, ptMax, etaMin, etaMax, rhoMin, rhoMax);
+  //sprintf( legendTitle, "p_{T}(%.0f-%.0f), #eta(%.1f-%.1f), #rho(%.0f-%.0f)", ptMin, ptMax, etaMin, etaMax, rhoMin, rhoMax);
+  if( etaMin==0. ) 
+    sprintf( legendTitle, "%.0f < p_{T} < %.0f GeV,  |#eta| < %.0f", ptMin, ptMax, etaMax);
+  else 
+    sprintf( legendTitle, "%.0f < p_{T} < %.0f GeV,  %.0f < |#eta| < %.0f", ptMin, ptMax, etaMin, etaMax);
 
-  TLegend* legend = new TLegend(0.25, 0.7, 0.75, 0.9, legendTitle);
+
+  TLegend* legend = new TLegend(0.25, 0.66, 0.7, 0.9, legendTitle);
   legend->SetFillColor(0);
   legend->SetTextSize(0.038);
   legend->AddEntry( h1_data, "Data", "p" );
@@ -427,11 +453,16 @@ void drawSinglePlot( DrawBase* db, TH1D* h1_data, TH1D* h1_qgl, TH1D* h1_qglSyst
   legend->AddEntry( h1_qglSyst, "After Smearing", "L" );
   legend->Draw("same");
 
+
+  h1_qgl->Draw("Histo same");
+  h1_qglSyst->Draw("Histo same");
+  h1_data->Draw("P same");
+
   std::string doubleMin_str = "";
   if( doubleMin ) doubleMin_str = "DM";
 
-  char canvasName[500];
-  sprintf( canvasName, "prova%s_pt%.0f_%.0f_eta%.0f_%.0f_rho%.0f_%.0f.eps", doubleMin_str.c_str(), ptMin, ptMax, etaMin, etaMax, rhoMin, rhoMax);
+  char canvasName[1023];
+  sprintf( canvasName, "%s/checkSyst%s_%s_pt%.0f_%.0f_eta%.0f_%.0f_rho%.0f_%.0f.eps", db->get_outputdir().c_str(), discrim.c_str(), doubleMin_str.c_str(), ptMin, ptMax, etaMin, etaMax, rhoMin, rhoMax);
 
   TPaveText* label_top = db->get_labelTop();
   label_top->Draw("same");

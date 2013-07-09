@@ -3,7 +3,6 @@
 
 #include "TMath.h"
 #include "../interface/QGMLPCalculator.h"
-#include "parameters.cc"
 
 
 

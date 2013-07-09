@@ -1,8 +1,11 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include <FWCore/Utilities/interface/Exception.h>
+#include "FWCore/Utilities/interface/Exception.h"
 
 #include "TMath.h"
 #include "../interface/QGMLPCalculator.h"
+#include "parameters.cc"
+
+
 
 QGMLPCalculator::QGMLPCalculator(const TString mva_, const TString dataDir, const Bool_t useProbValue_){
   mva = mva_;
@@ -11,8 +14,8 @@ QGMLPCalculator::QGMLPCalculator(const TString mva_, const TString dataDir, cons
   TString variableNames[] = {"axis1","axis2","mult","ptD"};
   reader = new TMVA::Reader("Silent");
   for(Int_t i=0; i < 4; ++i) reader->AddVariable(variableNames[i], &mvaVariables_corr[variableNames[i]]);
-  for(Int_t i = 0; i <= getLastBin("c"); ++i) reader->BookMVA(mva+"c"+ str(i), edm::FileInPath(dataDir + "c" + str(i) + "_" + mva + ".xml").fullPath());
-  for(Int_t i = 0; i <= getLastBin("f"); ++i) reader->BookMVA(mva+"f"+ str(i), edm::FileInPath(dataDir + "f" + str(i) + "_" + mva + ".xml").fullPath());
+  for(Int_t i = 0; i <= this->getLastBin("c"); ++i) reader->BookMVA(mva+"c"+ str(i), edm::FileInPath(dataDir + "c" + str(i) + "_" + mva + ".xml").fullPath());
+  for(Int_t i = 0; i <= this->getLastBin("f"); ++i) reader->BookMVA(mva+"f"+ str(i), edm::FileInPath(dataDir + "f" + str(i) + "_" + mva + ".xml").fullPath());
 
   setRhoCorrections();
 }

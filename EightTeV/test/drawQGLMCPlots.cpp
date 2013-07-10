@@ -7,12 +7,12 @@
 #include "TTree.h"
 #include "TChain.h"
 #include "TLorentzVector.h"
-#include "QG/QGLikelihood/interface/QGLikelihoodCalculator.h"
+#include "QuarkGluonTagger/EightTeV/interface/QGLikelihoodCalculator.h"
 #include "/afs/cern.ch/work/p/pandolf/CMSSW_5_3_9_patch1_QGSyst/src/QuarkGluonTagger/EightTeV/interface/QGMLPCalculator.h"
 
 
 bool Summer12=true;
-bool sunilTree=false;
+bool sunilTree=true;
 
 
 void drawOneVariable( DrawBase* db, TTree* tree, const std::string& varName, const std::string& axisName, int nbins, float xmin, float xmax, std::string treeVar="" );
@@ -45,6 +45,8 @@ int main() {
     tree->Add("/cmsrm/pc25_2/pandolf/MC/Summer12/QCD_Pt-15to3000_TuneZ2_Flat_8TeV_pythia6_Summer12_DR53X-PU_S10_START53_V7A-v1_finalQG_withCHS_JEC53X/QG_2ndLevelTree_QCD_Pt-15to3000_TuneZ2_Flat_8TeV_pythia6_Summer12_DR53X-PU_S10_START53_V7A-v1_finalQG_withCHS_JEC53X_*.root");
   
 
+  std::cout << "-> Tree has " << tree->GetEntries() << " entries." << std::endl;
+
   DrawBase* db = new DrawBase("prova");
 
   if( sunilTree ) 
@@ -67,12 +69,11 @@ int main() {
   //if( Summer12 ) qglc = new QGLikelihoodCalculator("/afs/cern.ch/work/p/pandolf/public/Histos_2012_NEW.root");
   //if( Summer12 ) qglc = new QGLikelihoodCalculator("/afs/cern.ch/work/p/pandolf/public/ReducedHistos_prova.root");
   //if( Summer12 ) qglc = new QGLikelihoodCalculator("/afs/cern.ch/work/p/pandolf/public/ReducedHisto_2012.root");
-  if( Summer12 ) qglc = new QGLikelihoodCalculator("/afs/cern.ch/work/p/pandolf/CMSSW_5_3_9_patch1_QGSyst/src/QuarkGluonTagger/EightTeV/data/ReducedHisto_2012.root");
+  if( Summer12 ) qglc = new QGLikelihoodCalculator("QuarkGluonTagger/EightTeV/data/");
   else           qglc = new QGLikelihoodCalculator("/afs/cern.ch/work/p/pandolf/CMSSW_5_3_6/src/QG/QGLikelihood/test/Histos.root");
 
-  qglc_old = new QGLikelihoodCalculator("/afs/cern.ch/work/p/pandolf/public/Histos_2012_NEW.root");
+  qglc_old = new QGLikelihoodCalculator("QuarkGluonTagger/EightTeV/data/");
 
-  QGMLPCalculator* qgmlp=new QGMLPCalculator("MLP","/afs/cern.ch/work/p/pandolf/CMSSW_5_3_9_patch1_QGSyst/src/QuarkGluonTagger/EightTeV/data", true);
 
   drawSinglePtBin( db, qglc, qglc_old, tree, 20., 30. );
   drawSinglePtBin( db, qglc, qglc_old, tree, 30., 40. );
@@ -193,6 +194,10 @@ void drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLikelihoodCa
 
   std::cout << "-> Processing pt bin: " << ptMin << "-" << ptMax << " GeV..." << std::endl;
 
+
+  QGMLPCalculator* qgmlp = new QGMLPCalculator("MLP","QuarkGluonTagger/EightTeV/data/", true);
+
+
   bool doFwd = (ptMin<100.);
 
   int njet;
@@ -200,11 +205,17 @@ void drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLikelihoodCa
   float eta[20];
   int pdgId[20];
   float rho;
+  float rhoMLP;
   int nCharged[20];
   int nNeutral[20];
   float ptD[20];
   float ptD_QC[20];
   float axis2_QC[20];
+  float axis1_QC[20];
+  float axis2[20];
+  float axis1[20];
+  Float_t jetAxis_QC[2][4];
+  Float_t jetAxis[2][4];
   int nCharged_QC[20];
   int nNeutral_ptCut[20];
   float qglMLPJet[20];
@@ -216,16 +227,19 @@ void drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLikelihoodCa
     tree->SetBranchAddress("jetEta", eta);
     tree->SetBranchAddress("jetPart", pdgId);
     tree->SetBranchAddress("rho", &rho);
+    tree->SetBranchAddress("rho", &rhoMLP);
     tree->SetBranchAddress("jetChgPart", nCharged);
     tree->SetBranchAddress("jetNeutralPart", nNeutral);
     tree->SetBranchAddress("jetPtD", ptD);
     tree->SetBranchAddress("jetPtD_QC", ptD_QC);
-    tree->SetBranchAddress("jetAxis_QC[1]", axis2_QC);
+    tree->SetBranchAddress("jetAxis",&jetAxis);
+    tree->SetBranchAddress("jetAxis_QC",&jetAxis_QC);
     tree->SetBranchAddress("jetChgPart_QC", nCharged_QC);
     tree->SetBranchAddress("jetNeutralPart_ptcut", nNeutral_ptCut);
     tree->SetBranchAddress("jetQG_MLP", qglMLPJet);
     tree->SetBranchAddress("jetQG_LD", qglJet);
   } else {
+    rhoMLP = -1.;
     tree->SetBranchAddress("nJet", &njet);
     tree->SetBranchAddress("ptJet", pt);
     tree->SetBranchAddress("etaJet", eta);
@@ -316,6 +330,15 @@ void drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLikelihoodCa
 
     tree->GetEntry(ientry);
 
+    if( ientry % 100000 == 0 ) std::cout << "entry: " << ientry << "/" << nentries << std::endl;
+
+    if( sunilTree ) {
+      axis1_QC[0] = jetAxis_QC[0][0];
+      axis2_QC[0] = jetAxis_QC[1][0];
+      axis1[0] = jetAxis[0][0];
+      axis2[0] = jetAxis[1][0];
+    }
+
     if( njet==0 && !sunilTree ) continue;
 
     if( pt[0]<ptMin || pt[0]>ptMax ) continue;
@@ -327,8 +350,25 @@ void drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLikelihoodCa
     //if( fabs(eta[0])<2. && h1_qgl_old_gluon->GetEntries()<10000 && h1_qgl_old_quark->GetEntries()<10000 ) { //save time
     if( fabs(eta[0])<2. ) {
 
-      float qgl_old = qglc_old->computeQGLikelihoodPU( pt[0], rho, nCharged[0], nNeutral[0], ptD[0]);
+      //float qgl_old = qglc_old->computeQGLikelihoodPU( pt[0], rho, nCharged[0], nNeutral[0], ptD[0]);
+      float qgl_old = -1.;
       float qgl_newHisto = qglc->computeQGLikelihood2012( pt[0], eta[0], rho, nCharged_QC[0]+nNeutral_ptCut[0], ptD_QC[0], axis2_QC[0]);
+
+      if( sunilTree ) {
+
+        std::map<TString,float> variables_MLP;
+        variables_MLP["axis1"]=axis1_QC[0];
+        variables_MLP["axis2"]=axis2_QC[0];
+        variables_MLP["ptD"]=ptD_QC[0];
+        variables_MLP["mult"]=nCharged_QC[0];
+        
+        variables_MLP["pt"]=pt[0];
+        variables_MLP["eta"]=eta[0];
+        variables_MLP["rho"]=rhoMLP;
+
+        qglMLPJet[0] = qgmlp->QGvalue(variables_MLP);
+
+      } // if sunil
 
       if( fabs(pdgId[0])<4 && fabs(pdgId[0])>0 ) {
         h1_qgl_old_quark->Fill( qgl_old );
@@ -358,8 +398,28 @@ void drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLikelihoodCa
 
     } else if( fabs(eta[0])<2.5 ) {
 
-      float qgl_old = qglc_old->computeQGLikelihoodPU( pt[0], rho, nCharged[0], nNeutral[0], ptD[0]);
+      //float qgl_old = qglc_old->computeQGLikelihoodPU( pt[0], rho, nCharged[0], nNeutral[0], ptD[0]);
+      float qgl_old = -1.;
       float qgl_newHisto = qglc->computeQGLikelihood2012( pt[0], eta[0], rho, nCharged_QC[0]+nNeutral_ptCut[0], ptD_QC[0], axis2_QC[0]);
+
+
+      if( sunilTree ) {
+
+        std::map<TString,float> variables_MLP;
+        variables_MLP["axis1"]=axis1_QC[0];
+        variables_MLP["axis2"]=axis2_QC[0];
+        variables_MLP["ptD"]=ptD_QC[0];
+        variables_MLP["mult"]=nCharged_QC[0];
+        
+        variables_MLP["pt"]=pt[0];
+        variables_MLP["eta"]=eta[0];
+        variables_MLP["rho"]=rhoMLP;
+
+        qglMLPJet[0] = qgmlp->QGvalue(variables_MLP);
+
+      } // if sunil
+
+
 
       if( fabs(pdgId[0])<4 && fabs(pdgId[0])>0 ) {
         h1_qgl_old_T_quark->Fill( qgl_old );
@@ -392,6 +452,25 @@ void drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLikelihoodCa
       float qgl_newHisto_noMult = qglc->computeQGLikelihood2012( pt[0], eta[0], rho, -1, ptD_QC[0], axis2_QC[0]);
       float qgl_newHisto_noPtD = qglc->computeQGLikelihood2012( pt[0], eta[0], rho, nCharged_QC[0]+nNeutral_ptCut[0], -1., axis2_QC[0]);
       float qgl_newHisto_noAxis2 = qglc->computeQGLikelihood2012( pt[0], eta[0], rho, nCharged_QC[0]+nNeutral_ptCut[0], ptD_QC[0], -1. );
+
+      if( sunilTree ) {
+
+        std::map<TString,float> variables_MLP;
+        // use non-QC vars in the fwd:
+        variables_MLP["axis1"]=axis1[0];
+        variables_MLP["axis2"]=axis2[0];
+        variables_MLP["ptD"]=ptD[0];
+        variables_MLP["mult"]=nCharged_QC[0]+nNeutral_ptCut[0];
+        
+        variables_MLP["pt"]=pt[0];
+        variables_MLP["eta"]=eta[0];
+        variables_MLP["rho"]=rhoMLP;
+        
+        qglMLPJet[0] = qgmlp->QGvalue(variables_MLP);
+
+      } // if sunil
+
+
 
       if( fabs(pdgId[0])<4 && fabs(pdgId[0])>0 ) {
         h1_qgl_new_F_quark->Fill( qgl_new );
@@ -577,6 +656,8 @@ void drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLikelihoodCa
   //compareTaggers( db, h1_qgl_old_T_charm, h1_qgl_newHisto_T_charm, h1_qgMLP_T_charm, "charm", ptMin, ptMax, "2 < |#eta| < 2.5" );
   //compareTaggers( db, 0, h1_qgl_newHisto_F_charm, h1_qgMLP_F_charm, "charm", ptMin, ptMax, "3 < |#eta| < 5" );
 
+
+  delete qgmlp;
 
   delete h1_qgl_old_gluon;
   delete h1_qgl_old_quark;
@@ -1018,7 +1099,7 @@ void compareSingleVariable( std::string varName, const std::string& axisName, in
 
   } else {
 
-    QGLikelihoodCalculator *qglc_tmp = new QGLikelihoodCalculator("/afs/cern.ch/work/p/pandolf/public/ReducedHisto_2012.root");
+    QGLikelihoodCalculator *qglc_tmp = new QGLikelihoodCalculator("/afs/cern.ch/work/p/pandolf/public/");
 
     // first pythia:
     float pt[20];

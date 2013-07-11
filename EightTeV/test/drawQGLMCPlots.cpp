@@ -203,6 +203,7 @@ void drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLikelihoodCa
   int njet;
   float pt[20];
   float eta[20];
+  float phi[20];
   int pdgId[20];
   float rho;
   float rhoMLP;
@@ -220,12 +221,19 @@ void drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLikelihoodCa
   int nNeutral_ptCut[20];
   float qglMLPJet[20];
   float qglJet[20];
+  std::vector<int> *partonId=0;
+  std::vector<int> *partonSt=0;
+  std::vector<float> *partonPt=0;
+  std::vector<float> *partonEta=0;
+  std::vector<float> *partonPhi=0;
+  std::vector<float> *partonE=0;
 
   if( sunilTree ) {
     //tree->SetBranchAddress("nJet", &njet);
     tree->SetBranchAddress("jetPt", pt);
     tree->SetBranchAddress("jetEta", eta);
-    tree->SetBranchAddress("jetPart", pdgId);
+    tree->SetBranchAddress("jetPhi", phi);
+    //tree->SetBranchAddress("jetPart", pdgId);
     tree->SetBranchAddress("rho", &rho);
     tree->SetBranchAddress("rho", &rhoMLP);
     tree->SetBranchAddress("jetChgPart", nCharged);
@@ -238,6 +246,12 @@ void drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLikelihoodCa
     tree->SetBranchAddress("jetNeutralPart_ptcut", nNeutral_ptCut);
     tree->SetBranchAddress("jetQG_MLP", qglMLPJet);
     tree->SetBranchAddress("jetQG_LD", qglJet);
+    tree->SetBranchAddress("partonId",&partonId);
+    tree->SetBranchAddress("partonSt",&partonSt);
+    tree->SetBranchAddress("partonPt",&partonPt);
+    tree->SetBranchAddress("partonEta",&partonEta);
+    tree->SetBranchAddress("partonPhi",&partonPhi);
+    tree->SetBranchAddress("partonE",&partonE);
   } else {
     rhoMLP = -1.;
     tree->SetBranchAddress("nJet", &njet);
@@ -347,6 +361,36 @@ void drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLikelihoodCa
 
     float qgl_new = qglJet[0];
 
+
+    if( sunilTree ) {
+
+      TLorentzVector thisJet;
+      thisJet.SetPtEtaPhiE( pt[0], eta[0], phi[0], pt[0] );
+
+      // match to parton:
+      float deltaR_min = 999.;
+      int foundPart = -1;
+      for(int iPart=0;iPart<int(partonPt->size());iPart++) {
+        if( partonSt->at(iPart) != 3 ) continue;
+        if( !( fabs(partonId->at(iPart))<6 || fabs(partonId->at(iPart))>0 || partonId->at(iPart)==21) ) continue;
+        TLorentzVector thisPart;
+        thisPart.SetPtEtaPhiE( partonPt->at(iPart), partonEta->at(iPart), partonPhi->at(iPart), partonE->at(iPart) );
+        float deltaR_part = thisPart.DeltaR(thisJet);
+        if(deltaR_part< deltaR_min) {
+          deltaR_min = deltaR_part;
+          foundPart = iPart;
+        }
+       }
+       if(deltaR_min < 0.3 && foundPart>=0) {
+        pdgId[0] = partonId->at(foundPart);
+       } else {
+        pdgId[0] = 0;
+      }
+
+    } //if sunil
+
+
+
     //if( fabs(eta[0])<2. && h1_qgl_old_gluon->GetEntries()<10000 && h1_qgl_old_quark->GetEntries()<10000 ) { //save time
     if( fabs(eta[0])<2. ) {
 
@@ -368,7 +412,9 @@ void drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLikelihoodCa
 
         qglMLPJet[0] = qgmlp->QGvalue(variables_MLP);
 
+
       } // if sunil
+
 
       if( fabs(pdgId[0])<4 && fabs(pdgId[0])>0 ) {
         h1_qgl_old_quark->Fill( qgl_old );

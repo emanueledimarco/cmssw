@@ -83,7 +83,10 @@ int main( int argc, char* argv[] ) {
   float jetPtD_QC[20];
   Float_t jetAxis_QC[2][4];
   Float_t jetAxis[2][4];
+  float jetPull_QC[4];
+  float jetLead[4];
   int nCharged_QC[20];
+  int nCharged_ptCut[20];
   int nNeutral_ptCut[20];
   std::vector<int> *partonId=0;
   std::vector<int> *partonSt=0;
@@ -116,7 +119,10 @@ int main( int argc, char* argv[] ) {
   sunilTree->SetBranchAddress("jetPtD_QC", jetPtD_QC);
   sunilTree->SetBranchAddress("jetAxis",&jetAxis);
   sunilTree->SetBranchAddress("jetAxis_QC",&jetAxis_QC);
+  sunilTree->SetBranchAddress("jetPull_QC",&jetPull_QC);
+  sunilTree->SetBranchAddress("jetLead",&jetLead);
   sunilTree->SetBranchAddress("jetChgPart_QC", nCharged_QC);
+  sunilTree->SetBranchAddress("jetChgPart_ptcut", nCharged_ptCut);
   sunilTree->SetBranchAddress("jetNeutralPart_ptcut", nNeutral_ptCut);
   sunilTree->SetBranchAddress("partonId",&partonId);
   sunilTree->SetBranchAddress("partonSt",&partonSt);
@@ -137,8 +143,7 @@ int main( int argc, char* argv[] ) {
   int jetPdgId[20];
   float axis2_QC[20];
   float axis1_QC[20];
-  float axis2[20];
-  float axis1[20];
+  float rmsCand_QC[20];
   float qglMLPJet[20];
   float qglJet[20];
 
@@ -153,7 +158,11 @@ int main( int argc, char* argv[] ) {
   flatTree->Branch("nNeutralJet", nNeutral, "nNeutralJet[nJet]/I");
   flatTree->Branch("ptDJet", jetPtD, "ptDJet[nJet]/F");
   flatTree->Branch("ptD_QCJet", jetPtD_QC, "ptDJet_QC[nJet]/F");
+  flatTree->Branch("pull_QCJet", jetPull_QC, "pull_QC[nJet]/F");
+  flatTree->Branch("RJet", jetLead, "RJet[nJet]/F");
+  flatTree->Branch("axis1_QCJet", axis1_QC, "axis1_QCJet[nJet]/F");
   flatTree->Branch("axis2_QCJet", axis2_QC, "axis2_QCJet[nJet]/F");
+  flatTree->Branch("rmsCand_QCJet", rmsCand_QC, "rmsCand_QCJet[nJet]/F");
   flatTree->Branch("nChg_QCJet", nCharged_QC, "nChg_QCJet[nJet]/I");
   flatTree->Branch("nNeutral_ptCutJet", nNeutral_ptCut, "nNeutral_ptCutJet[nJet]/I");
   flatTree->Branch("qgMLPJet", qglMLPJet, "qgMLPJet[nJet]/F");
@@ -183,7 +192,6 @@ int main( int argc, char* argv[] ) {
 
     sunilTree->GetEntry(ientry);
 
-if( ientry>500000 ) break;
     if( ientry % 100000 == 0 ) std::cout << "entry: " << ientry << "/" << nentries << std::endl;
 
     bool isMC = (run < 10000);
@@ -253,8 +261,7 @@ if( ientry>500000 ) break;
 
     axis1_QC[0] = jetAxis_QC[0][0];
     axis2_QC[0] = jetAxis_QC[1][0];
-    axis1[0] = jetAxis[0][0];
-    axis2[0] = jetAxis[1][0];
+    rmsCand_QC[0] = (axis1_QC[0]>0. && axis2_QC[0]>0.) ? sqrt( axis1_QC[0]*axis1_QC[0] + axis2_QC[0]*axis2_QC[0] ) : -1.;
 
 
     nJet=0;
@@ -290,13 +297,24 @@ if( ientry>500000 ) break;
     }
 
 
-    qglJet[0] = qglc->computeQGLikelihood2012( jetPt[0], jetEta[0], rho, nCharged_QC[0]+nNeutral_ptCut[0], jetPtD_QC[0], axis2_QC[0]);
+    if( !isMC && fabs(jetEta[0])>2.5 )
+      qglJet[0] = qglc->computeQGLikelihood2012( jetPt[0], jetEta[0], rho, nCharged_QC[0]+nNeutral_ptCut[0]-1, jetPtD_QC[0], axis2_QC[0]);
+    else
+      qglJet[0] = qglc->computeQGLikelihood2012( jetPt[0], jetEta[0], rho, nCharged_QC[0]+nNeutral_ptCut[0], jetPtD_QC[0], axis2_QC[0]);
 
     std::map<TString,float> variables_MLP;
     variables_MLP["axis1"]=axis1_QC[0];
     variables_MLP["axis2"]=axis2_QC[0];
     variables_MLP["ptD"]=jetPtD_QC[0];
-    variables_MLP["mult"]=nCharged_QC[0];
+    if( fabs(jetEta[0])<2.5 ) {
+      variables_MLP["mult"]=nCharged_QC[0];
+    } else {
+      if( isMC ) {
+        variables_MLP["mult"]=nCharged_ptCut[0]+nNeutral_ptCut[0];
+      } else {
+        variables_MLP["mult"]=nCharged_ptCut[0]+nNeutral_ptCut[0]-1;
+      }
+    }
     
     variables_MLP["pt"]=jetPt[0];
     variables_MLP["eta"]=jetEta[0];

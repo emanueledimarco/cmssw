@@ -196,7 +196,7 @@ int main( int argc, char* argv[] ) {
 
     bool isMC = (run < 10000);
 
-    if(!triggerResult->at(1))continue;
+    if( !isMC && !triggerResult->at(1) ) continue;
 
     float wt_pu = 1.;
     float wt_pteta = 1.;
@@ -232,7 +232,7 @@ int main( int argc, char* argv[] ) {
       TLorentzVector jet1, jet2;
       jet1.SetPtEtaPhiE( jetPt[0], jetEta[0], jetPhi[0], jetEnergy[0]);
       jet2.SetPtEtaPhiE( jetPt[1], jetEta[1], jetPhi[1], jetEnergy[1]);
-      if( fabs(jet1.DeltaPhi(jet2)) > 2.5 ) continue;
+      if( fabs(jet1.DeltaPhi(jet2)) < 2.5 ) continue;
 
       if( jetPt[2] > 0.3*(jetPt[0]+jetPt[1])/2. )continue;
 
@@ -248,13 +248,13 @@ int main( int argc, char* argv[] ) {
       if( jetPt[0]<20. ) continue; 
       TLorentzVector jet;
       jet.SetPtEtaPhiE( jetPt[0], jetEta[0], jetPhi[0], jetEnergy[0] );
-      if( fabs(Zmm.DeltaPhi(jet)) > 2.5 ) continue;
+      if( fabs(Zmm.DeltaPhi(jet)) < 2.5 ) continue;
       if( jetPt[1]>0.3*Zmm.Pt() ) continue;
 
     }
 
     // common jet ID:
-    if( fabs(jetEta[0]) < 2.5 && jetBeta[0] > ( 1.0 -  0.2 * TMath::Log( nvtx - 0.67))) continue; 
+    if( fabs(jetEta[0]) < 2.5 && jetBeta[0] < ( 1.0 -  0.2 * TMath::Log( nvtx - 0.67))) continue; 
     if( jetBtag[0]>0.244 ) continue;
     if( jetPtD_QC[0]>0.9 ) continue;
 

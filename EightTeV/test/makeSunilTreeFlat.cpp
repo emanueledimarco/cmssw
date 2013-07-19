@@ -9,6 +9,7 @@
 
 
 float get_xSecWeight( const std::string& dataset );
+float correctNCharged(int nChg_QCJet, float eta);
 
 
 int main( int argc, char* argv[] ) {
@@ -94,10 +95,10 @@ int main( int argc, char* argv[] ) {
   std::vector<float> *partonEta=0;
   std::vector<float> *partonPhi=0;
   std::vector<float> *partonE=0;
-  std::vector<float> *MuPt=0;
-  std::vector<float> *MuEta=0;
-  std::vector<float> *MuPhi=0;
-  std::vector<float> *MuE=0;
+  float MuEta[2];
+  float MuPhi[2];
+  float MuPt[2];
+  float MuEnergy[2];
 
 
   sunilTree->SetBranchAddress("runNo", &run);
@@ -131,10 +132,10 @@ int main( int argc, char* argv[] ) {
   sunilTree->SetBranchAddress("partonPhi",&partonPhi);
   sunilTree->SetBranchAddress("partonE",&partonE);
   if( selectionType=="ZJet" ) {
-    sunilTree->SetBranchAddress("MuPt",&MuPt);
-    sunilTree->SetBranchAddress("MuEta",&MuEta);
-    sunilTree->SetBranchAddress("MuPhi",&MuPhi);
-    sunilTree->SetBranchAddress("MuE",&MuE);
+    sunilTree->SetBranchAddress("MuPt",MuPt);
+    sunilTree->SetBranchAddress("MuEta",MuEta);
+    sunilTree->SetBranchAddress("MuPhi",MuPhi);
+    sunilTree->SetBranchAddress("MuEnergy",MuEnergy);
   }
 
 
@@ -146,6 +147,7 @@ int main( int argc, char* argv[] ) {
   float rmsCand_QC[20];
   float qglMLPJet[20];
   float qglJet[20];
+  float qglCorrJet[20];
 
   flatTree->Branch("eventWeight", &eventWeight, "eventWeight/F");
   flatTree->Branch("nJet", &nJet, "nJet/I");
@@ -167,6 +169,7 @@ int main( int argc, char* argv[] ) {
   flatTree->Branch("nNeutral_ptCutJet", nNeutral_ptCut, "nNeutral_ptCutJet[nJet]/I");
   flatTree->Branch("qgMLPJet", qglMLPJet, "qgMLPJet[nJet]/F");
   flatTree->Branch("qglJet", qglJet, "qglJet[nJet]/F");
+  flatTree->Branch("qglCorrJet", qglCorrJet, "qglCorrJet[nJet]/F");
 
 
 
@@ -196,7 +199,7 @@ int main( int argc, char* argv[] ) {
 
     bool isMC = (run < 10000);
 
-    if( !isMC && !triggerResult->at(1) ) continue;
+    //if( !isMC && !triggerResult->at(1) ) continue;
 
     float wt_pu = 1.;
     float wt_pteta = 1.;
@@ -226,7 +229,7 @@ int main( int argc, char* argv[] ) {
 
     if( selectionType=="DiJet" ) {
 
-      if( jetPt[0] < 40.) continue;
+      if( jetPt[0] < 20.) continue; 
       if( jetPt[1] < 20.) continue;
 
       TLorentzVector jet1, jet2;
@@ -238,9 +241,12 @@ int main( int argc, char* argv[] ) {
 
     } else if( selectionType=="ZJet" ) {
 
+      if( MuPt[0]<20. ) continue;
+      if( MuPt[1]<20. ) continue;
+
       TLorentzVector mu1, mu2;
-      mu1.SetPtEtaPhiE( MuPt->at(0), MuEta->at(0), MuPhi->at(0), MuE->at(0) );
-      mu2.SetPtEtaPhiE( MuPt->at(1), MuEta->at(1), MuPhi->at(1), MuE->at(1) );
+      mu1.SetPtEtaPhiE( MuPt[0], MuEta[0], MuPhi[0], MuEnergy[0] );
+      mu2.SetPtEtaPhiE( MuPt[1], MuEta[1], MuPhi[1], MuEnergy[1] );
 
       TLorentzVector Zmm = mu1 + mu2;
 
@@ -297,10 +303,13 @@ int main( int argc, char* argv[] ) {
     }
 
 
-    if( !isMC && fabs(jetEta[0])>2.5 )
+    if( !isMC && fabs(jetEta[0])>2.5 ) {
       qglJet[0] = qglc->computeQGLikelihood2012( jetPt[0], jetEta[0], rho, nCharged_QC[0]+nNeutral_ptCut[0]-1, jetPtD_QC[0], axis2_QC[0]);
-    else
+      qglCorrJet[0] = qglJet[0];
+    } else {
       qglJet[0] = qglc->computeQGLikelihood2012( jetPt[0], jetEta[0], rho, nCharged_QC[0]+nNeutral_ptCut[0], jetPtD_QC[0], axis2_QC[0]);
+      qglCorrJet[0] = (fabs(jetEta[0])<1.9) ? qglJet[0] : qglc->computeQGLikelihood2012( jetPt[0], jetEta[0], rho, correctNCharged(nCharged_QC[0],jetEta[0])+nNeutral_ptCut[0], jetPtD_QC[0], axis2_QC[0]);
+    }
 
     std::map<TString,float> variables_MLP;
     variables_MLP["axis1"]=axis1_QC[0];
@@ -321,7 +330,8 @@ int main( int argc, char* argv[] ) {
     variables_MLP["rho"]=rhoMLP;
 
     qglMLPJet[0] = qgmlp->QGvalue(variables_MLP);
-
+if( ientry<1000 )
+std::cout << "run: " << run << " event: "<< event << " pt: " << jetPt[0] << " eta: " << jetEta[0] << " rho: " << rhoMLP << " axis1: " << axis1_QC[0] << " axis2: " << axis2_QC[0] << " ptd: " << jetPtD_QC[0] << " mult: " << variables_MLP["mult"] << " MLP: " << qglMLPJet[0] << " LD: " << qglJet[0] << std::endl;
     flatTree->Fill();
 
   } // for entries
@@ -343,3 +353,26 @@ float get_xSecWeight( const std::string& dataset ) {
   return 1.;
 
 }
+
+
+float correctNCharged(int nChg_QCJet, float eta) {
+
+  float scale = 1.;
+
+  if( fabs(eta)<2.4 && fabs(eta)>1.9 ) {
+    // compute the area of the cone outside of the tracker:
+    // using the notation found here: http://upload.wikimedia.org/wikipedia/commons/f/fb/Circularsegment.svg
+    float R = 0.5;
+    float h = fabs(eta)+0.5-2.4;
+    float d = R-h;
+    float theta = 2.*TMath::ACos(d/R);
+    float area_tot = R*R*TMath::Pi();
+    float area_outside = R*R*(theta - sin(theta))/2.;
+    float fraction_area = area_outside/area_tot;
+    scale = 1./(1.-fraction_area);
+  }
+
+  return scale*(float)nChg_QCJet;
+
+}
+

@@ -81,7 +81,8 @@ int main() {
   //drawSinglePtBin( db, qglc, qglc_old, tree, 30., 40. );
   drawSinglePtBin( db, qglc, qglc_old, tree, 40., 50. );
   drawSinglePtBin( db, qglc, qglc_old, tree, 50., 65. );
-  drawSinglePtBin( db, qglc, qglc_old, tree, 65., 80. );
+  drawSinglePtBin( db, qglc, qglc_old, tree, 50., 80. );
+  drawSinglePtBin( db, qglc, qglc_old, tree, 60., 80. );
   drawSinglePtBin( db, qglc, qglc_old, tree, 80., 100. );
   drawSinglePtBin( db, qglc, qglc_old, tree, 200., 250. );
   drawSinglePtBin( db, qglc, qglc_old, tree, 500., 600. );
@@ -871,13 +872,15 @@ void drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLikelihoodCa
 void drawPlot( DrawBase* db, TH1D* h1_gluon, TH1D* h1_quark, std::string name, float ptMin, float ptMax, const std::string& labelText, TH1D* h1_third, const std::string& thirdName ) {
 
 
+  TString name_tstr(name);
+
   float norm_max_g = h1_gluon->GetMaximum()/h1_gluon->Integral();
   float norm_max_q = h1_quark->GetMaximum()/h1_quark->Integral();
   float hmax = (norm_max_q>norm_max_g) ? norm_max_q : norm_max_g;
 
   float ymax = hmax*1.2;
 
-  bool isMLP = (name=="MLP" );
+  bool isMLP = (name_tstr.Contains("MLP") );
 
   TH2D* h2_axes = new TH2D("axes", "", 10, h1_gluon->GetXaxis()->GetXmin(), h1_gluon->GetXaxis()->GetXmax(), 10, 0., ymax);
   if( isMLP )
@@ -1233,11 +1236,16 @@ void drawRoC_multi( DrawBase* db, float ptMin, float ptMax, const std::string& f
     } //for bins
 
 
+    int lineStyle = ihist+1;
     int color = ihist + 1;
     if( ihist>=4 ) color+=1;
+    if( vh1_gluon.size()<8 && ihist>4 ) {
+      color+=2;
+      lineStyle+=2;
+    }
     if( color==10 ) color++;
     vgr_RoC[ihist]->SetLineColor(color);
-    vgr_RoC[ihist]->SetLineStyle(ihist+1);
+    vgr_RoC[ihist]->SetLineStyle(lineStyle);
     vgr_RoC[ihist]->SetLineWidth(2);
 
   } //for ihist

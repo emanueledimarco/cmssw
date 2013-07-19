@@ -24,9 +24,13 @@ int main( int argc, char* argv[] ) {
 
 
 
-  std::string discrim = "QGLHisto";
+  std::string discrim = "qglJet";
   if( argc>1 ) {
     std::string discrim_str(argv[1]);
+    if( discrim_str!="qglJet" && discrim_str!="qgMLPJet" ) {
+      std::cout << "-> Unknown disciminator. Only \"qglJet\" and \"qgMLPJet\" allowed. Exiting." << std::endl;
+      exit(191);
+    }
     discrim = discrim_str;
   }
 
@@ -52,65 +56,68 @@ int main( int argc, char* argv[] ) {
   TH1D* h1_puweights = (TH1D*)file_puWeights->Get("puweights");
 
 
-  TFile* file = TFile::Open("/afs/cern.ch/user/a/amarini/work/GluonTag/ZJet/ZJet_DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball_Summer12_DR53X-PU_S10_START53_V7A-v1_2.root");
+  //TFile* file = TFile::Open("/afs/cern.ch/user/a/amarini/work/GluonTag/ZJet/ZJet_DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball_Summer12_DR53X-PU_S10_START53_V7A-v1_2.root");
+  TFile* file = TFile::Open("sunilFlat_ZJet_Zjets_12Jul.root");
   TTree* tree = (TTree*)file->Get("tree_passedEvents");
 
   //TFile* file_data = TFile::Open("/afs/cern.ch/user/a/amarini/work/GluonTag/ZJet/ZJet_DoubleMu-Run2012AB.root");
   TChain* tree_data = new TChain("tree_passedEvents");
-  tree_data->Add("/afs/cern.ch/user/a/amarini/work/GluonTag/ZJet/ZJet_Double*.root");
+  tree_data->Add("sunilFlat_ZJet_data2012ABCD_MuPD_12Jul.root");
+  //tree_data->Add("/afs/cern.ch/user/a/amarini/work/GluonTag/ZJet/ZJet_Double*.root");
   //std::cout << "tot: " << tree_data->GetEntries() << std::endl;
   //TTree* tree_data = (TTree*)file_data->Get("tree_passedEvents");
 
 
+  int njet;
+  float pt[20];
+  float eta[20];
+  float phi[20];
+  int pdgId[20];
   float rho;
-  float ptJet;
-  float etaJet;
-  int pdgIdPartJet;
-  float qglJet;
-  int nvertex; 
-  float deltaPhi_jet;
-  float mZ;
-  float ptZ;
-  float ptD_QCJet;
-  float betaStarJet;
-  bool btagged;
+  float rhoMLP;
+  int nCharged[20];
+  int nNeutral[20];
+  float ptD[20];
+  float ptD_QC[20];
+  float axis2_QC[20];
+  float axis1_QC[20];
+  float rmsCand_QC[20];
+  float R[20];
+  float pull_QC[20];
+  int nCharged_QC[20];
+  int nNeutral_ptCut[20];
+  float qglJet[20];
 
-  if( sunilTree ) {
-    tree->SetBranchAddress("rho", &rho );
-    tree->SetBranchAddress("ptJet0", &ptJet );
-    tree->SetBranchAddress("etaJet0", &etaJet );
-    tree->SetBranchAddress("pdgIdPartJet0", &pdgIdPartJet );
-    tree->SetBranchAddress(discrim.c_str(), &qglJet );
-    tree->SetBranchAddress("nvertex", &nvertex );
-    tree->SetBranchAddress("deltaPhi_jet", &deltaPhi_jet );
-    tree->SetBranchAddress("mZ", &mZ );
-    tree->SetBranchAddress("ptZ", &ptZ );
-    tree->SetBranchAddress("ptD_QCJet0", &ptD_QCJet );
-    tree->SetBranchAddress("betaStarJet0", &betaStarJet );
-    tree->SetBranchAddress("btagged", &btagged );
-  } else {
-    tree->SetBranchAddress("rhoPF", &rho );
-    tree->SetBranchAddress("ptJet0", &ptJet );
-    tree->SetBranchAddress("etaJet0", &etaJet );
-    tree->SetBranchAddress("pdgIdPartJet0", &pdgIdPartJet );
-    tree->SetBranchAddress(discrim.c_str(), &qglJet );
-    tree->SetBranchAddress("nvertex", &nvertex );
-    tree->SetBranchAddress("deltaPhi_jet", &deltaPhi_jet );
-    tree->SetBranchAddress("mZ", &mZ );
-    tree->SetBranchAddress("ptZ", &ptZ );
-    tree->SetBranchAddress("ptD_QCJet0", &ptD_QCJet );
-    tree->SetBranchAddress("betaStarJet0", &betaStarJet );
-    tree->SetBranchAddress("btagged", &btagged );
-  }
+  tree->SetBranchAddress("nJet", &njet);
+  tree->SetBranchAddress("ptJet", pt);
+  tree->SetBranchAddress("etaJet", eta);
+  tree->SetBranchAddress("pdgIdJet", pdgId);
+  tree->SetBranchAddress("rhoPF", &rho);
+  tree->SetBranchAddress("nChargedJet", nCharged);
+  tree->SetBranchAddress("nNeutralJet", nNeutral);
+  tree->SetBranchAddress("ptDJet", ptD);
+  tree->SetBranchAddress("ptD_QCJet", ptD_QC);
+  tree->SetBranchAddress("axis1_QCJet", axis1_QC);
+  tree->SetBranchAddress("axis2_QCJet", axis2_QC);
+  tree->SetBranchAddress("rmsCand_QCJet", rmsCand_QC);
+  tree->SetBranchAddress("RJet", R);
+  tree->SetBranchAddress("pull_QCJet", pull_QC);
+  tree->SetBranchAddress("nChg_QCJet", nCharged_QC);
+  tree->SetBranchAddress("nNeutral_ptCutJet", nNeutral_ptCut);
+  tree->SetBranchAddress(discrim.c_str(), qglJet);
 
 
   QGSyst qgsyst;
   if( doubleMin )
-    qgsyst.ReadDatabaseDoubleMin("../data/SystDatabase_doubleMin.txt");
+    qgsyst.ReadDatabaseDoubleMin("../data/SystZJetHbb_2013_07_15.txt");
+    //qgsyst.ReadDatabaseDoubleMin("../data/SystDatabase_doubleMin.txt");
     //qgsyst.ReadDatabaseDoubleMin("../data/SystDoubleZJetHbb.txt");
   else
     qgsyst.ReadDatabase("../data/SystDatabase.txt");
-  qgsyst.SetTagger(discrim);
+
+  std::string nameForSyst = (discrim=="qglJet") ? "QGLHisto" : "QGLMLP";
+  qgsyst.SetTagger(nameForSyst);
+
 
 
   TFile* outfile = TFile::Open(outfilename.c_str(), "RECREATE");
@@ -189,64 +196,64 @@ int main( int argc, char* argv[] ) {
 
 
 
-  TH1D* h1_qglJet_pt3050_eta35_rho040 = new TH1D("qglJet_pt3050_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJet_pt3050_eta35_rho040 = new TH1D("qglJet_pt3050_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJet_pt3050_eta35_rho040->Sumw2();
-  TH1D* h1_qglJetSyst_pt3050_eta35_rho040 = new TH1D("qglJetSyst_pt3050_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJetSyst_pt3050_eta35_rho040 = new TH1D("qglJetSyst_pt3050_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJetSyst_pt3050_eta35_rho040->Sumw2();
 
-  TH1D* h1_qglJet_quark_pt3050_eta35_rho040 = new TH1D("qglJet_quark_pt3050_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJet_quark_pt3050_eta35_rho040 = new TH1D("qglJet_quark_pt3050_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJet_quark_pt3050_eta35_rho040->Sumw2();
-  TH1D* h1_qglJetSyst_quark_pt3050_eta35_rho040 = new TH1D("qglJetSyst_quark_pt3050_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJetSyst_quark_pt3050_eta35_rho040 = new TH1D("qglJetSyst_quark_pt3050_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJetSyst_quark_pt3050_eta35_rho040->Sumw2();
 
-  TH1D* h1_qglJet_gluon_pt3050_eta35_rho040 = new TH1D("qglJet_gluon_pt3050_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJet_gluon_pt3050_eta35_rho040 = new TH1D("qglJet_gluon_pt3050_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJet_gluon_pt3050_eta35_rho040->Sumw2();
-  TH1D* h1_qglJetSyst_gluon_pt3050_eta35_rho040 = new TH1D("qglJetSyst_gluon_pt3050_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJetSyst_gluon_pt3050_eta35_rho040 = new TH1D("qglJetSyst_gluon_pt3050_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJetSyst_gluon_pt3050_eta35_rho040->Sumw2();
 
-  TH1D* h1_qglJet_pt5065_eta35_rho040 = new TH1D("qglJet_pt5065_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJet_pt5065_eta35_rho040 = new TH1D("qglJet_pt5065_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJet_pt5065_eta35_rho040->Sumw2();
-  TH1D* h1_qglJetSyst_pt5065_eta35_rho040 = new TH1D("qglJetSyst_pt5065_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJetSyst_pt5065_eta35_rho040 = new TH1D("qglJetSyst_pt5065_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJetSyst_pt5065_eta35_rho040->Sumw2();
 
-  TH1D* h1_qglJet_quark_pt5065_eta35_rho040 = new TH1D("qglJet_quark_pt5065_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJet_quark_pt5065_eta35_rho040 = new TH1D("qglJet_quark_pt5065_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJet_quark_pt5065_eta35_rho040->Sumw2();
-  TH1D* h1_qglJetSyst_quark_pt5065_eta35_rho040 = new TH1D("qglJetSyst_quark_pt5065_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJetSyst_quark_pt5065_eta35_rho040 = new TH1D("qglJetSyst_quark_pt5065_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJetSyst_quark_pt5065_eta35_rho040->Sumw2();
 
-  TH1D* h1_qglJet_gluon_pt5065_eta35_rho040 = new TH1D("qglJet_gluon_pt5065_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJet_gluon_pt5065_eta35_rho040 = new TH1D("qglJet_gluon_pt5065_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJet_gluon_pt5065_eta35_rho040->Sumw2();
-  TH1D* h1_qglJetSyst_gluon_pt5065_eta35_rho040 = new TH1D("qglJetSyst_gluon_pt5065_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJetSyst_gluon_pt5065_eta35_rho040 = new TH1D("qglJetSyst_gluon_pt5065_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJetSyst_gluon_pt5065_eta35_rho040->Sumw2();
 
-  TH1D* h1_qglJet_pt80120_eta35_rho040 = new TH1D("qglJet_pt80120_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJet_pt80120_eta35_rho040 = new TH1D("qglJet_pt80120_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJet_pt80120_eta35_rho040->Sumw2();
-  TH1D* h1_qglJetSyst_pt80120_eta35_rho040 = new TH1D("qglJetSyst_pt80120_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJetSyst_pt80120_eta35_rho040 = new TH1D("qglJetSyst_pt80120_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJetSyst_pt80120_eta35_rho040->Sumw2();
 
-  TH1D* h1_qglJet_quark_pt80120_eta35_rho040 = new TH1D("qglJet_quark_pt80120_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJet_quark_pt80120_eta35_rho040 = new TH1D("qglJet_quark_pt80120_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJet_quark_pt80120_eta35_rho040->Sumw2();
-  TH1D* h1_qglJetSyst_quark_pt80120_eta35_rho040 = new TH1D("qglJetSyst_quark_pt80120_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJetSyst_quark_pt80120_eta35_rho040 = new TH1D("qglJetSyst_quark_pt80120_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJetSyst_quark_pt80120_eta35_rho040->Sumw2();
 
-  TH1D* h1_qglJet_gluon_pt80120_eta35_rho040 = new TH1D("qglJet_gluon_pt80120_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJet_gluon_pt80120_eta35_rho040 = new TH1D("qglJet_gluon_pt80120_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJet_gluon_pt80120_eta35_rho040->Sumw2();
-  TH1D* h1_qglJetSyst_gluon_pt80120_eta35_rho040 = new TH1D("qglJetSyst_gluon_pt80120_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJetSyst_gluon_pt80120_eta35_rho040 = new TH1D("qglJetSyst_gluon_pt80120_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJetSyst_gluon_pt80120_eta35_rho040->Sumw2();
 
-  TH1D* h1_qglJet_pt120250_eta35_rho040 = new TH1D("qglJet_pt120250_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJet_pt120250_eta35_rho040 = new TH1D("qglJet_pt120250_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJet_pt120250_eta35_rho040->Sumw2();
-  TH1D* h1_qglJetSyst_pt120250_eta35_rho040 = new TH1D("qglJetSyst_pt120250_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJetSyst_pt120250_eta35_rho040 = new TH1D("qglJetSyst_pt120250_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJetSyst_pt120250_eta35_rho040->Sumw2();
 
-  TH1D* h1_qglJet_quark_pt120250_eta35_rho040 = new TH1D("qglJet_quark_pt120250_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJet_quark_pt120250_eta35_rho040 = new TH1D("qglJet_quark_pt120250_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJet_quark_pt120250_eta35_rho040->Sumw2();
-  TH1D* h1_qglJetSyst_quark_pt120250_eta35_rho040 = new TH1D("qglJetSyst_quark_pt120250_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJetSyst_quark_pt120250_eta35_rho040 = new TH1D("qglJetSyst_quark_pt120250_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJetSyst_quark_pt120250_eta35_rho040->Sumw2();
 
-  TH1D* h1_qglJet_gluon_pt120250_eta35_rho040 = new TH1D("qglJet_gluon_pt120250_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJet_gluon_pt120250_eta35_rho040 = new TH1D("qglJet_gluon_pt120250_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJet_gluon_pt120250_eta35_rho040->Sumw2();
-  TH1D* h1_qglJetSyst_gluon_pt120250_eta35_rho040 = new TH1D("qglJetSyst_gluon_pt120250_eta35_rho040", "", nBins, xMin, 1.0001);
+  TH1D* h1_qglJetSyst_gluon_pt120250_eta35_rho040 = new TH1D("qglJetSyst_gluon_pt120250_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJetSyst_gluon_pt120250_eta35_rho040->Sumw2();
 
 
@@ -254,9 +261,9 @@ int main( int argc, char* argv[] ) {
 
 
   //syst eff histos:
-  float thresh1 = (discrim=="QGLMLP") ? 0.7 : 0.3;
-  float thresh2 = (discrim=="QGLMLP") ? 0.5 : 0.5;
-  float thresh3 = (discrim=="QGLMLP") ? 0.3 : 0.8;
+  float thresh1 = (discrim=="qgMLPJet") ? 0.7 : 0.3;
+  float thresh2 = (discrim=="qgMLPJet") ? 0.5 : 0.5;
+  float thresh3 = (discrim=="qgMLPJet") ? 0.3 : 0.8;
 
   Double_t ptBins[21];
   fitTools::getBins_int( 21, ptBins, 20., 2000.);
@@ -319,24 +326,26 @@ int main( int argc, char* argv[] ) {
 
     tree->GetEntry(iEntry);
 
+    if( njet<1 ) continue;
+
     if( rho>40. ) continue;
-    if( mZ<70. || mZ>110. ) continue;
-    if( deltaPhi_jet < 3.1415-0.5 ) continue;
-    if( ptD_QCJet <=0. ) continue;
-    if( fabs(etaJet)<2.5 && betaStarJet > 0.2 * log( (float)nvertex - 0.67) ) continue;
-    if( btagged ) continue;
+    //if( mZ<70. || mZ>110. ) continue;
+    //if( deltaPhi_jet < 3.1415-0.5 ) continue;
+    //if( ptD_QCJet <=0. ) continue;
+    //if( fabs(etaJet)<2.5 && betaStarJet > 0.2 * log( (float)nvertex - 0.67) ) continue;
+    //if( btagged ) continue;
 
     float puweight = h1_puweights->GetBinContent((int)rho);
 
-    h1_ptZ->Fill( ptZ, puweight );
+    //h1_ptZ->Fill( ptZ, puweight );
     h1_rho->Fill( rho, puweight );
 
     bool smearJet = true;
 
     std::string type = "all";
     if( doubleMin ) {
-      if( fabs(pdgIdPartJet)>0 && fabs(pdgIdPartJet)<6 ) type = "quark";
-      else if( pdgIdPartJet==21 ) type = "gluon";
+      if( fabs(pdgId[0])>0 && fabs(pdgId[0])<6 ) type = "quark";
+      else if( pdgId[0]==21 ) type = "gluon";
       else { // both 0 and -999
         //smearJet = false;
         type = "gluon";
@@ -345,165 +354,165 @@ int main( int argc, char* argv[] ) {
     }
 
 
-    float qglJetSyst = (smearJet) ? qgsyst.Smear(ptJet, etaJet, rho, qglJet, type) : qglJet;
+    float qglJetSyst = (smearJet) ? qgsyst.Smear(pt[0], eta[0], rho, qglJet[0], type) : qglJet[0];
 
-    bool discrimOK_thresh1 = (discrim=="QGLHisto" && qglJet>thresh1) || (discrim=="QGLMLP" && qglJet<thresh1);
-    bool discrimSystOK_thresh1 = (discrim=="QGLHisto" && qglJetSyst>thresh1) || (discrim=="QGLMLP" && qglJetSyst<thresh1);
-    bool discrimOK_thresh2 = (discrim=="QGLHisto" && qglJet>thresh2) || (discrim=="QGLMLP" && qglJet<thresh2);
-    bool discrimSystOK_thresh2 = (discrim=="QGLHisto" && qglJetSyst>thresh2) || (discrim=="QGLMLP" && qglJetSyst<thresh2);
-    bool discrimOK_thresh3 = (discrim=="QGLHisto" && qglJet>thresh3) || (discrim=="QGLMLP" && qglJet<thresh3);
-    bool discrimSystOK_thresh3 = (discrim=="QGLHisto" && qglJetSyst>thresh3) || (discrim=="QGLMLP" && qglJetSyst<thresh3);
+    bool discrimOK_thresh1 = (discrim=="qglJet" && qglJet[0]>thresh1) || (discrim=="qgMLPJet" && qglJet[0]<thresh1);
+    bool discrimSystOK_thresh1 = (discrim=="qglJet" && qglJetSyst>thresh1) || (discrim=="qgMLPJet" && qglJetSyst<thresh1);
+    bool discrimOK_thresh2 = (discrim=="qglJet" && qglJet[0]>thresh2) || (discrim=="qgMLPJet" && qglJet[0]<thresh2);
+    bool discrimSystOK_thresh2 = (discrim=="qglJet" && qglJetSyst>thresh2) || (discrim=="qgMLPJet" && qglJetSyst<thresh2);
+    bool discrimOK_thresh3 = (discrim=="qglJet" && qglJet[0]>thresh3) || (discrim=="qgMLPJet" && qglJet[0]<thresh3);
+    bool discrimSystOK_thresh3 = (discrim=="qglJet" && qglJetSyst>thresh3) || (discrim=="qgMLPJet" && qglJetSyst<thresh3);
 
 
-    if( fabs(etaJet)<2. ) {
+    if( fabs(eta[0])<2. ) {
 
 
       if( type=="quark" ) {
 
-        h1_effDenom_centr_quark_thresh1->Fill( ptJet );
-        h1_effDenom_centr_quark_thresh2->Fill( ptJet );
-        h1_effDenom_centr_quark_thresh3->Fill( ptJet );
+        h1_effDenom_centr_quark_thresh1->Fill( pt[0] );
+        h1_effDenom_centr_quark_thresh2->Fill( pt[0] );
+        h1_effDenom_centr_quark_thresh3->Fill( pt[0] );
 
-        if( discrimOK_thresh1 ) h1_effNum_centr_quark_thresh1->Fill( ptJet );
-        if( discrimOK_thresh2 ) h1_effNum_centr_quark_thresh2->Fill( ptJet );
-        if( discrimOK_thresh3 ) h1_effNum_centr_quark_thresh3->Fill( ptJet );
+        if( discrimOK_thresh1 ) h1_effNum_centr_quark_thresh1->Fill( pt[0] );
+        if( discrimOK_thresh2 ) h1_effNum_centr_quark_thresh2->Fill( pt[0] );
+        if( discrimOK_thresh3 ) h1_effNum_centr_quark_thresh3->Fill( pt[0] );
 
-        if( discrimSystOK_thresh1 || (discrimOK_thresh1 && ptJet<30.) ) h1_effNum_centr_quark_syst_thresh1->Fill( ptJet );
-        if( discrimSystOK_thresh2 || (discrimOK_thresh2 && ptJet<30.) ) h1_effNum_centr_quark_syst_thresh2->Fill( ptJet );
-        if( discrimSystOK_thresh3 || (discrimOK_thresh3 && ptJet<30.) ) h1_effNum_centr_quark_syst_thresh3->Fill( ptJet );
+        if( discrimSystOK_thresh1 || (discrimOK_thresh1 && pt[0]<30.) ) h1_effNum_centr_quark_syst_thresh1->Fill( pt[0] );
+        if( discrimSystOK_thresh2 || (discrimOK_thresh2 && pt[0]<30.) ) h1_effNum_centr_quark_syst_thresh2->Fill( pt[0] );
+        if( discrimSystOK_thresh3 || (discrimOK_thresh3 && pt[0]<30.) ) h1_effNum_centr_quark_syst_thresh3->Fill( pt[0] );
 
       } else if( type=="gluon" ) {
 
-        h1_effDenom_centr_gluon_thresh1->Fill( ptJet );
-        h1_effDenom_centr_gluon_thresh2->Fill( ptJet );
-        h1_effDenom_centr_gluon_thresh3->Fill( ptJet );
+        h1_effDenom_centr_gluon_thresh1->Fill( pt[0] );
+        h1_effDenom_centr_gluon_thresh2->Fill( pt[0] );
+        h1_effDenom_centr_gluon_thresh3->Fill( pt[0] );
 
-        if( discrimOK_thresh1 ) h1_effNum_centr_gluon_thresh1->Fill( ptJet );
-        if( discrimOK_thresh2 ) h1_effNum_centr_gluon_thresh2->Fill( ptJet );
-        if( discrimOK_thresh3 ) h1_effNum_centr_gluon_thresh3->Fill( ptJet );
+        if( discrimOK_thresh1 ) h1_effNum_centr_gluon_thresh1->Fill( pt[0] );
+        if( discrimOK_thresh2 ) h1_effNum_centr_gluon_thresh2->Fill( pt[0] );
+        if( discrimOK_thresh3 ) h1_effNum_centr_gluon_thresh3->Fill( pt[0] );
 
-        if( discrimSystOK_thresh1 || (discrimOK_thresh1 && ptJet<30.) ) h1_effNum_centr_gluon_syst_thresh1->Fill( ptJet );
-        if( discrimSystOK_thresh2 || (discrimOK_thresh2 && ptJet<30.) ) h1_effNum_centr_gluon_syst_thresh2->Fill( ptJet );
-        if( discrimSystOK_thresh3 || (discrimOK_thresh3 && ptJet<30.) ) h1_effNum_centr_gluon_syst_thresh3->Fill( ptJet );
+        if( discrimSystOK_thresh1 || (discrimOK_thresh1 && pt[0]<30.) ) h1_effNum_centr_gluon_syst_thresh1->Fill( pt[0] );
+        if( discrimSystOK_thresh2 || (discrimOK_thresh2 && pt[0]<30.) ) h1_effNum_centr_gluon_syst_thresh2->Fill( pt[0] );
+        if( discrimSystOK_thresh3 || (discrimOK_thresh3 && pt[0]<30.) ) h1_effNum_centr_gluon_syst_thresh3->Fill( pt[0] );
 
       }
 
 
-      if( ptJet > 30. && ptJet < 50. ) {
+      if( pt[0] > 30. && pt[0] < 50. ) {
 
-        h1_qglJet_pt3050_eta02_rho040->Fill( qglJet, puweight );
+        h1_qglJet_pt3050_eta02_rho040->Fill( qglJet[0], puweight );
         h1_qglJetSyst_pt3050_eta02_rho040->Fill( qglJetSyst, puweight );
         if( type=="quark" ) {
-          h1_qglJet_quark_pt3050_eta02_rho040->Fill( qglJet, puweight );
+          h1_qglJet_quark_pt3050_eta02_rho040->Fill( qglJet[0], puweight );
           h1_qglJetSyst_quark_pt3050_eta02_rho040->Fill( qglJetSyst, puweight );
         } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt3050_eta02_rho040->Fill( qglJet, puweight );
+          h1_qglJet_gluon_pt3050_eta02_rho040->Fill( qglJet[0], puweight );
           h1_qglJetSyst_gluon_pt3050_eta02_rho040->Fill( qglJetSyst, puweight );
         }
 
-      } else if( ptJet > 50. && ptJet < 65. ) {
+      } else if( pt[0] > 50. && pt[0] < 65. ) {
 
-        h1_qglJet_pt5065_eta02_rho040->Fill( qglJet, puweight );
+        h1_qglJet_pt5065_eta02_rho040->Fill( qglJet[0], puweight );
         h1_qglJetSyst_pt5065_eta02_rho040->Fill( qglJetSyst, puweight );
         if( type=="quark" ) {
-          h1_qglJet_quark_pt5065_eta02_rho040->Fill( qglJet, puweight );
+          h1_qglJet_quark_pt5065_eta02_rho040->Fill( qglJet[0], puweight );
           h1_qglJetSyst_quark_pt5065_eta02_rho040->Fill( qglJetSyst, puweight );
         } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt5065_eta02_rho040->Fill( qglJet, puweight );
+          h1_qglJet_gluon_pt5065_eta02_rho040->Fill( qglJet[0], puweight );
           h1_qglJetSyst_gluon_pt5065_eta02_rho040->Fill( qglJetSyst, puweight );
         }
 
-      } else if( ptJet > 80. && ptJet < 120. ) {
+      } else if( pt[0] > 80. && pt[0] < 120. ) {
 
-        h1_qglJet_pt80120_eta02_rho040->Fill( qglJet, puweight );
+        h1_qglJet_pt80120_eta02_rho040->Fill( qglJet[0], puweight );
         h1_qglJetSyst_pt80120_eta02_rho040->Fill( qglJetSyst, puweight );
         if( type=="quark" ) {
-          h1_qglJet_quark_pt80120_eta02_rho040->Fill( qglJet, puweight );
+          h1_qglJet_quark_pt80120_eta02_rho040->Fill( qglJet[0], puweight );
           h1_qglJetSyst_quark_pt80120_eta02_rho040->Fill( qglJetSyst, puweight );
         } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt80120_eta02_rho040->Fill( qglJet, puweight );
+          h1_qglJet_gluon_pt80120_eta02_rho040->Fill( qglJet[0], puweight );
           h1_qglJetSyst_gluon_pt80120_eta02_rho040->Fill( qglJetSyst, puweight );
         }
 
-      } else if( ptJet > 120. && ptJet < 250. ) {
+      } else if( pt[0] > 120. && pt[0] < 250. ) {
 
-        h1_qglJet_pt120250_eta02_rho040->Fill( qglJet, puweight );
+        h1_qglJet_pt120250_eta02_rho040->Fill( qglJet[0], puweight );
         h1_qglJetSyst_pt120250_eta02_rho040->Fill( qglJetSyst, puweight );
         if( type=="quark" ) {
-          h1_qglJet_quark_pt120250_eta02_rho040->Fill( qglJet, puweight );
+          h1_qglJet_quark_pt120250_eta02_rho040->Fill( qglJet[0], puweight );
           h1_qglJetSyst_quark_pt120250_eta02_rho040->Fill( qglJetSyst, puweight );
         } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt120250_eta02_rho040->Fill( qglJet, puweight );
+          h1_qglJet_gluon_pt120250_eta02_rho040->Fill( qglJet[0], puweight );
           h1_qglJetSyst_gluon_pt120250_eta02_rho040->Fill( qglJetSyst, puweight );
         }
 
       } 
 
-    } else if( fabs(etaJet)>3. && fabs(etaJet)<5. ) {
+    } else if( fabs(eta[0])>3. && fabs(eta[0])<5. ) {
 
       if( type=="quark" ) {
 
-        h1_effDenom_fwd_quark_thresh1->Fill( ptJet );
-        h1_effDenom_fwd_quark_thresh2->Fill( ptJet );
-        h1_effDenom_fwd_quark_thresh3->Fill( ptJet );
+        h1_effDenom_fwd_quark_thresh1->Fill( pt[0] );
+        h1_effDenom_fwd_quark_thresh2->Fill( pt[0] );
+        h1_effDenom_fwd_quark_thresh3->Fill( pt[0] );
 
-        if( discrimOK_thresh1 ) h1_effNum_fwd_quark_thresh1->Fill( ptJet );
-        if( discrimOK_thresh2 ) h1_effNum_fwd_quark_thresh2->Fill( ptJet );
-        if( discrimOK_thresh3 ) h1_effNum_fwd_quark_thresh3->Fill( ptJet );
+        if( discrimOK_thresh1 ) h1_effNum_fwd_quark_thresh1->Fill( pt[0] );
+        if( discrimOK_thresh2 ) h1_effNum_fwd_quark_thresh2->Fill( pt[0] );
+        if( discrimOK_thresh3 ) h1_effNum_fwd_quark_thresh3->Fill( pt[0] );
 
-        if( discrimSystOK_thresh1 || (discrimOK_thresh1 && ptJet<30.) ) h1_effNum_fwd_quark_syst_thresh1->Fill( ptJet );
-        if( discrimSystOK_thresh2 || (discrimOK_thresh2 && ptJet<30.) ) h1_effNum_fwd_quark_syst_thresh2->Fill( ptJet );
-        if( discrimSystOK_thresh3 || (discrimOK_thresh3 && ptJet<30.) ) h1_effNum_fwd_quark_syst_thresh3->Fill( ptJet );
+        if( discrimSystOK_thresh1 || (discrimOK_thresh1 && pt[0]<30.) ) h1_effNum_fwd_quark_syst_thresh1->Fill( pt[0] );
+        if( discrimSystOK_thresh2 || (discrimOK_thresh2 && pt[0]<30.) ) h1_effNum_fwd_quark_syst_thresh2->Fill( pt[0] );
+        if( discrimSystOK_thresh3 || (discrimOK_thresh3 && pt[0]<30.) ) h1_effNum_fwd_quark_syst_thresh3->Fill( pt[0] );
 
       } else if( type=="gluon" ) {
 
-        h1_effDenom_fwd_gluon_thresh1->Fill( ptJet );
-        h1_effDenom_fwd_gluon_thresh2->Fill( ptJet );
-        h1_effDenom_fwd_gluon_thresh3->Fill( ptJet );
+        h1_effDenom_fwd_gluon_thresh1->Fill( pt[0] );
+        h1_effDenom_fwd_gluon_thresh2->Fill( pt[0] );
+        h1_effDenom_fwd_gluon_thresh3->Fill( pt[0] );
 
-        if( discrimOK_thresh1 ) h1_effNum_fwd_gluon_thresh1->Fill( ptJet );
-        if( discrimOK_thresh2 ) h1_effNum_fwd_gluon_thresh2->Fill( ptJet );
-        if( discrimOK_thresh3 ) h1_effNum_fwd_gluon_thresh3->Fill( ptJet );
+        if( discrimOK_thresh1 ) h1_effNum_fwd_gluon_thresh1->Fill( pt[0] );
+        if( discrimOK_thresh2 ) h1_effNum_fwd_gluon_thresh2->Fill( pt[0] );
+        if( discrimOK_thresh3 ) h1_effNum_fwd_gluon_thresh3->Fill( pt[0] );
 
-        if( discrimSystOK_thresh1 || (discrimOK_thresh1 && ptJet<30.) ) h1_effNum_fwd_gluon_syst_thresh1->Fill( ptJet );
-        if( discrimSystOK_thresh2 || (discrimOK_thresh2 && ptJet<30.) ) h1_effNum_fwd_gluon_syst_thresh2->Fill( ptJet );
-        if( discrimSystOK_thresh3 || (discrimOK_thresh3 && ptJet<30.) ) h1_effNum_fwd_gluon_syst_thresh3->Fill( ptJet );
+        if( discrimSystOK_thresh1 || (discrimOK_thresh1 && pt[0]<30.) ) h1_effNum_fwd_gluon_syst_thresh1->Fill( pt[0] );
+        if( discrimSystOK_thresh2 || (discrimOK_thresh2 && pt[0]<30.) ) h1_effNum_fwd_gluon_syst_thresh2->Fill( pt[0] );
+        if( discrimSystOK_thresh3 || (discrimOK_thresh3 && pt[0]<30.) ) h1_effNum_fwd_gluon_syst_thresh3->Fill( pt[0] );
 
       }
 
-      if( ptJet > 30. && ptJet < 50. ) {
+      if( pt[0] > 30. && pt[0] < 50. ) {
 
-        h1_qglJet_pt3050_eta35_rho040->Fill( qglJet, puweight );
+        h1_qglJet_pt3050_eta35_rho040->Fill( qglJet[0], puweight );
         h1_qglJetSyst_pt3050_eta35_rho040->Fill( qglJetSyst, puweight );
         if( type=="quark" ) {
-          h1_qglJet_quark_pt3050_eta35_rho040->Fill( qglJet, puweight );
+          h1_qglJet_quark_pt3050_eta35_rho040->Fill( qglJet[0], puweight );
           h1_qglJetSyst_quark_pt3050_eta35_rho040->Fill( qglJetSyst, puweight );
         } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt3050_eta35_rho040->Fill( qglJet, puweight );
+          h1_qglJet_gluon_pt3050_eta35_rho040->Fill( qglJet[0], puweight );
           h1_qglJetSyst_gluon_pt3050_eta35_rho040->Fill( qglJetSyst, puweight );
         }
 
-      } else if( ptJet > 50. && ptJet < 65. ) {
+      } else if( pt[0] > 50. && pt[0] < 65. ) {
 
-        h1_qglJet_pt5065_eta35_rho040->Fill( qglJet, puweight );
+        h1_qglJet_pt5065_eta35_rho040->Fill( qglJet[0], puweight );
         h1_qglJetSyst_pt5065_eta35_rho040->Fill( qglJetSyst, puweight );
         if( type=="quark" ) {
-          h1_qglJet_quark_pt5065_eta35_rho040->Fill( qglJet, puweight );
+          h1_qglJet_quark_pt5065_eta35_rho040->Fill( qglJet[0], puweight );
           h1_qglJetSyst_quark_pt5065_eta35_rho040->Fill( qglJetSyst, puweight );
         } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt5065_eta35_rho040->Fill( qglJet, puweight );
+          h1_qglJet_gluon_pt5065_eta35_rho040->Fill( qglJet[0], puweight );
           h1_qglJetSyst_gluon_pt5065_eta35_rho040->Fill( qglJetSyst, puweight );
         }
 
-      } else if( ptJet > 80. && ptJet < 120. ) {
+      } else if( pt[0] > 80. && pt[0] < 120. ) {
 
-        h1_qglJet_pt80120_eta35_rho040->Fill( qglJet, puweight );
+        h1_qglJet_pt80120_eta35_rho040->Fill( qglJet[0], puweight );
         h1_qglJetSyst_pt80120_eta35_rho040->Fill( qglJetSyst, puweight );
         if( type=="quark" ) {
-          h1_qglJet_quark_pt80120_eta35_rho040->Fill( qglJet, puweight );
+          h1_qglJet_quark_pt80120_eta35_rho040->Fill( qglJet[0], puweight );
           h1_qglJetSyst_quark_pt80120_eta35_rho040->Fill( qglJetSyst, puweight );
         } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt80120_eta35_rho040->Fill( qglJet, puweight );
+          h1_qglJet_gluon_pt80120_eta35_rho040->Fill( qglJet[0], puweight );
           h1_qglJetSyst_gluon_pt80120_eta35_rho040->Fill( qglJetSyst, puweight );
         }
 
@@ -516,20 +525,14 @@ int main( int argc, char* argv[] ) {
 
   // now switch to data:
   int event;
+
   tree_data->SetBranchAddress("event", &event );
-  tree_data->SetBranchAddress("nvertex", &nvertex );
-  tree_data->SetBranchAddress("mZ", &mZ );
-  tree_data->SetBranchAddress("ptZ", &ptZ );
-  tree_data->SetBranchAddress("deltaPhi_jet", &deltaPhi_jet );
-  tree_data->SetBranchAddress("rhoPF", &rho );
-  tree_data->SetBranchAddress("ptJet0", &ptJet );
-  tree_data->SetBranchAddress("etaJet0", &etaJet );
-  tree_data->SetBranchAddress("ptD_QCJet0", &ptD_QCJet );
-  tree_data->SetBranchAddress(discrim.c_str(), &qglJet );
-  float qglJetFwd;
-  std::string discrim_fwd = discrim + "Fwd";
-  tree_data->SetBranchAddress(discrim_fwd.c_str(), &qglJetFwd );
-  tree_data->SetBranchAddress("betaStarJet0", &betaStarJet );
+  tree_data->SetBranchAddress("nJet", &njet);
+  tree_data->SetBranchAddress("ptJet", pt);
+  tree_data->SetBranchAddress("etaJet", eta);
+  tree_data->SetBranchAddress("rhoPF", &rho);
+  tree_data->SetBranchAddress("ptD_QCJet", ptD_QC);
+  tree_data->SetBranchAddress(discrim.c_str(), qglJet);
 
 
   TH1D* h1_data_ptZ = new TH1D("data_ptZ", "", 100, 0., 100.);
@@ -566,51 +569,47 @@ int main( int argc, char* argv[] ) {
 
     tree_data->GetEntry(iEntry);
 
+    if( njet<1 ) continue;
     if( rho>40. ) continue;
-    if( mZ<70. || mZ>110. ) continue;
-    if( deltaPhi_jet < 3.1415-0.5 ) continue;
-    if( ptD_QCJet <=0. ) continue;
-    if( fabs(etaJet)<2.5 && betaStarJet > 0.2 * log( (float)nvertex - 0.67) ) continue;
-    if( btagged ) continue;
 
-    h1_data_ptZ->Fill( ptZ );
+    //h1_data_ptZ->Fill( ptZ );
     h1_data_rho->Fill( rho );
 
-    if( fabs(etaJet)<2. ) {
+    if( fabs(eta[0])<2. ) {
 
-      if( ptJet > 30. && ptJet < 50. ) {
+      if( pt[0] > 30. && pt[0] < 50. ) {
 
-        h1_data_qglJet_pt3050_eta02_rho040->Fill( qglJet );
+        h1_data_qglJet_pt3050_eta02_rho040->Fill( qglJet[0] );
 
-      } else if( ptJet > 50. && ptJet < 65. ) {
+      } else if( pt[0] > 50. && pt[0] < 65. ) {
 
 //if( ptJet<65. )
 //std::cout << "eventNumber" << event << std::endl;
-        h1_data_qglJet_pt5065_eta02_rho040->Fill( qglJet );
+        h1_data_qglJet_pt5065_eta02_rho040->Fill( qglJet[0] );
 
-      } else if( ptJet > 80. && ptJet < 120. ) {
+      } else if( pt[0] > 80. && pt[0] < 120. ) {
 
-        h1_data_qglJet_pt80120_eta02_rho040->Fill( qglJet );
+        h1_data_qglJet_pt80120_eta02_rho040->Fill( qglJet[0] );
 
-      } else if( ptJet > 120. && ptJet < 250. ) {
+      } else if( pt[0] > 120. && pt[0] < 250. ) {
 
-        h1_data_qglJet_pt120250_eta02_rho040->Fill( qglJet );
+        h1_data_qglJet_pt120250_eta02_rho040->Fill( qglJet[0] );
 
       } 
 
-    } else if( fabs(etaJet)>3. && fabs(etaJet)<5. ) {
+    } else if( fabs(eta[0])>3. && fabs(eta[0])<5. ) {
 
-      if( ptJet > 30. && ptJet < 50. ) {
+      if( pt[0] > 30. && pt[0] < 50. ) {
 
-        h1_data_qglJet_pt3050_eta35_rho040->Fill( qglJetFwd );
+        h1_data_qglJet_pt3050_eta35_rho040->Fill( qglJet[0] );
 
-      } else if( ptJet > 50. && ptJet < 65. ) {
+      } else if( pt[0] > 50. && pt[0] < 65. ) {
 
-        h1_data_qglJet_pt5065_eta35_rho040->Fill( qglJetFwd );
+        h1_data_qglJet_pt5065_eta35_rho040->Fill( qglJet[0] );
 
-      } else if( ptJet > 80. && ptJet < 120. ) {
+      } else if( pt[0] > 80. && pt[0] < 120. ) {
 
-        h1_data_qglJet_pt80120_eta35_rho040->Fill( qglJetFwd );
+        h1_data_qglJet_pt80120_eta35_rho040->Fill( qglJet[0] );
 
       } 
 
@@ -782,13 +781,13 @@ void drawSinglePlot( DrawBase* db, const std::string& discrim, TH1D* h1_data, TH
   h1_data->SetMarkerStyle(20);
 
   float ymax = h1_data->GetMaximum();
-  if( discrim=="QGLMLP" )
+  if( discrim=="qgMLPJet" )
     ymax *= 1.5;
   else
     ymax *= 1.3;
 
   TH2D* h2_axes = new TH2D("axes", "", 10, 0., 1.0001, 10, 0., ymax);
-  if( discrim=="QGLMLP" ) 
+  if( discrim=="qgMLPJet" ) 
     h2_axes->SetXTitle("Quark-Gluon MLP");
   else
     h2_axes->SetXTitle("Quark-Gluon Likelihood");
@@ -887,8 +886,8 @@ void drawEffVsPt( DrawBase* db, const std::string& discrim, float thresh1, float
   TPaveText* labelEta = new TPaveText(0.7, 0.8, 0.9, 0.9, "brNDC");
   labelEta->AddText(etaText);
 
-  std::string discrim_text = (discrim=="QGLMLP") ? "MLP" : "LD";
-  std::string operator_discrim = (discrim=="QGLMLP") ? "<" : ">";
+  std::string discrim_text = (discrim=="qgMLPJet") ? "MLP" : "LD";
+  std::string operator_discrim = (discrim=="qgMLPJet") ? "<" : ">";
   char gluon_text[500];
   sprintf( gluon_text, "Gluon Eff. (%s %s %.1f)", discrim_text.c_str(), operator_discrim.c_str(), thresh1 );
   char gluon_syst_text[500];
@@ -961,13 +960,6 @@ void drawMC_beforeAfter( DrawBase* db, const std::string& discrim, TH1D* h1_qglJ
   h1_qglJetSyst_gluon->SetMarkerStyle(21);
   h1_qglJetSyst_gluon->SetMarkerSize(1.3);
 
-  if( etaMax > 2.5 ) {
-    h1_qglJet_quark->Rebin(2.);
-    h1_qglJetSyst_quark->Rebin(2.);
-    h1_qglJet_gluon->Rebin(2.);
-    h1_qglJetSyst_gluon->Rebin(2.);
-  }
-
 
   float histoMax = h1_qglJet_quark->GetMaximum()/h1_qglJet_quark->Integral();
   if( h1_qglJetSyst_quark->GetMaximum()/h1_qglJetSyst_quark->Integral() > histoMax ) histoMax = h1_qglJetSyst_quark->GetMaximum()/h1_qglJetSyst_quark->Integral();
@@ -977,7 +969,7 @@ void drawMC_beforeAfter( DrawBase* db, const std::string& discrim, TH1D* h1_qglJ
   float yMax = 1.3*histoMax;
 
 
-  std::string discrim_text = (discrim=="QGLMLP") ? "Quark-Gluon MLP" : "Quark-Gluon Likelihood";
+  std::string discrim_text = (discrim=="qgMLPJet") ? "Quark-Gluon MLP" : "Quark-Gluon Likelihood";
 
   TH2D* h2_axes = new TH2D("axes", "", 10, h1_qglJet_quark->GetXaxis()->GetXmin(), h1_qglJet_quark->GetXaxis()->GetXmax(), 10, 0., yMax);
   h2_axes->SetXTitle(discrim_text.c_str());

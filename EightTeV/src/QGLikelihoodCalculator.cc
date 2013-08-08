@@ -13,9 +13,13 @@ using namespace std;
 
 // constructor:
 
-QGLikelihoodCalculator::QGLikelihoodCalculator( const TString dataDir, Bool_t chs){
+QGLikelihoodCalculator::QGLikelihoodCalculator( TString dataDir, Bool_t chs){
+
+  if( !(dataDir.EndsWith("/")) ) dataDir += "/";
+
   TString histoFileName = "ReducedHisto_2012.root";
   if(chs) histoFileName = "ReducedHisto_2012_CHS.root";
+//std::cout <<" blabla: " << TString(edm::FileInPath(dataDir + histoFileName).fullPath()) << std::endl;
   histoFile_ = TFile::Open(TString(edm::FileInPath(dataDir + histoFileName).fullPath()));
 
   nPtBins_ = 21;

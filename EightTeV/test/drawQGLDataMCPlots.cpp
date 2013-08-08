@@ -10,24 +10,38 @@
 
 
 
-void drawHistoWithQuarkGluonComponents( DrawBase* db, const std::string& treeName, const std::string& additionalCuts, const std::string& varName, const std::string& canvasSaveName, std::string axisName, const std::string& units="", float ptMin=0., float ptMax=10000., float etaMin=0., float etaMax =10., float rhoMin=0., float rhoMax=100., int nBins=30, float xMin=0., float xMax=1.0001, bool legendQuadrant=1, bool log_aussi=false );
+void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBase* db, const std::string& treeName, const std::string& additionalCuts, const std::string& varName, const std::string& canvasSaveName, std::string axisName, const std::string& units="", float ptMin=0., float ptMax=10000., float etaMin=0., float etaMax =10., float rhoMin=0., float rhoMax=100., int nBins=30, float xMin=0., float xMax=1.0001, bool legendQuadrant=1, bool log_aussi=false );
 
 
 
-int main() {
+int main(int argc, char* argv[]) {
+
+
+  std::string selectionType;
+  if( argc>1 ) {
+    std::string selectionType_str(argv[1]);
+    selectionType = selectionType_str;
+  }
+
+  if( selectionType!="ZJets" && selectionType!="DiJets" ) {
+    std::cout << "Supported selections are only \"ZJets\" and \"DiJets\". Exiting." << std::endl;
+    exit(11);
+  }
 
 
   TFile* file_data = TFile::Open("sunilFlat_ZJet_data2012ABCD_MuPD_12Jul.root");
   TFile* file_mc = TFile::Open("sunilFlat_ZJet_Zjets_12Jul.root");
 
   DrawBase* db = new DrawBase("qgdatamc");
-  db->set_outputdir("prova");
+
+  std::string outputdir = "QGLDataMCPlots_" + selectionType;
+  db->set_outputdir(outputdir);
 
   db->add_dataFile(file_data, "data");
   db->add_mcFile(file_mc, "mc", "mc_process");
 
-  drawHistoWithQuarkGluonComponents( db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 40., 50., 3., 4.7);
-  drawHistoWithQuarkGluonComponents( db, "tree_passedEvents", "axis1_QCJet[0]*axis1_QCJet[0]+axis2_QCJet[0]*axis2_QCJet[0]<0.06", "qglJet[0]", "qglJet_PUID", "Quark-Gluon Likelihood Discriminator", "", 40., 50., 3., 4.7);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 40., 50., 3., 4.7);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "axis1_QCJet[0]*axis1_QCJet[0]+axis2_QCJet[0]*axis2_QCJet[0]<0.06", "qglJet[0]", "qglJet_PUID", "Quark-Gluon Likelihood Discriminator", "", 40., 50., 3., 4.7);
 
   return 0;
 
@@ -44,7 +58,7 @@ int main() {
 
 
 
-void drawHistoWithQuarkGluonComponents( DrawBase* db, const std::string& treeName, const std::string& additionalCuts, const std::string& varName, const std::string& canvasSaveName, std::string axisName, const std::string& units, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax, int nBins, float xMin, float xMax, bool legendQuadrant, bool log_aussi ) {
+void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBase* db, const std::string& treeName, const std::string& additionalCuts, const std::string& varName, const std::string& canvasSaveName, std::string axisName, const std::string& units, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax, int nBins, float xMin, float xMax, bool legendQuadrant, bool log_aussi ) {
 
 
   TString varName_tstr(varName);
@@ -53,19 +67,18 @@ void drawHistoWithQuarkGluonComponents( DrawBase* db, const std::string& treeNam
 
   TH1D* h1_data = new TH1D( "data", "", nBins, xMin, xMax );
 
-  // these histos are for signal only (to have high stat -> smooth shapes):
   TH1D* h1_all = new TH1D( "all", "", nBins, xMin, xMax );
   TH1D* h1_quark = new TH1D( "quark", "", nBins, xMin, xMax );
   TH1D* h1_gluon = new TH1D( "gluon", "", nBins, xMin, xMax );
   TH1D* h1_pu = new TH1D( "pu", "", nBins, xMin, xMax );
   TH1D* h1_b = new TH1D( "b", "", nBins, xMin, xMax );
 
-  // these ones for all processes (to get the fractions right):
-  TH1D* h1_all_all = new TH1D( "all_all", "", nBins, xMin, xMax );
-  TH1D* h1_quark_all = new TH1D( "quark_all", "", nBins, xMin, xMax );
-  TH1D* h1_gluon_all = new TH1D( "gluon_all", "", nBins, xMin, xMax );
-  TH1D* h1_pu_all = new TH1D( "pu_all", "", nBins, xMin, xMax );
-  TH1D* h1_b_all = new TH1D( "b_all", "", nBins, xMin, xMax );
+  //// these ones for all processes (to get the fractions right):
+  //TH1D* h1_all_all = new TH1D( "all_all", "", nBins, xMin, xMax );
+  //TH1D* h1_quark_all = new TH1D( "quark_all", "", nBins, xMin, xMax );
+  //TH1D* h1_gluon_all = new TH1D( "gluon_all", "", nBins, xMin, xMax );
+  //TH1D* h1_pu_all = new TH1D( "pu_all", "", nBins, xMin, xMax );
+  //TH1D* h1_b_all = new TH1D( "b_all", "", nBins, xMin, xMax );
 
 
 
@@ -94,48 +107,46 @@ void drawHistoWithQuarkGluonComponents( DrawBase* db, const std::string& treeNam
   treeDATA->Project( "data", varName.c_str(), commonCondition );
 
 
-  // this one to get the fractions:
-  TChain* treeMC_all = new TChain(treeName.c_str());
-  // this one to get the shapes (avoid huge QCD weights for gamma+jet):
-  TChain* treeMC_signal = new TChain(treeName.c_str());
+  TChain* treeMC= new TChain(treeName.c_str());
+  //// this one to get the shapes (avoid huge QCD weights for gamma+jet):
+  //TChain* treeMC_signal = new TChain(treeName.c_str());
   for( unsigned iFile=0; iFile<db->get_mcFiles().size(); ++iFile ) {
     std::string fileName(db->get_mcFile(iFile).file->GetName());
     std::string treeFullName = fileName + "/" + treeName;
-    treeMC_all->Add(treeFullName.c_str());
-    if( iFile==0 ) //signal only
-      treeMC_signal->Add(treeFullName.c_str());
+    treeMC->Add(treeFullName.c_str());
+    //if( iFile==0 ) //signal only
+    //  treeMC_signal->Add(treeFullName.c_str());
   }
 
-  treeMC_signal->Project( "all",   varName.c_str(), allCondition );
-  treeMC_signal->Project( "quark", varName.c_str(), quarkCondition );
-  treeMC_signal->Project( "gluon", varName.c_str(), gluonCondition );
-  treeMC_signal->Project( "pu", varName.c_str(), puCondition );
-  treeMC_signal->Project( "b", varName.c_str(), bCondition );
+  treeMC->Project( "all",   varName.c_str(), allCondition );
+  treeMC->Project( "quark", varName.c_str(), quarkCondition );
+  treeMC->Project( "gluon", varName.c_str(), gluonCondition );
+  treeMC->Project( "pu", varName.c_str(), puCondition );
+  treeMC->Project( "b", varName.c_str(), bCondition );
 
-  treeMC_all->Project( "all_all",   varName.c_str(), allCondition );
-  treeMC_all->Project( "quark_all", varName.c_str(), quarkCondition );
-  treeMC_all->Project( "gluon_all", varName.c_str(), gluonCondition );
-  treeMC_all->Project( "pu_all", varName.c_str(), puCondition );
-  treeMC_all->Project( "b_all", varName.c_str(), bCondition );
+  //treeMC_all->Project( "all_all",   varName.c_str(), allCondition );
+  //treeMC_all->Project( "quark_all", varName.c_str(), quarkCondition );
+  //treeMC_all->Project( "gluon_all", varName.c_str(), gluonCondition );
+  //treeMC_all->Project( "pu_all", varName.c_str(), puCondition );
+  //treeMC_all->Project( "b_all", varName.c_str(), bCondition );
 
   float data_int = h1_data->Integral();
   float mc_int = h1_all->Integral();
-  float mc_int_all = h1_all_all->Integral();
+  //float mc_int_all = h1_all_all->Integral();
   float scaleFactor = data_int/mc_int;
 
-  float quark_fraction = h1_quark_all->Integral()/mc_int_all;
-  float gluon_fraction = h1_gluon_all->Integral()/mc_int_all;
-  float pu_fraction = h1_pu_all->Integral()/mc_int_all;
-  float b_fraction = h1_b_all->Integral()/mc_int_all;
+  float quark_fraction = h1_quark->Integral()/mc_int;
+  float gluon_fraction = h1_gluon->Integral()/mc_int;
+  float pu_fraction = h1_pu->Integral()/mc_int;
+  float b_fraction = h1_b->Integral()/mc_int;
   float other_fraction = 1.-quark_fraction-gluon_fraction-b_fraction;
 
 
-  // keep shape from gamma+jet, rescale to include also QCD contribution:
-  h1_all->Scale( h1_all_all->Integral()/h1_all->Integral() );
-  h1_gluon->Scale( h1_gluon_all->Integral()/h1_gluon->Integral() );
-  h1_pu->Scale( h1_pu_all->Integral()/h1_pu->Integral() );
-  h1_quark->Scale( h1_quark_all->Integral()/h1_quark->Integral() );
-  h1_b->Scale( h1_b_all->Integral()/h1_b->Integral() );
+  //h1_all->Scale( h1_all_all->Integral()/h1_all->Integral() );
+  //h1_gluon->Scale( h1_gluon_all->Integral()/h1_gluon->Integral() );
+  //h1_pu->Scale( h1_pu_all->Integral()/h1_pu->Integral() );
+  //h1_quark->Scale( h1_quark_all->Integral()/h1_quark->Integral() );
+  //h1_b->Scale( h1_b_all->Integral()/h1_b->Integral() );
   
 
   char quarkText[300];
@@ -186,7 +197,12 @@ void drawHistoWithQuarkGluonComponents( DrawBase* db, const std::string& treeNam
   //} else {
   //  legend = new TLegend( xMin_leg, 0.6, xMax_leg, 0.9 );
   //}
-  TLegend* legend = new TLegend( xMin_leg, 0.55, xMax_leg, 0.91, "Z+Jet" );
+
+  std::string selectionType_text;
+  if( selectionType=="ZJets" ) selectionType_text = "Z+Jets";
+  if( selectionType=="DiJets" ) selectionType_text = "DiJets";
+
+  TLegend* legend = new TLegend( xMin_leg, 0.55, xMax_leg, 0.91, selectionType_text.c_str() );
   legend->SetFillColor( kWhite );
   legend->SetTextSize(0.035);
   legend->AddEntry( h1_data, "Data", "p" );
@@ -301,11 +317,11 @@ void drawHistoWithQuarkGluonComponents( DrawBase* db, const std::string& treeNam
 
   char canvasNameChar[400];
   if( etaMax>4. )
-    sprintf( canvasNameChar, "%s/%s_pt%d%d_fwd_fromComponents.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), (int)ptMin, (int)ptMax );
+    sprintf( canvasNameChar, "%s/%s_pt%d%d_fwd.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), (int)ptMin, (int)ptMax );
   else if( etaMax>2. )
-    sprintf( canvasNameChar, "%s/%s_pt%d%d_trans_fromComponents.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), (int)ptMin, (int)ptMax );
+    sprintf( canvasNameChar, "%s/%s_pt%d%d_trans.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), (int)ptMin, (int)ptMax );
   else 
-    sprintf( canvasNameChar, "%s/%s_pt%d%d_centr_fromComponents.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), (int)ptMin, (int)ptMax );
+    sprintf( canvasNameChar, "%s/%s_pt%d%d_centr.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), (int)ptMin, (int)ptMax );
 
   c1->SaveAs(canvasNameChar);
   std::string epstopdf_command(canvasNameChar);
@@ -338,9 +354,9 @@ void drawHistoWithQuarkGluonComponents( DrawBase* db, const std::string& treeNam
 
     char canvasNameChar_log[400];
     if( rhoMin==0. && rhoMax==30. )
-      sprintf( canvasNameChar_log, "%s/%s_pt%d%d_fromComponents_log.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), (int)ptMin, (int)ptMax );
+      sprintf( canvasNameChar_log, "%s/%s_pt%d%d.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), (int)ptMin, (int)ptMax );
     else
-      sprintf( canvasNameChar_log, "%s/%s_pt%d%d_rho%d%d_fromComponents_log.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), (int)ptMin, (int)ptMax, (int)rhoMin, (int)rhoMax );
+      sprintf( canvasNameChar_log, "%s/%s_pt%d%d_rho%d%d.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), (int)ptMin, (int)ptMax, (int)rhoMin, (int)rhoMax );
 
     c1->SaveAs(canvasNameChar_log);
 
@@ -358,11 +374,11 @@ void drawHistoWithQuarkGluonComponents( DrawBase* db, const std::string& treeNam
   delete h1_pu;
   delete h1_b;
   
-  delete h1_all_all;
-  delete h1_quark_all;
-  delete h1_gluon_all;
-  delete h1_pu_all;
-  delete h1_b_all;
+  //delete h1_all_all;
+  //delete h1_quark_all;
+  //delete h1_gluon_all;
+  //delete h1_pu_all;
+  //delete h1_b_all;
   
 }
 

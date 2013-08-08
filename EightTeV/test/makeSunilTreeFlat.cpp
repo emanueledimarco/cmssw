@@ -26,6 +26,8 @@ int main( int argc, char* argv[] ) {
     std::string dataset_str(argv[1]);
     dataset = dataset_str;
   }
+  TString dataset_tstr(dataset);
+
 
   std::string selectionType;
   if( argc>2 ) {
@@ -149,6 +151,7 @@ int main( int argc, char* argv[] ) {
   float qglJet[20];
   float qglCorrJet[20];
 
+  flatTree->Branch("event", &event, "event/I");
   flatTree->Branch("eventWeight", &eventWeight, "eventWeight/F");
   flatTree->Branch("nJet", &nJet, "nJet/I");
   flatTree->Branch("ptJet", jetPt, "ptJet[nJet]/F");
@@ -199,7 +202,15 @@ int main( int argc, char* argv[] ) {
 
     bool isMC = (run < 10000);
 
-    //if( !isMC && !triggerResult->at(1) ) continue;
+    // trigger
+    if( !isMC ) {
+      if(selectionType=="ZJet" ) {
+        if(!triggerResult->at(0)) continue;
+      } else {
+        if( dataset_tstr.Contains("_MBPD_") && !triggerResult->at(19)) continue;
+        if( dataset_tstr.Contains("_JetPD_") && !triggerResult->at(1)) continue;
+      }
+    }
 
     float wt_pu = 1.;
     float wt_pteta = 1.;

@@ -153,6 +153,7 @@ int main( int argc, char* argv[] ) {
   float qglMLPJet[20];
   float qglJet[20];
   float qglCorrJet[20];
+  float ptZ;
 
   flatTree->Branch("event", &event, "event/I");
   flatTree->Branch("eventWeight", &eventWeight, "eventWeight/F");
@@ -162,6 +163,7 @@ int main( int argc, char* argv[] ) {
   flatTree->Branch("nvertex", &nvtx, "nvertex/I");
   flatTree->Branch("rhoPF", &rho, "rhoPF/F");
   flatTree->Branch("rhoPF_allJet", &rhoMLP, "rhoPF_allJet/F");
+  flatTree->Branch("ptZ", &ptZ, "ptZ/F");
   flatTree->Branch("nJet", &nJet, "nJet/I");
   flatTree->Branch("ptJet", jetPt, "ptJet[nJet]/F");
   flatTree->Branch("etaJet", jetEta, "etaJet[nJet]/F");
@@ -189,13 +191,26 @@ int main( int argc, char* argv[] ) {
   QGMLPCalculator* qgmlp = new QGMLPCalculator("MLP","QuarkGluonTagger/EightTeV/data/", true);
 
 
-  std::string puFileName = (selectionType=="ZJet") ? "PU_rewt_ZJets.root" : "PU_rewt_flatP6.root";
-  TFile *fPU = TFile::Open(puFileName.c_str());
-  std::string puHistName = (selectionType=="ZJet") ? "hist_puWT" : "hist_WT"; //absurd
-  TH1F *hPU = (TH1F*)fPU->Get(puHistName.c_str());
+  //std::string puFileName = (selectionType=="ZJet") ? "PU_rewt_ZJets.root" : "PU_rewt_flatP6.root";
+  //TFile *fPU = TFile::Open(puFileName.c_str());
+  //std::string puHistName = (selectionType=="ZJet") ? "hist_puWT" : "hist_WT"; //absurd
+  //TH1F *hPU = (TH1F*)fPU->Get(puHistName.c_str());
 
-  TFile* filePtEtaWeights = TFile::Open("Jetpteta_rewt2D_flatP6.root");
-  TH1F* hPtEta_wt = (TH1F*)filePtEtaWeights->Get("hist_WT");
+  //TFile* filePtEtaWeights = TFile::Open("Jetpteta_rewt2D_flatP6.root");
+  //TH1F* hPtEta_wt = (TH1F*)filePtEtaWeights->Get("hist_WT");
+
+  std::string rhoWeightFileName = "rhoWeights_" + dataset + ".root";
+  TFile* fileRhoWeights = TFile::Open(rhoWeightFileName.c_str());
+  TH1F* hPU;
+  if( fileRhoWeights!=0 )
+    hPU = (TH1F*)fileRhoWeights->Get("rho_weights");
+
+
+  std::string ptWeightFileName = "ptWeights_" + dataset + ".root";
+  TFile* filePtWeights = TFile::Open(ptWeightFileName.c_str());
+  TH1F* hPt_wt;
+  if( filePtWeights!=0 )
+    hPt_wt = (TH1F*)filePtWeights->Get("ptAve_weights");
 
 
 
@@ -219,29 +234,6 @@ int main( int argc, char* argv[] ) {
       }
     }
 
-    wt_pu = 1.;
-    wt_pteta = 1.;
-    wt_xsec = 1.;
-
-    if( isMC ) {
-
-      // kinematic reweighting only for dijets:
-      if( selectionType=="DiJet" ) {
-        int ptetabin = hPtEta_wt->FindBin(jetPt[0],fabs(jetEta[0]));
-        wt_pteta = hPtEta_wt->GetBinContent(ptetabin);
-      }
-
-      wt_xsec =  get_xSecWeight(dataset);
-
-      // pu reweighting:
-      int bin = hPU->FindBin(rho);
-      wt_pu = hPU->GetBinContent(bin);
-
-    }
-
-
-    eventWeight = wt_xsec*wt_pu*wt_pteta;
-
 
     // event selection:
 
@@ -256,6 +248,8 @@ int main( int argc, char* argv[] ) {
       if( fabs(jet1.DeltaPhi(jet2)) < 2.5 ) continue;
 
       if( jetPt[2] > 0.3*(jetPt[0]+jetPt[1])/2. )continue;
+
+      ptZ = 0.;
 
     } else if( selectionType=="ZJet" ) {
 
@@ -275,6 +269,8 @@ int main( int argc, char* argv[] ) {
       if( fabs(Zmm.DeltaPhi(jet)) < 2.5 ) continue;
       if( jetPt[1]>0.3*Zmm.Pt() ) continue;
 
+      ptZ = Zmm.Pt();
+
     }
 
     // common jet ID:
@@ -282,6 +278,40 @@ int main( int argc, char* argv[] ) {
     if( jetBtag[0]>0.244 ) continue;
     if( jetPtD_QC[0]>0.9 ) continue;
 
+
+    // set event weights:
+    wt_pu = 1.;
+    wt_pteta = 1.;
+    wt_xsec = 1.;
+
+    if( isMC ) {
+
+      // kinematic reweighting only for dijets:
+      if( selectionType=="DiJet" ) {
+        int ptAveBin = hPt_wt->FindBin( 0.5*(jetPt[0]+jetPt[1]) );
+        wt_pteta = hPt_wt->GetBinContent(ptAveBin);
+
+        //int ptetabin = hPtEta_wt->FindBin(jetPt[0],fabs(jetEta[0]));
+        //wt_pteta = hPtEta_wt->GetBinContent(ptetabin);
+      }
+
+      wt_xsec =  get_xSecWeight(dataset);
+
+      // pu reweighting:
+      int bin = hPU->FindBin(rho);
+      wt_pu = hPU->GetBinContent(bin);
+
+    }
+
+
+    eventWeight = wt_xsec*wt_pu*wt_pteta;
+
+
+
+
+    // and now set variables:
+
+    // **** FIRST FOR FIRST JET
 
     axis1_QC[0] = jetAxis_QC[0][0];
     axis2_QC[0] = jetAxis_QC[1][0];
@@ -300,6 +330,13 @@ int main( int argc, char* argv[] ) {
     float deltaR_min = 999.;
     int foundPart = -1;
 
+    float deltaR_min_charm = 999.;
+    int foundPart_charm = -1;
+
+    float deltaR_min_bottom = 999.;
+    int foundPart_bottom = -1;
+
+
     for(int iPart=0;iPart<int(partonPt->size());iPart++) {
 
       if( partonSt->at(iPart) != 3 ) continue;
@@ -311,10 +348,23 @@ int main( int argc, char* argv[] ) {
         deltaR_min = deltaR_part;
         foundPart = iPart;
       }
+      if( fabs(partonId->at(iPart))==4 && deltaR_part< deltaR_min_charm) {
+        deltaR_min_charm = deltaR_part;
+        foundPart_charm = iPart;
+      }
+      if( fabs(partonId->at(iPart))==5 && deltaR_part< deltaR_min_bottom) {
+        deltaR_min_bottom = deltaR_part;
+        foundPart_bottom = iPart;
+      }
 
     }
 
-    if(deltaR_min < 0.3 && foundPart>=0) {
+
+    if( deltaR_min_charm<0.3 && foundPart_charm>=0 ) { // priority to charm
+      jetPdgId[0] = partonId->at(foundPart_charm);
+    } else if( deltaR_min_bottom<0.3 && foundPart_bottom>=0 ) { // then to bottom
+      jetPdgId[0] = partonId->at(foundPart_bottom);
+    } else if(deltaR_min < 0.3 && foundPart>=0) {
       jetPdgId[0] = partonId->at(foundPart);
     } else {
       jetPdgId[0] = 0;
@@ -348,8 +398,80 @@ int main( int argc, char* argv[] ) {
     variables_MLP["rho"]=rhoMLP;
 
     qglMLPJet[0] = qgmlp->QGvalue(variables_MLP);
-if( ientry<1000 )
-std::cout << "run: " << run << " event: "<< event << " pt: " << jetPt[0] << " eta: " << jetEta[0] << " rho: " << rhoMLP << " axis1: " << axis1_QC[0] << " axis2: " << axis2_QC[0] << " ptd: " << jetPtD_QC[0] << " mult: " << variables_MLP["mult"] << " MLP: " << qglMLPJet[0] << " LD: " << qglJet[0] << std::endl;
+
+
+
+
+
+
+    if( selectionType=="DiJet" ) {
+
+      // **** THEN FOR SECOND JET
+
+      axis1_QC[1] = jetAxis_QC[0][1];
+      axis2_QC[1] = jetAxis_QC[1][1];
+      rmsCand_QC[1] = (axis1_QC[1]>0. && axis2_QC[1]>0.) ? sqrt( axis1_QC[1]*axis1_QC[1] + axis2_QC[1]*axis2_QC[1] ) : -1.;
+
+
+      TLorentzVector secondJet;
+      secondJet.SetPtEtaPhiE( jetPt[1], jetEta[1], jetPhi[1], jetEnergy[1] );
+
+      // match to parton:
+      float deltaR_min = 999.;
+      int foundPart = -1;
+
+      for(int iPart=0;iPart<int(partonPt->size());iPart++) {
+
+        if( partonSt->at(iPart) != 3 ) continue;
+        if( !( fabs(partonId->at(iPart))<6 || fabs(partonId->at(iPart))>0 || partonId->at(iPart)==21) ) continue;
+        TLorentzVector thisPart;
+        thisPart.SetPtEtaPhiE( partonPt->at(iPart), partonEta->at(iPart), partonPhi->at(iPart), partonE->at(iPart) );
+        float deltaR_part = thisPart.DeltaR(secondJet);
+        if(deltaR_part< deltaR_min) {
+          deltaR_min = deltaR_part;
+          foundPart = iPart;
+        }
+
+      }
+
+      if(deltaR_min < 0.3 && foundPart>=0) {
+        jetPdgId[1] = partonId->at(foundPart);
+      } else {
+        jetPdgId[1] = 0;
+      }
+
+
+      if( !isMC && fabs(jetEta[1])>2.5 ) {
+        qglJet[1] = qglc->computeQGLikelihood2012( jetPt[1], jetEta[1], rho, nCharged_QC[1]+nNeutral_ptCut[1]-1, jetPtD_QC[1], axis2_QC[1]);
+        qglCorrJet[1] = qglJet[1];
+      } else {
+        qglJet[1] = qglc->computeQGLikelihood2012( jetPt[1], jetEta[1], rho, nCharged_QC[1]+nNeutral_ptCut[1], jetPtD_QC[1], axis2_QC[1]);
+        qglCorrJet[1] = (fabs(jetEta[1])<1.9) ? qglJet[1] : qglc->computeQGLikelihood2012( jetPt[1], jetEta[1], rho, correctNCharged(nCharged_QC[1],jetEta[1])+nNeutral_ptCut[1], jetPtD_QC[1], axis2_QC[1]);
+      }
+
+      std::map<TString,float> variables_MLP;
+      variables_MLP["axis1"]=axis1_QC[1];
+      variables_MLP["axis2"]=axis2_QC[1];
+      variables_MLP["ptD"]=jetPtD_QC[1];
+      if( fabs(jetEta[1])<2.5 ) {
+        variables_MLP["mult"]=nCharged_QC[1];
+      } else {
+        if( isMC ) {
+          variables_MLP["mult"]=nCharged_ptCut[1]+nNeutral_ptCut[1];
+        } else {
+          variables_MLP["mult"]=nCharged_ptCut[1]+nNeutral_ptCut[1]-1;
+        }
+      }
+      
+      variables_MLP["pt"]=jetPt[1];
+      variables_MLP["eta"]=jetEta[1];
+      variables_MLP["rho"]=rhoMLP;
+
+      qglMLPJet[1] = qgmlp->QGvalue(variables_MLP);
+
+    } //second jet in dijets
+
+
     flatTree->Fill();
 
   } // for entries

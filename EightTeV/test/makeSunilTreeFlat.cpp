@@ -143,6 +143,9 @@ int main( int argc, char* argv[] ) {
 
   int nJet;
   float eventWeight;
+  float wt_pu;
+  float wt_pteta;
+  float wt_xsec;
   int jetPdgId[20];
   float axis2_QC[20];
   float axis1_QC[20];
@@ -153,12 +156,16 @@ int main( int argc, char* argv[] ) {
 
   flatTree->Branch("event", &event, "event/I");
   flatTree->Branch("eventWeight", &eventWeight, "eventWeight/F");
+  flatTree->Branch("wt_pu", &wt_pu, "wt_pu/F");
+  flatTree->Branch("wt_pteta", &wt_pteta, "wt_pteta/F");
+  flatTree->Branch("wt_xsec", &wt_xsec, "wt_xsec/F");
+  flatTree->Branch("nvertex", &nvtx, "nvertex/I");
+  flatTree->Branch("rhoPF", &rho, "rhoPF/F");
+  flatTree->Branch("rhoPF_allJet", &rhoMLP, "rhoPF_allJet/F");
   flatTree->Branch("nJet", &nJet, "nJet/I");
   flatTree->Branch("ptJet", jetPt, "ptJet[nJet]/F");
   flatTree->Branch("etaJet", jetEta, "etaJet[nJet]/F");
   flatTree->Branch("pdgIdJet", jetPdgId, "pdgIdJet[nJet]/I");
-  flatTree->Branch("rhoPF", &rho, "rhoPF/F");
-  flatTree->Branch("rhoPF_allJet", &rhoMLP, "rhoPF_allJet/F");
   flatTree->Branch("nChargedJet", nCharged, "nChargedJet[nJet]/I");
   flatTree->Branch("nNeutralJet", nNeutral, "nNeutralJet[nJet]/I");
   flatTree->Branch("ptDJet", jetPtD, "ptDJet[nJet]/F");
@@ -212,9 +219,9 @@ int main( int argc, char* argv[] ) {
       }
     }
 
-    float wt_pu = 1.;
-    float wt_pteta = 1.;
-    float wt_xsec = 1.;
+    wt_pu = 1.;
+    wt_pteta = 1.;
+    wt_xsec = 1.;
 
     if( isMC ) {
 

@@ -25,6 +25,12 @@ drawQGLDataMCPlots: DrawBase.o fitTools.o drawQGLDataMCPlots.cpp
 makeSunilTreeFlat: DrawBase.o fitTools.o Bins.o QGLikelihoodCalculator.o QGMLPCalculator.o parameters.o makeSunilTreeFlat.cpp
 	$(CC) -Wall $(INCLUDES) -o makeSunilTreeFlat makeSunilTreeFlat.cpp DrawBase.o fitTools.o Bins.o QGLikelihoodCalculator.o QGMLPCalculator.o parameters.o $(ROOTFLAG) $(EXTRALIBS) -L/afs/cern.ch/work/p/pandolf/CMSSW_5_3_9_patch1_QGSyst/lib/slc5_amd64_gcc462 -lFWCoreParameterSet
 
+create_ptAveWeights: create_ptAveWeights.cpp
+	$(CC) -Wall $(INCLUDES) -o create_ptAveWeights create_ptAveWeights.cpp $(ROOTFLAG) $(EXTRALIBS) 
+
+create_rhoWeights: create_rhoWeights.cpp
+	$(CC) -Wall $(INCLUDES) -o create_rhoWeights create_rhoWeights.cpp $(ROOTFLAG) $(EXTRALIBS) 
+
 
 
 QGLikelihoodCalculator.o: $(CMSSW_BASE)/src/QuarkGluonTagger/EightTeV/src/QGLikelihoodCalculator.cc

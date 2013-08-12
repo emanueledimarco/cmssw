@@ -12,7 +12,7 @@
 bool use_tagAndProbe = true;
 
 
-void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBase* db, const std::string& treeName, const std::string& additionalCuts, const std::string& varName, const std::string& canvasSaveName, std::string axisName, const std::string& units="", float ptMin=0., float ptMax=10000., float etaMin=0., float etaMax =10., float rhoMin=0., float rhoMax=100., int nBins=30, float xMin=0., float xMax=1.0001, bool legendQuadrant=1, bool log_aussi=false );
+void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBase* db, const std::string& treeName, const std::string& additionalCuts, const std::string& varName, const std::string& canvasSaveName, std::string axisName, const std::string& units="", float ptMin=0., float ptMax=10000., float etaMin=0., float etaMax =10., int nBins=30, float xMin=0., float xMax=1.0001, bool legendQuadrant=1, bool log_aussi=false );
 
 
 
@@ -35,10 +35,20 @@ int main(int argc, char* argv[]) {
   if( use_MB )
     std::cout << "-> Using Minimum Bias Data" << std::endl;
 
+
+
   if( selectionType!="ZJets" && selectionType!="DiJets" ) {
     std::cout << "Supported selections are only \"ZJets\" and \"DiJets\". Exiting." << std::endl;
     exit(11);
   }
+
+
+  bool use_tnp = false;
+  if( selectionType=="DiJets" && use_tagAndProbe )
+    use_tnp = true;
+
+  if( use_tnp )
+    std::cout << "-> Using dijet tag and probe." << std::endl;
 
 
   TFile* file_data;
@@ -60,19 +70,27 @@ int main(int argc, char* argv[]) {
   std::string outputdir = "QGLDataMCPlots_" + selectionType;
   if( use_MB )
     outputdir += "_MB";
+  if( use_tnp )
+    outputdir += "_TandP";
   db->set_outputdir(outputdir);
 
   db->add_dataFile(file_data, "data");
   db->add_mcFile(file_mc, "mc", "mc_process");
 
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptJet[0]", "ptJet", "Jet p_{T}", "GeV", 0., 10000., 0., 2.);
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptJet[0]", "ptJet", "Jet p_{T}", "GeV", 0., 10000., 3., 4.7);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptJet[0]", "ptJet", "Jet p_{T}", "GeV", 0., 10000., 0., 10., 100, 20., 520., 1, true);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptJet[0]", "ptJet", "Jet p_{T}", "GeV", 0., 10000., 0., 2., 100, 20., 520., 1, true);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptJet[0]", "ptJet", "Jet p_{T}", "GeV", 0., 10000., 3., 4.7, 100, 20., 320., 1, true);
 
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "etaJet[0]", "etaJet", "Jet #eta");
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "etaJet[0]", "etaJet", "Jet #eta", "", 0., 10000., 0., 10., 50., -5.5, 5.5);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "etaJet[0]", "etaJet", "Jet #eta", "", 40., 10000., 0., 10., 50., -5.5, 5.5);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "etaJet[0]", "etaJet", "Jet #eta", "", 80., 10000., 0., 10., 50., -5.5, 5.5);
 
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nvertex", "nvertex", "Number of Primary Vertexes");
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nvertex", "nvertex", "Number of Primary Vertexes", 0., 10000., 0., 2.);
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nvertex", "nvertex", "Number of Primary Vertexes", 0., 10000., 3., 4.7);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "rhoPF", "rhoPF", "Particle Flow Energy Density (#rho)", "GeV", 0., 10000., 0., 10., 80, 0., 40.);
+
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nvertex", "nvertex", "Number of Primary Vertexes", "", 0., 10000., 0., 10., 40, 0.5, 40.5);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nvertex", "nvertex", "Number of Primary Vertexes", "", 0., 10000., 0., 2.,  40, 0.5, 40.5);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nvertex", "nvertex", "Number of Primary Vertexes", "", 0., 10000., 3., 4.7, 40, 0.5, 40.5);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nvertex", "nvertex", "Number of Primary Vertexes", "", 40., 10000., 0., 10., 40, 0.5, 40.5);
 
   drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 40., 50., 0., 2.);
   drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 80., 100., 0., 2.);
@@ -102,7 +120,7 @@ int main(int argc, char* argv[]) {
 
 
 
-void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBase* db, const std::string& treeName, const std::string& additionalCuts, const std::string& varName, const std::string& canvasSaveName, std::string axisName, const std::string& units, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax, int nBins, float xMin, float xMax, bool legendQuadrant, bool log_aussi ) {
+void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBase* db, const std::string& treeName, const std::string& additionalCuts, const std::string& varName, const std::string& canvasSaveName, std::string axisName, const std::string& units, float ptMin, float ptMax, float etaMin, float etaMax, int nBins, float xMin, float xMax, bool legendQuadrant, bool log_aussi ) {
 
 
   bool tag_and_probe = (selectionType=="DiJets" && use_tagAndProbe);
@@ -128,12 +146,15 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
   //TH1D* h1_b_all = new TH1D( "b_all", "", nBins, xMin, xMax );
 
 
+  int jet_ptindex = 0;
+  if( tag_and_probe ) jet_ptindex = 1;
 
   char commonCondition[500];
   if( additionalCuts!="" )
-    sprintf( commonCondition, "%s && ptJet[0]>%f && ptJet[0]<%f && abs(etaJet[0])>=%f && abs(etaJet[0])<%f && rhoPF>%f && rhoPF<%f", additionalCuts.c_str(), ptMin, ptMax, etaMin, etaMax, rhoMin, rhoMax ); 
+    sprintf( commonCondition, "%s && ptJet[%d]>%f && ptJet[%d]<%f && abs(etaJet[0])>=%f && abs(etaJet[0])<%f", additionalCuts.c_str(), jet_ptindex, ptMin, jet_ptindex, ptMax, etaMin, etaMax );
   else
-    sprintf( commonCondition, "ptJet[0]>%f && ptJet[0]<%f && abs(etaJet[0])>=%f && abs(etaJet[0])<%f && rhoPF>%f && rhoPF<%f", ptMin, ptMax, etaMin, etaMax, rhoMin, rhoMax ); 
+    sprintf( commonCondition, "ptJet[%d]>%f && ptJet[%d]<%f && abs(etaJet[0])>=%f && abs(etaJet[0])<%f", jet_ptindex, ptMin, jet_ptindex, ptMax, etaMin, etaMax );
+
 
 
   char allCondition[800];
@@ -146,6 +167,8 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
   //sprintf( bCondition,     "eventWeight*(abs(pdgIdJet[0])==5 && abs(pdgIdJet[0])!=0 && %s)", commonCondition );
   char puCondition[800];
   sprintf( puCondition,     "eventWeight*(pdgIdJet[0]==0 && %s)", commonCondition );
+
+
 
   TTree* treeDATA = (TTree*)(db->get_dataFile(0).file->Get(treeName.c_str()));
   treeDATA->Project( "data", varName.c_str(), commonCondition );
@@ -174,6 +197,70 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
   //treeMC_all->Project( "pu_all", varName.c_str(), puCondition );
   //treeMC_all->Project( "b_all", varName.c_str(), bCondition );
 
+
+
+
+  bool isJetVar = varName_tstr.Contains("Jet[0]");
+
+  if( tag_and_probe && isJetVar ) { //add also other jet
+
+    char commonCondition2[500];
+    if( additionalCuts!="" )
+      sprintf( commonCondition2, "%s && ptJet[0]>%f && ptJet[0]<%f && abs(etaJet[1])>=%f && abs(etaJet[1])<%f", additionalCuts.c_str(), ptMin, ptMax, etaMin, etaMax );
+    else
+      sprintf( commonCondition2, "ptJet[0]>%f && ptJet[0]<%f && abs(etaJet[1])>=%f && abs(etaJet[1])<%f", ptMin, ptMax, etaMin, etaMax );
+
+    TH1D* h1_data2 = new TH1D( "data2", "", nBins, xMin, xMax );
+
+    TH1D* h1_all2 = new TH1D( "all2", "", nBins, xMin, xMax );
+    TH1D* h1_quark2 = new TH1D( "quark2", "", nBins, xMin, xMax );
+    TH1D* h1_gluon2 = new TH1D( "gluon2", "", nBins, xMin, xMax );
+    TH1D* h1_pu2 = new TH1D( "pu2", "", nBins, xMin, xMax );
+    TH1D* h1_b2 = new TH1D( "b2", "", nBins, xMin, xMax );
+
+    TString varName_tstr2(varName);
+    varName_tstr2.ReplaceAll("[0]", "[1]");
+
+    treeDATA->Project( "data2", varName_tstr2, commonCondition2 );
+      
+    char allCondition2[800];
+    sprintf( allCondition2,   "eventWeight*(%s)", commonCondition2 );
+    char quarkCondition2[800];
+    sprintf( quarkCondition2, "eventWeight*(abs(pdgIdJet[1])<6  && abs(pdgIdJet[1])!=0 && %s)", commonCondition2 );
+    char gluonCondition2[800];
+    sprintf( gluonCondition2, "eventWeight*(pdgIdJet[1]==21     && abs(pdgIdJet[1])!=0 && %s)", commonCondition2 );
+    //char bCondition2[800];
+    //sprintf( bCondition2,     "eventWeight*(abs(pdgIdJet[1])==5 && abs(pdgIdJet[1])!=0 && %s)", commonCondition2 );
+    char puCondition2[800];
+    sprintf( puCondition2,     "eventWeight*(pdgIdJet[1]==0 && %s)", commonCondition2 );
+
+    treeMC->Project( "all2",   varName_tstr2, allCondition2 );
+    treeMC->Project( "quark2", varName_tstr2, quarkCondition2 );
+    treeMC->Project( "gluon2", varName_tstr2, gluonCondition2 );
+    treeMC->Project( "pu2", varName_tstr2, puCondition2 );
+    //treeMC->Project( "b2", varName_tstr2, bCondition2 );
+
+    h1_data->Add( h1_data2 );
+
+    h1_all->Add( h1_all2 );
+    h1_quark->Add( h1_quark2 );
+    h1_gluon->Add( h1_gluon2 );
+    h1_pu->Add( h1_pu2 );
+    //h1_b->Add( h1_b2 );
+
+    delete h1_data2;
+
+    delete h1_all2;
+    delete h1_quark2;
+    delete h1_gluon2;
+    delete h1_pu2;
+    delete h1_b2;
+
+  }
+
+
+
+
   float data_int = h1_data->Integral();
   float mc_int = h1_all->Integral();
   //float mc_int_all = h1_all_all->Integral();
@@ -182,7 +269,7 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
   float quark_fraction = h1_quark->Integral()/mc_int;
   float gluon_fraction = h1_gluon->Integral()/mc_int;
   float pu_fraction = h1_pu->Integral()/mc_int;
-  //float b_fraction = h1_b->Integral()/mc_int;
+  float b_fraction = h1_b->Integral()/mc_int;
   float other_fraction = 1.-quark_fraction-gluon_fraction-b_fraction;
 
 
@@ -200,7 +287,7 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
   char bText[300];
   sprintf( bText, "b");
   char puText[300];
-  sprintf( puText, "Unmatched + PU");
+  sprintf( puText, "Unmatched+PU");
   //sprintf( puText, "Pile Up");
   char otherText[300];
   sprintf( otherText, "Undefined");
@@ -221,7 +308,7 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
   float xMax_leg = 0.8;
 
   if( legendQuadrant==1 ) {
-    xMin_leg = 0.6;
+    xMin_leg = 0.58;
     xMax_leg = 0.93;
   }
   
@@ -247,9 +334,9 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
   if( selectionType=="ZJets" ) selectionType_text = "Z+Jets";
   if( selectionType=="DiJets" ) selectionType_text = "DiJets";
 
-  TLegend* legend = new TLegend( xMin_leg, 0.55, xMax_leg, 0.91, selectionType_text.c_str() );
+  TLegend* legend = new TLegend( xMin_leg, 0.6, xMax_leg, 0.91, selectionType_text.c_str() );
   legend->SetFillColor( kWhite );
-  legend->SetTextSize(0.035);
+  legend->SetTextSize(0.038);
   legend->AddEntry( h1_data, "Data", "p" );
   legend->AddEntry( h1_quark, quarkText, "F" );
   legend->AddEntry( h1_gluon, gluonText, "F" );
@@ -261,8 +348,35 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
   cutsText->SetTextSize(0.038);
   cutsText->SetTextFont(42);
   cutsText->SetFillColor(0);
+
+  char ptCuts[200];
+  if( ptMin!=0. && ptMax!=10000. )
+    sprintf( ptCuts, "%.0f < p_{T} < %.0f GeV", ptMin, ptMax);
+  else if( ptMin!=0. && ptMax==10000. )
+    sprintf( ptCuts, "p_{T} > %.0f GeV", ptMin );
+  else 
+    sprintf( ptCuts, "" );
+  std::string ptCuts_str(ptCuts);
+
+  char etaCuts[200];
+  if( etaMin!=0. && etaMax!=10. )
+    sprintf( etaCuts, "%.0f < |#eta| < %.0f", etaMin, etaMax);
+  else if( etaMin==0. && etaMax!=10. )
+    sprintf( etaCuts, "|#eta| < %.0f", etaMax );
+  else 
+    sprintf( etaCuts, "" );
+  std::string etaCuts_str(etaCuts);
+
   char cutsText_char[500];
-  sprintf( cutsText_char, "#splitline{%.0f < p_{T} < %.0f GeV}{%.0f < |#eta| < %.0f}", ptMin, ptMax, etaMin, etaMax );
+  if( ptCuts_str!="" && etaCuts_str!="" )
+    sprintf( cutsText_char, "#splitline{%s}{%s}", ptCuts_str.c_str(), etaCuts_str.c_str());
+  else if( ptCuts_str!="" )
+    sprintf( cutsText_char, "%s", ptCuts_str.c_str());
+  else if( etaCuts_str!="" )
+    sprintf( cutsText_char, "%s", etaCuts_str.c_str());
+  else 
+    sprintf( cutsText_char, "" );
+
   cutsText->AddText(cutsText_char);
 
   h1_all->Rebin( db->get_rebin() );
@@ -361,13 +475,16 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
   //std::string canvasName = db->get_outputdir() + "/" + varName + "_components.eps";
 
   std::string etaSuffix="";
-  if( etaMin!=0. && etaMax!=10. ) {
+  if( etaMin!=0. || etaMax!=10. ) {
     if( etaMax>4. ) etaSuffix = "_fwd";
     else if( etaMax>2. ) etaSuffix = "_trans";
     else  etaSuffix = "_centr";
   }
   char canvasNameChar[400];
-  sprintf( canvasNameChar, "%s/%s_pt%d%d%s.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), (int)ptMin, (int)ptMax, etaSuffix.c_str() );
+  if( ptMin!=0. || ptMax !=10000. )
+    sprintf( canvasNameChar, "%s/%s_pt%d%d%s.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), (int)ptMin, (int)ptMax, etaSuffix.c_str() );
+  else
+    sprintf( canvasNameChar, "%s/%s%s.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), etaSuffix.c_str() );
 
   c1->SaveAs(canvasNameChar);
   std::string epstopdf_command(canvasNameChar);
@@ -380,7 +497,6 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
     c1->SetLogy();
 
     float ymin_log = 0.1;
-    if( varName=="betaStarJet0" ) ymin_log = 0.01;
 
     TH2D* h2_axes_log = new TH2D("axes_log", "", 10, xMin, xMax, 10, ymin_log, yMax*10 );
     h2_axes_log->SetXTitle( axisName.c_str() );
@@ -389,6 +505,7 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
 
     h2_axes_log->Draw();
     legend->Draw("same");
+    cutsText->Draw("same");
     h1_all->Draw("same");
     stack->Draw("histo same");
     h1_data->Draw("e same");
@@ -396,15 +513,17 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
 
     gPad->RedrawAxis();
 
-    //std::string canvasName = db->get_outputdir() + "/" + varName + "_components.eps";
-
     char canvasNameChar_log[400];
-    if( rhoMin==0. && rhoMax==30. )
-      sprintf( canvasNameChar_log, "%s/%s_pt%d%d.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), (int)ptMin, (int)ptMax );
+    if( ptMin!=0. && ptMax !=10000. )
+      sprintf( canvasNameChar_log, "%s/%s_pt%d%d%s_log.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), (int)ptMin, (int)ptMax, etaSuffix.c_str() );
     else
-      sprintf( canvasNameChar_log, "%s/%s_pt%d%d_rho%d%d.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), (int)ptMin, (int)ptMax, (int)rhoMin, (int)rhoMax );
+      sprintf( canvasNameChar_log, "%s/%s%s_log.eps", db->get_outputdir().c_str(), canvasSaveName.c_str(), etaSuffix.c_str() );
 
     c1->SaveAs(canvasNameChar_log);
+    std::string epstopdf_command_log(canvasNameChar_log);
+    epstopdf_command_log = "epstopdf " + epstopdf_command_log;
+    system(epstopdf_command_log.c_str());
+
 
     delete h2_axes_log;
 
@@ -418,7 +537,7 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
   delete h1_quark;
   delete h1_gluon;
   delete h1_pu;
-  //delete h1_b;
+  delete h1_b;
   
   //delete h1_all_all;
   //delete h1_quark_all;

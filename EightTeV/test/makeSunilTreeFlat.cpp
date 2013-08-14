@@ -8,6 +8,9 @@
 
 
 
+bool pthat_reweight = true;
+
+
 float get_xSecWeight( const std::string& dataset );
 float correctNCharged(int nChg_QCJet, float eta);
 
@@ -62,7 +65,10 @@ int main( int argc, char* argv[] ) {
   std::cout << "-> Tree has: " << nentries << std::endl;
 
 
-  std::string flatFileName = "sunilFlat_" + selectionType + "_" + dataset + ".root";
+  std::string flatFileName = "sunilFlat_" + selectionType + "_" + dataset;
+  if( pthat_reweight && selectionType=="DiJet" )
+    flatFileName += "_ptHatWeight";
+  flatFileName += ".root";
   TFile* newFile = TFile::Open(flatFileName.c_str(), "recreate");
   newFile->cd();
 
@@ -70,6 +76,7 @@ int main( int argc, char* argv[] ) {
 
   int run;
   int event;
+  float genweight;
   float rho;
   float rhoMLP;
   int nvtx;
@@ -105,6 +112,7 @@ int main( int argc, char* argv[] ) {
 
   sunilTree->SetBranchAddress("runNo", &run);
   sunilTree->SetBranchAddress("evtNo", &event);
+  sunilTree->SetBranchAddress("weight", &genweight);
   sunilTree->SetBranchAddress("nvtx", &nvtx);
   sunilTree->SetBranchAddress("rhoIso", &rho);
   sunilTree->SetBranchAddress("rho", &rhoMLP);
@@ -155,6 +163,7 @@ int main( int argc, char* argv[] ) {
   float qglCorrJet[20];
   float ptZ;
 
+  flatTree->Branch("run", &run, "run/I");
   flatTree->Branch("event", &event, "event/I");
   flatTree->Branch("eventWeight", &eventWeight, "eventWeight/F");
   flatTree->Branch("wt_pu", &wt_pu, "wt_pu/F");
@@ -206,11 +215,12 @@ int main( int argc, char* argv[] ) {
     hPU = (TH1F*)fileRhoWeights->Get("rho_weights");
 
 
-  std::string ptWeightFileName = "ptWeights_" + dataset + ".root";
-  TFile* filePtWeights = TFile::Open(ptWeightFileName.c_str());
-  TH1F* hPt_wt;
-  if( filePtWeights!=0 )
-    hPt_wt = (TH1F*)filePtWeights->Get("ptAve_weights");
+  //std::string ptWeightFileName = "ptWeights_" + dataset + ".root";
+  //TH1F* hPt_wt;
+  //if( 
+  //TFile* filePtWeights = TFile::Open(ptWeightFileName.c_str());
+  //if( filePtWeights!=0 )
+  //  hPt_wt = (TH1F*)filePtWeights->Get("ptAve_weights");
 
 
 
@@ -276,7 +286,7 @@ int main( int argc, char* argv[] ) {
     // common jet ID:
     if( fabs(jetEta[0]) < 2.5 && jetBeta[0] < ( 1.0 -  0.2 * TMath::Log( nvtx - 0.67))) continue; 
     if( jetBtag[0]>0.244 ) continue;
-    if( jetPtD_QC[0]>0.9 ) continue;
+    //if( jetPtD_QC[0]>0.9 ) continue;
 
 
     // set event weights:
@@ -288,11 +298,23 @@ int main( int argc, char* argv[] ) {
 
       // kinematic reweighting only for dijets:
       if( selectionType=="DiJet" ) {
-        int ptAveBin = hPt_wt->FindBin( 0.5*(jetPt[0]+jetPt[1]) );
-        wt_pteta = hPt_wt->GetBinContent(ptAveBin);
 
-        //int ptetabin = hPtEta_wt->FindBin(jetPt[0],fabs(jetEta[0]));
-        //wt_pteta = hPtEta_wt->GetBinContent(ptetabin);
+        wt_pteta = genweight;
+
+        //if( pthat_reweight ) {
+
+        //  wt_pteta = genweight;
+
+        //} else {
+
+        //  int ptAveBin = hPt_wt->FindBin( 0.5*(jetPt[0]+jetPt[1]) );
+        //  wt_pteta = hPt_wt->GetBinContent(ptAveBin);
+
+        //  //int ptetabin = hPtEta_wt->FindBin(jetPt[0],fabs(jetEta[0]));
+        //  //wt_pteta = hPtEta_wt->GetBinContent(ptetabin);
+        //
+        //}
+
       }
 
       wt_xsec =  get_xSecWeight(dataset);
@@ -340,6 +362,7 @@ int main( int argc, char* argv[] ) {
     for(int iPart=0;iPart<int(partonPt->size());iPart++) {
 
       if( partonSt->at(iPart) != 3 ) continue;
+      if( partonPt->at(iPart) < 1. ) continue;
       if( !( fabs(partonId->at(iPart))<6 || fabs(partonId->at(iPart))>0 || partonId->at(iPart)==21) ) continue;
       TLorentzVector thisPart;
       thisPart.SetPtEtaPhiE( partonPt->at(iPart), partonEta->at(iPart), partonPhi->at(iPart), partonE->at(iPart) );
@@ -423,6 +446,7 @@ int main( int argc, char* argv[] ) {
       for(int iPart=0;iPart<int(partonPt->size());iPart++) {
 
         if( partonSt->at(iPart) != 3 ) continue;
+        if( partonPt->at(iPart) < 1. ) continue;
         if( !( fabs(partonId->at(iPart))<6 || fabs(partonId->at(iPart))>0 || partonId->at(iPart)==21) ) continue;
         TLorentzVector thisPart;
         thisPart.SetPtEtaPhiE( partonPt->at(iPart), partonEta->at(iPart), partonPhi->at(iPart), partonE->at(iPart) );

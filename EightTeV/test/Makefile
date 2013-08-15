@@ -16,6 +16,9 @@ EXTRALIBS  :=  -L$(ROOTSYS)/lib -L$(ROOFIT_LIBDIR)/ -lHtml -lMathCore -lGenVecto
 checkSyst: checkSyst.cpp QGSyst.o DrawBase.o fitTools.o 
 	$(CC) -Wall $(INCLUDES) -o checkSyst checkSyst.cpp QGSyst.o DrawBase.o fitTools.o  $(ROOTFLAG) $(EXTRALIBS)
 
+computeSystSmearings: computeSystSmearings.cpp QGSyst.o DrawBase.o fitTools.o 
+	$(CC) -Wall $(INCLUDES) -o computeSystSmearings computeSystSmearings.cpp QGSyst.o DrawBase.o fitTools.o  $(ROOTFLAG) $(EXTRALIBS)
+
 drawQGLMCPlots: DrawBase.o fitTools.o Bins.o QGLikelihoodCalculator.o QGMLPCalculator.o parameters.o drawQGLMCPlots.cpp
 	$(CC) -Wall $(INCLUDES) -o drawQGLMCPlots drawQGLMCPlots.cpp DrawBase.o fitTools.o Bins.o QGLikelihoodCalculator.o QGMLPCalculator.o parameters.o $(ROOTFLAG) $(EXTRALIBS) -L/afs/cern.ch/work/p/pandolf/CMSSW_5_3_9_patch1_QGSyst/lib/slc5_amd64_gcc462 -lFWCoreParameterSet
 
@@ -30,6 +33,9 @@ create_ptAveWeights: create_ptAveWeights.cpp
 
 create_rhoWeights: create_rhoWeights.cpp
 	$(CC) -Wall $(INCLUDES) -o create_rhoWeights create_rhoWeights.cpp $(ROOTFLAG) $(EXTRALIBS) 
+
+create_ptRhoWeights: create_ptRhoWeights.cpp
+	$(CC) -Wall $(INCLUDES) -o create_ptRhoWeights create_ptRhoWeights.cpp $(ROOTFLAG) $(EXTRALIBS) 
 
 
 

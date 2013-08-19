@@ -79,7 +79,7 @@ int main( int argc, char* argv[] ) {
   std::string outfilename = "SystDB_new_"+selection+".txt";
   ofstream systdbfile(outfilename.c_str());
   systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 20., 30., 3., 4.7 ) << std::endl;
-  systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 30., 40., 3., 4.7 ) << std::endl;
+  //systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 30., 40., 3., 4.7 ) << std::endl;
   //systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 40., 50., 3., 4.7 ) << std::endl;
   //systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 50., 65., 3., 4.7 ) << std::endl;
   systdbfile.close();
@@ -106,9 +106,9 @@ std::string scanSingleBin( const std::string& selection, TTree* tree, TTree* tre
   float g_a_min = 1.;
   float g_b_min = 0.;
 
-  for( float g_a = 0.90; g_a<1.02; g_a+=0.02 ) {
+  for( float g_a = 0.8; g_a<1.04; g_a+=0.02 ) {
 
-    for( float g_b = -0.4; g_b<0.4; g_b+=0.1 ) {
+    for( float g_b = -1.0; g_b<0.5; g_b+=0.1 ) {
 
       std::cout << "Scanning: g_a = " << g_a << "  g_b = " << g_b << std::endl;
 
@@ -133,7 +133,7 @@ std::string scanSingleBin( const std::string& selection, TTree* tree, TTree* tre
   float q_a_min = 1.;
   float q_b_min = 0.;
 
-  for( float q_a = 0.985; q_a<1.015; q_a+=0.005 ) {
+  for( float q_a = 0.965; q_a<1.015; q_a+=0.005 ) {
 
     for( float q_b = -0.2; q_b<0.2; q_b+=0.1 ) {
 

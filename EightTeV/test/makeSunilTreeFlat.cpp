@@ -6,6 +6,7 @@
 #include "QuarkGluonTagger/EightTeV/interface/QGLikelihoodCalculator.h"
 #include "/afs/cern.ch/work/p/pandolf/CMSSW_5_3_9_patch1_QGSyst/src/QuarkGluonTagger/EightTeV/interface/QGMLPCalculator.h"
 
+#include "PUWeight.h"
 
 
 bool pthat_reweight = true;
@@ -66,7 +67,7 @@ int main( int argc, char* argv[] ) {
 
 
   std::string flatFileName = "sunilFlat_" + selectionType + "_" + dataset;
-  if( pthat_reweight && selectionType=="DiJet" )
+  if( pthat_reweight && dataset_tstr.Contains("flat") )
     flatFileName += "_ptHatWeight";
   flatFileName += ".root";
   TFile* newFile = TFile::Open(flatFileName.c_str(), "recreate");
@@ -80,6 +81,7 @@ int main( int argc, char* argv[] ) {
   float rho;
   float rhoMLP;
   int nvtx;
+  int npu;
   std::vector<bool> *triggerResult = 0;
   float jetPt[20];
   float jetEta[20];
@@ -114,6 +116,7 @@ int main( int argc, char* argv[] ) {
   sunilTree->SetBranchAddress("evtNo", &event);
   sunilTree->SetBranchAddress("weight", &genweight);
   sunilTree->SetBranchAddress("nvtx", &nvtx);
+  sunilTree->SetBranchAddress("npu", &npu);
   sunilTree->SetBranchAddress("rhoIso", &rho);
   sunilTree->SetBranchAddress("rho", &rhoMLP);
   sunilTree->SetBranchAddress("triggerResult", &triggerResult);
@@ -160,6 +163,7 @@ int main( int argc, char* argv[] ) {
   float rmsCand_QC[20];
   float qglMLPJet[20];
   float qglJet[20];
+  float qglNoMultCorrJet[20];
   float qglCorrJet[20];
   float ptZ;
 
@@ -190,6 +194,7 @@ int main( int argc, char* argv[] ) {
   flatTree->Branch("nNeutral_ptCutJet", nNeutral_ptCut, "nNeutral_ptCutJet[nJet]/I");
   flatTree->Branch("qgMLPJet", qglMLPJet, "qgMLPJet[nJet]/F");
   flatTree->Branch("qglJet", qglJet, "qglJet[nJet]/F");
+  flatTree->Branch("qglNoMultCorrJet", qglNoMultCorrJet, "qglNoMultCorrJet[nJet]/F");
   flatTree->Branch("qglCorrJet", qglCorrJet, "qglCorrJet[nJet]/F");
 
 
@@ -198,6 +203,19 @@ int main( int argc, char* argv[] ) {
   QGLikelihoodCalculator* qglc = new QGLikelihoodCalculator("QuarkGluonTagger/EightTeV/data/");
   std::cout << "-> Booking QGMLPCalculator..." << std::endl;
   QGMLPCalculator* qgmlp = new QGMLPCalculator("MLP","QuarkGluonTagger/EightTeV/data/", true);
+
+
+  PUWeight* fPUWeight = new PUWeight(-1, "2012", "Summer12");
+
+  TFile* filePU_data = TFile::Open("PU_all_minBias69400.root");
+  //TFile* filePU_data = TFile::Open("puProfile_Data12.root");
+  TFile* filePU_mc = TFile::Open("2012MC_S10_for53X.root");
+  //TFile* filePU_mc = TFile::Open("puProfile_Summer12_53X.root");
+  TH1F* h1_nPU_data = (TH1F*)filePU_data->Get("pileup");
+  TH1F* h1_nPU_mc = (TH1F*)filePU_mc->Get("pileup");
+  fPUWeight->SetDataHistogram(h1_nPU_data);
+  fPUWeight->SetMCHistogram(h1_nPU_mc);
+
 
 
   //std::string puFileName = (selectionType=="ZJet") ? "PU_rewt_ZJets.root" : "PU_rewt_flatP6.root";
@@ -249,8 +267,11 @@ int main( int argc, char* argv[] ) {
 
     if( selectionType=="DiJet" ) {
 
-      if( jetPt[0] < 20.) continue; 
-      if( jetPt[1] < 20.) continue;
+      if( jetPt[0] < 30.) continue; 
+      if( jetPt[1] < 30.) continue;
+      //if( jetPt[0] < 20.) continue; 
+      //if( jetPt[1] < 20.) continue;
+ 
 
       TLorentzVector jet1, jet2;
       jet1.SetPtEtaPhiE( jetPt[0], jetEta[0], jetPhi[0], jetEnergy[0]);
@@ -286,6 +307,10 @@ int main( int argc, char* argv[] ) {
     // common jet ID:
     if( fabs(jetEta[0]) < 2.5 && jetBeta[0] < ( 1.0 -  0.2 * TMath::Log( nvtx - 0.67))) continue; 
     if( jetBtag[0]>0.244 ) continue;
+    if( selectionType=="DiJet" ) {
+      if( fabs(jetEta[1]) < 2.5 && jetBeta[1] < ( 1.0 -  0.2 * TMath::Log( nvtx - 0.67))) continue; 
+      if( jetBtag[1]>0.244 ) continue;
+    }
     //if( jetPtD_QC[0]>0.9 ) continue;
 
 
@@ -319,9 +344,12 @@ int main( int argc, char* argv[] ) {
 
       wt_xsec =  get_xSecWeight(dataset);
 
-      // pu reweighting:
+      // pu reweighting based on rho:
       int bin = hPU->FindBin(rho);
       wt_pu = hPU->GetBinContent(bin);
+
+      //// official pu reweighting:
+      //wt_pu = fPUWeight->GetWeight(npu);
 
     }
 
@@ -396,9 +424,11 @@ int main( int argc, char* argv[] ) {
 
     if( !isMC && fabs(jetEta[0])>2.5 ) {
       qglJet[0] = qglc->computeQGLikelihood2012( jetPt[0], jetEta[0], rho, nCharged_QC[0]+nNeutral_ptCut[0]-1, jetPtD_QC[0], axis2_QC[0]);
+      qglNoMultCorrJet[0] = qglc->computeQGLikelihood2012( jetPt[0], jetEta[0], rho, nCharged_QC[0]+nNeutral_ptCut[0], jetPtD_QC[0], axis2_QC[0]);
       qglCorrJet[0] = qglJet[0];
     } else {
       qglJet[0] = qglc->computeQGLikelihood2012( jetPt[0], jetEta[0], rho, nCharged_QC[0]+nNeutral_ptCut[0], jetPtD_QC[0], axis2_QC[0]);
+      qglNoMultCorrJet[0] = qglJet[0];
       qglCorrJet[0] = (fabs(jetEta[0])<1.9) ? qglJet[0] : qglc->computeQGLikelihood2012( jetPt[0], jetEta[0], rho, correctNCharged(nCharged_QC[0],jetEta[0])+nNeutral_ptCut[0], jetPtD_QC[0], axis2_QC[0]);
     }
 
@@ -467,9 +497,11 @@ int main( int argc, char* argv[] ) {
 
       if( !isMC && fabs(jetEta[1])>2.5 ) {
         qglJet[1] = qglc->computeQGLikelihood2012( jetPt[1], jetEta[1], rho, nCharged_QC[1]+nNeutral_ptCut[1]-1, jetPtD_QC[1], axis2_QC[1]);
+        qglNoMultCorrJet[1] = qglc->computeQGLikelihood2012( jetPt[1], jetEta[1], rho, nCharged_QC[1]+nNeutral_ptCut[1], jetPtD_QC[1], axis2_QC[1]);
         qglCorrJet[1] = qglJet[1];
       } else {
         qglJet[1] = qglc->computeQGLikelihood2012( jetPt[1], jetEta[1], rho, nCharged_QC[1]+nNeutral_ptCut[1], jetPtD_QC[1], axis2_QC[1]);
+        qglNoMultCorrJet[1] = qglJet[1];
         qglCorrJet[1] = (fabs(jetEta[1])<1.9) ? qglJet[1] : qglc->computeQGLikelihood2012( jetPt[1], jetEta[1], rho, correctNCharged(nCharged_QC[1],jetEta[1])+nNeutral_ptCut[1], jetPtD_QC[1], axis2_QC[1]);
       }
 

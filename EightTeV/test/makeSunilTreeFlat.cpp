@@ -227,6 +227,7 @@ int main( int argc, char* argv[] ) {
   //TH1F* hPtEta_wt = (TH1F*)filePtEtaWeights->Get("hist_WT");
 
   std::string rhoWeightFileName = "rhoWeights_" + dataset + ".root";
+  std::cout << "-> Opening rho weights file: " << rhoWeightFileName << std::endl;
   TFile* fileRhoWeights = TFile::Open(rhoWeightFileName.c_str());
   TH1F* hPU;
   if( fileRhoWeights!=0 )
@@ -344,12 +345,12 @@ int main( int argc, char* argv[] ) {
 
       wt_xsec =  get_xSecWeight(dataset);
 
-      //// pu reweighting based on rho:
-      //int bin = hPU->FindBin(rho);
-      //wt_pu = hPU->GetBinContent(bin);
+      // pu reweighting based on rho:
+      int bin = hPU->FindBin(rho);
+      wt_pu = hPU->GetBinContent(bin);
 
       // official pu reweighting:
-      wt_pu = fPUWeight->GetWeight(npu);
+      //wt_pu = fPUWeight->GetWeight(npu);
 
     }
 

@@ -32,6 +32,11 @@ int main(int argc, char* argv[]) {
     dataDataset = "data2012ABCD_JetPD_12Jul"; 
   }
 
+
+  //std::cout << "HAVE YOU DONE THE RHO REWEIGHTING FIRST?" << std::endl;
+  //std::string tmp_string;
+  //std::cin >> tmp_string;
+
   std::string mcFileName = "sunilFlat_DiJet_" + mcDataset + ".root";
   std::string dataFileName = "sunilFlat_DiJet_" + dataDataset + ".root";
 

@@ -26,7 +26,7 @@ struct FitParameters {
 
 
 std::string scanSingleBin( const std::string& selection, TTree* tree, TTree* tree_data, const std::string& discrim, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin=0., float rhoMax=100. );
-FitParameters getSingleChiSquare( const std::string& selection, TTree* tree, TTree* tree_data, const std::string& discrim, float q_a, float q_b, float g_a, float g_b, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin=0., float rhoMax=100. );
+FitParameters getSingleChiSquare( const std::string& selection, char* commonCondition, TTree* tree, TH1D* h1_data, const std::string& discrim, float q_a, float q_b, float g_a, float g_b );
 float computeChiSquare( TH1D* h1_data, TH1D* h1_mc );
 
 
@@ -78,10 +78,15 @@ int main( int argc, char* argv[] ) {
 
   std::string outfilename = "SystDB_new_"+selection+".txt";
   ofstream systdbfile(outfilename.c_str());
-  systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 20., 30., 3., 4.7 ) << std::endl;
-  //systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 30., 40., 3., 4.7 ) << std::endl;
-  //systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 40., 50., 3., 4.7 ) << std::endl;
-  //systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 50., 65., 3., 4.7 ) << std::endl;
+  //systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 30., 40., 0., 2. ) << std::endl;
+  //systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 40., 50., 0., 2. ) << std::endl;
+  //systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 50., 65., 0., 2. ) << std::endl;
+  systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 65., 80., 0., 2. ) << std::endl;
+  systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 80., 100., 0., 2. ) << std::endl;
+
+  systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 30., 40., 3., 4.7 ) << std::endl;
+  systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 40., 50., 3., 4.7 ) << std::endl;
+  systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 50., 65., 3., 4.7 ) << std::endl;
   systdbfile.close();
 
   return 0;
@@ -102,17 +107,24 @@ std::string scanSingleBin( const std::string& selection, TTree* tree, TTree* tre
   std::cout << "-> First round: smear only gluons." << std::endl;
 
 
+  char commonCondition[1023];
+  sprintf( commonCondition, "ptJet>%f && ptJet<%f && abs(etaJet)>=%f && abs(etaJet)<%f", ptMin, ptMax, etaMin, etaMax );
+
+  TH1D* h1_data = new TH1D("data", "", 30, 0., 1.0001);
+  tree_data->Project("data", discrim.c_str(), commonCondition );
+
+
   float chi2min = 100000.;
   float g_a_min = 1.;
   float g_b_min = 0.;
 
-  for( float g_a = 0.8; g_a<1.04; g_a+=0.02 ) {
+  for( float g_a = 0.7; g_a<1.02; g_a+=0.02 ) {
 
-    for( float g_b = -1.0; g_b<0.5; g_b+=0.1 ) {
+    for( float g_b = -0.5; g_b<0.5; g_b+=0.1 ) {
 
       std::cout << "Scanning: g_a = " << g_a << "  g_b = " << g_b << std::endl;
 
-      FitParameters fp = getSingleChiSquare( selection, tree, tree_data, discrim, 1., 0., g_a, g_b, ptMin, ptMax, etaMin, etaMax );
+      FitParameters fp = getSingleChiSquare( selection, commonCondition, tree, h1_data, discrim, 1., 0., g_a, g_b );
       
       if( fp.chi2 < chi2min ) {
         chi2min = fp.chi2;
@@ -139,7 +151,7 @@ std::string scanSingleBin( const std::string& selection, TTree* tree, TTree* tre
 
       std::cout << "Scanning: q_a = " << q_a << "  q_b = " << q_b << std::endl;
 
-      FitParameters fp = getSingleChiSquare( selection, tree, tree_data, discrim, q_a, q_b, g_a_min, g_b_min, ptMin, ptMax, etaMin, etaMax );
+      FitParameters fp = getSingleChiSquare( selection, commonCondition, tree, h1_data, discrim, q_a, q_b, g_a_min, g_b_min );
  
       if( fp.chi2 < chi2min ) {
         chi2min = fp.chi2;
@@ -169,7 +181,7 @@ std::string scanSingleBin( const std::string& selection, TTree* tree, TTree* tre
 
       std::cout << "Scanning: g_a = " << g_a << "  g_b = " << g_b << std::endl;
 
-      FitParameters fp = getSingleChiSquare( selection, tree, tree_data, discrim, q_a_min, q_b_min, g_a, g_b, ptMin, ptMax, etaMin, etaMax );
+      FitParameters fp = getSingleChiSquare( selection, commonCondition, tree, h1_data, discrim, q_a_min, q_b_min, g_a, g_b );
       
       if( fp.chi2 < chi2min ) {
         chi2min = fp.chi2;
@@ -181,11 +193,11 @@ std::string scanSingleBin( const std::string& selection, TTree* tree, TTree* tre
 
   } // for g_a
 
-  std::cout << "-> Done. Total minimum found in q_a = " << q_a_min << "  q_b = " << q_b_min << "  g_a = " << g_a_min << "  g_b = " << g_b_min << std::endl;
-  std::cout << "QGLHisto " << ptMin << " " << ptMax << " " << rhoMin << " " << rhoMax << " " << etaMin << " " << etaMax << " " << q_a_min << " " << q_b_min << " " << g_a_min << " " << g_b_min << " 0. 1." << std::endl;
+  std::cout << "-> Done. Total minimum found in q_a = " << q_a_min << "  q_b = " << q_b_min << "  g_a = " << g_a_min2 << "  g_b = " << g_b_min2 << std::endl;
+  std::cout << "QGLHisto " << ptMin << " " << ptMax << " " << rhoMin << " " << rhoMax << " " << etaMin << " " << etaMax << " " << q_a_min << " " << q_b_min << " " << g_a_min2 << " " << g_b_min2 << " 0. 1." << std::endl;
   std::cout << std::endl;
   char line[1023];
-  sprintf( line, "QGLHisto %.0f %.0f %.0f %.0f %.1f %.1f %.3f %.3f %.3f %.3f 0. 1.", ptMin,  ptMax,  rhoMin, rhoMax, etaMin, etaMax, q_a_min, q_b_min, g_a_min, g_b_min );
+  sprintf( line, "QGLHisto %.0f %.0f %.0f %.0f %.1f %.1f %.3f %.3f %.3f %.3f 0. 1.", ptMin,  ptMax,  rhoMin, rhoMax, etaMin, etaMax, q_a_min, q_b_min, g_a_min2, g_b_min2 );
 
   std::string line_str(line);
   return line_str;
@@ -195,8 +207,61 @@ std::string scanSingleBin( const std::string& selection, TTree* tree, TTree* tre
 
 
 
-FitParameters getSingleChiSquare( const std::string& selection, TTree* tree, TTree* tree_data, const std::string& discrim, float q_a, float q_b, float g_a, float g_b, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax ) {
+FitParameters getSingleChiSquare( const std::string& selection, char* commonCondition, TTree* tree, TH1D* h1_data, const std::string& discrim, float q_a, float q_b, float g_a, float g_b ) {
 
+
+  TH1D* h1_mc_quark = new TH1D("mc_quark", "", 30, 0., 1.0001);
+  h1_mc_quark->Sumw2();
+  TH1D* h1_mc_gluon = new TH1D("mc_gluon", "", 30, 0., 1.0001);
+  h1_mc_gluon->Sumw2();
+  TH1D* h1_mc_undef = new TH1D("mc_undef", "", 30, 0., 1.0001);
+  h1_mc_undef->Sumw2();
+
+
+  char quarkCondition[1023];
+  sprintf( quarkCondition, "eventWeight*(abs(pdgIdJet)<6  && abs(pdgIdJet)!=0 && %s)", commonCondition );
+  char gluonCondition[1023];
+  sprintf( gluonCondition, "eventWeight*(pdgIdJet==21     && abs(pdgIdJet)!=0 && %s)", commonCondition );
+  char undefCondition[1023];
+  sprintf( undefCondition, "eventWeight*(pdgIdJet==0 && %s)", commonCondition );
+
+  tree->Project( "mc_quark", discrim.c_str(), quarkCondition );
+  tree->Project( "mc_gluon", discrim.c_str(), gluonCondition );
+  tree->Project( "mc_undef", discrim.c_str(), undefCondition );
+
+  char smearedVar_quark[1023];
+  sprintf( smearedVar_quark, "TMath::TanH( %f* TMath::ATanH(2.*%s-1.)+%f )/2.+.5 ", q_a, discrim.c_str(), q_b );
+  char smearedVar_gluon[1023];
+  sprintf( smearedVar_gluon, "TMath::TanH( %f* TMath::ATanH(2.*%s-1.)+%f )/2.+.5 ", g_a, discrim.c_str(), g_b );
+
+  tree->Project( "mc_undef", discrim.c_str(),  undefCondition ); //don't smear undefined
+  tree->Project( "mc_quark", smearedVar_quark, quarkCondition );
+  tree->Project( "mc_gluon", smearedVar_gluon, gluonCondition );
+
+  TH1D* h1_mc_tot = new TH1D(*h1_mc_undef);
+  h1_mc_tot->Add(h1_mc_quark);
+  h1_mc_tot->Add(h1_mc_gluon);
+
+  float thisChiSquare = computeChiSquare( h1_data, h1_mc_tot );
+
+  FitParameters fp;
+  fp.q_a = q_a;
+  fp.q_b = q_b;
+  fp.g_a = g_a;
+  fp.g_b = g_b;
+  fp.chi2 = thisChiSquare;
+
+
+  delete h1_mc_undef;
+  delete h1_mc_quark;
+  delete h1_mc_gluon;
+  delete h1_mc_tot;
+
+  return fp;
+
+}
+
+/*
   float eventWeight;
   int njet;
   float pt[20];
@@ -393,7 +458,7 @@ FitParameters getSingleChiSquare( const std::string& selection, TTree* tree, TTr
   return fp;
 
 }
-
+*/
 
 
 float computeChiSquare( TH1D* h1_data, TH1D* h1_mc ) {
@@ -422,3 +487,7 @@ float computeChiSquare( TH1D* h1_data, TH1D* h1_mc ) {
   return chi2;
 
 }
+
+
+
+

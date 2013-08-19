@@ -10,9 +10,11 @@
 
 
 bool use_tagAndProbe = true;
+bool use_ptHatWeight = true;
+bool use_herwig = true;
 
 
-void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBase* db, const std::string& treeName, const std::string& additionalCuts, const std::string& varName, const std::string& canvasSaveName, std::string axisName, const std::string& units="", float ptMin=0., float ptMax=10000., float etaMin=0., float etaMax =10., int nBins=30, float xMin=0., float xMax=1.0001, bool legendQuadrant=1, bool log_aussi=false );
+void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBase* db, const std::string& treeName, const std::string& additionalCuts, const std::string& varName, const std::string& canvasSaveName, std::string axisName, const std::string& units="", float ptMin=0., float ptMax=10000., float etaMin=0., float etaMax =10., int nBins=25, float xMin=0., float xMax=1.0001, bool legendQuadrant=1, bool log_aussi=false );
 
 
 
@@ -25,14 +27,14 @@ int main(int argc, char* argv[]) {
     selectionType = selectionType_str;
   }
 
-  bool use_MB = false;
+  bool use_MB = true;
   if( argc>2 ) {
     std::string MB_str(argv[2]);
     TString MB_tstr(MB_str);
     use_MB = MB_tstr.Contains("MB");
   }
  
-  if( use_MB )
+  if( use_MB && selectionType=="DiJets" )
     std::cout << "-> Using Minimum Bias Data" << std::endl;
 
 
@@ -51,6 +53,14 @@ int main(int argc, char* argv[]) {
     std::cout << "-> Using dijet tag and probe." << std::endl;
 
 
+  bool use_pthatweight = false;
+  if( selectionType=="DiJets" && use_ptHatWeight )
+    use_pthatweight = true;
+
+  if( use_pthatweight )
+    std::cout << "-> Using pt_hat weights." << std::endl;
+
+
   TFile* file_data;
   TFile* file_mc;
 
@@ -62,16 +72,28 @@ int main(int argc, char* argv[]) {
       file_data = TFile::Open("sunilFlat_DiJet_data2012ABCD_MBPD_12Jul.root");
     else
       file_data = TFile::Open("sunilFlat_DiJet_data2012ABCD_JetPD_12Jul.root");
-    file_mc = TFile::Open("sunilFlat_DiJet_flatQCD_P6_Dijets_12Jul.root");
+    std::string mcFileName = "sunilFlat_DiJet_flatQCD_P6_Dijets_12Jul";
+    if( use_pthatweight ) {
+      if( use_herwig )
+        mcFileName = "sunilFlat_DiJet_flatQCD_HPP_Dijets_12Aug_ptHatWeight";
+       else
+        mcFileName = "sunilFlat_DiJet_flatQCD_P6_Dijets_12Aug_ptHatWeight";
+    }
+    mcFileName += ".root";
+    file_mc = TFile::Open(mcFileName.c_str());
   }
 
   DrawBase* db = new DrawBase("qgdatamc");
 
   std::string outputdir = "QGLDataMCPlots_" + selectionType;
-  if( use_MB )
+  if( use_MB && selectionType=="DiJets" )
     outputdir += "_MB";
   if( use_tnp )
     outputdir += "_TandP";
+  if( use_pthatweight )
+    outputdir += "_ptHat";
+  if( use_herwig )
+    outputdir += "_Hpp";
   db->set_outputdir(outputdir);
 
   db->add_dataFile(file_data, "data");
@@ -90,14 +112,109 @@ int main(int argc, char* argv[]) {
   drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nvertex", "nvertex", "Number of Primary Vertexes", "", 0., 10000., 0., 10., 40, 0.5, 40.5);
   drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nvertex", "nvertex", "Number of Primary Vertexes", "", 0., 10000., 0., 2.,  40, 0.5, 40.5);
   drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nvertex", "nvertex", "Number of Primary Vertexes", "", 0., 10000., 3., 4.7, 40, 0.5, 40.5);
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nvertex", "nvertex", "Number of Primary Vertexes", "", 40., 10000., 0., 10., 40, 0.5, 40.5);
+  //drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nvertex", "nvertex", "Number of Primary Vertexes", "", 40., 10000., 0., 10., 40, 0.5, 40.5);
 
+
+  // central:
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptD_QCJet[0]", "ptDJet", "p_{T}D", "", 20., 30., 0., 2., 50);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "axis2_QCJet[0]", "axis2Jet", "#sigma_{2}", "", 20., 30., 0., 2., 50, 0., 0.2);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]", "multiplicityJet", "Multiplicity", "", 20., 30., 0., 2., 40, 0.5, 40.5);
+
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptD_QCJet[0]", "ptDJet", "p_{T}D", "", 30., 40., 0., 2., 50);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "axis2_QCJet[0]", "axis2Jet", "#sigma_{2}", "", 30., 40., 0., 2., 50, 0., 0.2);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]", "multiplicityJet", "Multiplicity", "", 30., 40., 0., 2., 40, 0.5, 40.5);
+
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptD_QCJet[0]", "ptDJet", "p_{T}D", "", 40., 50., 0., 2., 50);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "axis2_QCJet[0]", "axis2Jet", "#sigma_{2}", "", 40., 50., 0., 2., 50, 0., 0.2);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]", "multiplicityJet", "Multiplicity", "", 40., 50., 0., 2., 40, 0.5, 40.5);
+
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptD_QCJet[0]", "ptDJet", "p_{T}D", "", 50., 65., 0., 2., 50);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "axis2_QCJet[0]", "axis2Jet", "#sigma_{2}", "", 50., 65., 0., 2., 50, 0., 0.2);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]", "multiplicityJet", "Multiplicity", "", 50., 65., 0., 2., 40, 0.5, 40.5);
+
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptD_QCJet[0]", "ptDJet", "p_{T}D", "", 65., 80., 0., 2., 50);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "axis2_QCJet[0]", "axis2Jet", "#sigma_{2}", "", 65., 80., 0., 2., 50, 0., 0.2);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]", "multiplicityJet", "Multiplicity", "", 65., 80., 0., 2., 40, 0.5, 40.5);
+
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptD_QCJet[0]", "ptDJet", "p_{T}D", "", 80., 100., 0., 2., 50);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "axis2_QCJet[0]", "axis2Jet", "#sigma_{2}", "", 80., 100., 0., 2., 48, 0., 0.2);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]", "multiplicityJet", "Multiplicity", "", 80., 100., 0., 2., 40, 0.5, 40.5);
+
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptD_QCJet[0]", "ptDJet", "p_{T}D", "", 150., 200., 0., 2., 50);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "axis2_QCJet[0]", "axis2Jet", "#sigma_{2}", "", 150., 200., 0., 2., 48, 0., 0.2);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]", "multiplicityJet", "Multiplicity", "", 150., 200., 0., 2., 40, 0.5, 40.5);
+
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptD_QCJet[0]", "ptDJet", "p_{T}D", "", 200., 600., 0., 2., 50);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "axis2_QCJet[0]", "axis2Jet", "#sigma_{2}", "", 200., 600., 0., 2., 50, 0., 0.2);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]", "multiplicityJet", "Multiplicity", "", 200., 600., 0., 2., 40, 0.5, 40.5);
+
+
+  //// transition:
+  //drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptD_QCJet[0]", "ptDJet", "p_{T}D", "", 50., 65., 2., 3., 50);
+  //drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "axis2_QCJet[0]", "axis2Jet", "#sigma_{2}", "", 50., 65., 2., 3., 50, 0., 0.2);
+  //drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]", "multiplicityJet", "Multiplicity", "", 50., 65., 2., 3., 35, 0.5, 35.5);
+
+  // forward:
+  //int scaleBins = (selectionType=="ZJets") ? 1 : 2;
+  int scaleBins = 1;
+  
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptD_QCJet[0]", "ptDJet", "p_{T}D", "", 20., 30., 3., 4.7, 50);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "axis2_QCJet[0]", "axis2Jet", "#sigma_{2}", "", 20., 30., 3., 4.7, 40, 0., 0.2);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]", "multiplicityJet", "Multiplicity", "", 20., 30., 3., 4.7, 30, 0.5, 30.5);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]-1", "multiplicityCorrJet", "Multiplicity", "", 20., 30., 3., 4.7, 30, 0.5, 30.5);
+
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptD_QCJet[0]", "ptDJet", "p_{T}D", "", 30., 40., 3., 4.7, 50);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "axis2_QCJet[0]", "axis2Jet", "#sigma_{2}", "", 30., 40., 3., 4.7, 40, 0., 0.2);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]", "multiplicityJet", "Multiplicity", "", 30., 40., 3., 4.7, 30, 0.5, 30.5);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]-1", "multiplicityCorrJet", "Multiplicity", "", 30., 40., 3., 4.7, 30, 0.5, 30.5);
+
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptD_QCJet[0]", "ptDJet", "p_{T}D", "", 40., 50., 3., 4.7, 50);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "axis2_QCJet[0]", "axis2Jet", "#sigma_{2}", "", 40., 50., 3., 4.7, 40, 0., 0.2);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]", "multiplicityJet", "Multiplicity", "", 40., 50., 3., 4.7, 30, 0.5, 30.5);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]-1", "multiplicityCorrJet", "Multiplicity", "", 40., 50., 3., 4.7, 30, 0.5, 30.5);
+
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptD_QCJet[0]", "ptDJet", "p_{T}D", "", 50., 65., 3., 4.7, 50);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "axis2_QCJet[0]", "axis2Jet", "#sigma_{2}", "", 50., 65., 3., 4.7, 40, 0., 0.2);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]", "multiplicityJet", "Multiplicity", "", 50., 65., 3., 4.7, 30, 0.5, 30.5);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]-1", "multiplicityCorrJet", "Multiplicity", "", 50., 65., 3., 4.7, 30, 0.5, 30.5);
+
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptD_QCJet[0]", "ptDJet", "p_{T}D", "", 65., 80., 3., 4.7, 25*scaleBins);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "axis2_QCJet[0]", "axis2Jet", "#sigma_{2}", "", 65., 80., 3., 4.7, 20*scaleBins, 0., 0.15);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]", "multiplicityJet", "Multiplicity", "", 65., 80., 3., 4.7, 15*scaleBins, 0.5, 30.5);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]-1", "multiplicityCorrJet", "Multiplicity", "", 65., 80., 3., 4.7, 15*scaleBins, 0.5, 30.5);
+
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptD_QCJet[0]", "ptDJet", "p_{T}D", "", 80., 100., 3., 4.7, 25*scaleBins);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "axis2_QCJet[0]", "axis2Jet", "#sigma_{2}", "", 80., 100., 3., 4.7, 20*scaleBins, 0., 0.12);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]", "multiplicityJet", "Multiplicity", "", 80., 100., 3., 4.7, 15*scaleBins, 0.5, 30.5);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "nChg_QCJet[0]+nNeutral_ptCutJet[0]-1", "multiplicityCorrJet", "Multiplicity", "", 80., 100., 3., 4.7, 15*scaleBins, 0.5, 30.5);
+
+
+
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 30., 40., 0., 2.);
   drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 40., 50., 0., 2.);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "ptJet[0]>30. && ptJet[1]>30.", "qglJet[0]", "qglJet_jetpt30", "Quark-Gluon Likelihood Discriminator", "", 40., 50., 0., 2.);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "ptJet[0]>40. && ptJet[1]>40.", "qglJet[0]", "qglJet_jetpt40", "Quark-Gluon Likelihood Discriminator", "", 40., 50., 0., 2.);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 65., 80., 0., 2.);
   drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 80., 100., 0., 2.);
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 200., 250., 0., 2.);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 150., 200., 0., 2.);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 200., 600., 0., 2.);
 
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 20., 30., 3., 4.7);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 30., 40., 3., 4.7);
   drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 40., 50., 3., 4.7);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 50., 65., 3., 4.7);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 65., 80., 3., 4.7);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "ptJet[0]>30. && ptJet[1]>30.", "qglJet[0]", "qglJet_jetpt30", "Quark-Gluon Likelihood Discriminator", "", 40., 50., 3., 4.7);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "ptJet[0]>40. && ptJet[1]>40.", "qglJet[0]", "qglJet_jetpt40", "Quark-Gluon Likelihood Discriminator", "", 40., 50., 3., 4.7);
   drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 80., 100., 3., 4.7);
+
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminator", "", 20., 30., 3., 4.7);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminator", "", 30., 40., 3., 4.7);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminator", "", 40., 50., 3., 4.7);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminator", "", 50., 65., 3., 4.7);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminator", "", 65., 80., 3., 4.7);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminator", "", 80., 100., 3., 4.7);
+
 
   drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 40., 50., 2., 3.);
   drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminator", "", 80., 100., 2., 3.);
@@ -149,6 +266,11 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
   int jet_ptindex = 0;
   if( tag_and_probe ) jet_ptindex = 1;
 
+  std::string varName_mc(varName);
+  if( varName=="nChg_QCJet[0]+nNeutral_ptCutJet[0]-1" )  // this is the fwd multiplicity correction, so apply only to data
+    varName_mc = "nChg_QCJet[0]+nNeutral_ptCutJet[0]";
+  
+
   char commonCondition[500];
   if( additionalCuts!="" )
     sprintf( commonCondition, "%s && ptJet[%d]>%f && ptJet[%d]<%f && abs(etaJet[0])>=%f && abs(etaJet[0])<%f", additionalCuts.c_str(), jet_ptindex, ptMin, jet_ptindex, ptMax, etaMin, etaMax );
@@ -185,11 +307,11 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
     //  treeMC_signal->Add(treeFullName.c_str());
   }
 
-  treeMC->Project( "all",   varName.c_str(), allCondition );
-  treeMC->Project( "quark", varName.c_str(), quarkCondition );
-  treeMC->Project( "gluon", varName.c_str(), gluonCondition );
-  treeMC->Project( "pu", varName.c_str(), puCondition );
-  //treeMC->Project( "b", varName.c_str(), bCondition );
+  treeMC->Project( "all",   varName_mc.c_str(), allCondition );
+  treeMC->Project( "quark", varName_mc.c_str(), quarkCondition );
+  treeMC->Project( "gluon", varName_mc.c_str(), gluonCondition );
+  treeMC->Project( "pu", varName_mc.c_str(), puCondition );
+  //treeMC->Project( "b", varName_mc.c_str(), bCondition );
 
   //treeMC_all->Project( "all_all",   varName.c_str(), allCondition );
   //treeMC_all->Project( "quark_all", varName.c_str(), quarkCondition );
@@ -221,6 +343,9 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
     TString varName_tstr2(varName);
     varName_tstr2.ReplaceAll("[0]", "[1]");
 
+    TString varName_mc_tstr2(varName_mc);
+    varName_mc_tstr2.ReplaceAll("[0]", "[1]");
+
     treeDATA->Project( "data2", varName_tstr2, commonCondition2 );
       
     char allCondition2[800];
@@ -234,11 +359,11 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
     char puCondition2[800];
     sprintf( puCondition2,     "eventWeight*(pdgIdJet[1]==0 && %s)", commonCondition2 );
 
-    treeMC->Project( "all2",   varName_tstr2, allCondition2 );
-    treeMC->Project( "quark2", varName_tstr2, quarkCondition2 );
-    treeMC->Project( "gluon2", varName_tstr2, gluonCondition2 );
-    treeMC->Project( "pu2", varName_tstr2, puCondition2 );
-    //treeMC->Project( "b2", varName_tstr2, bCondition2 );
+    treeMC->Project( "all2",   varName_mc_tstr2, allCondition2 );
+    treeMC->Project( "quark2", varName_mc_tstr2, quarkCondition2 );
+    treeMC->Project( "gluon2", varName_mc_tstr2, gluonCondition2 );
+    treeMC->Project( "pu2", varName_mc_tstr2, puCondition2 );
+    //treeMC->Project( "b2", varName_mc_tstr2, bCondition2 );
 
     h1_data->Add( h1_data2 );
 
@@ -308,7 +433,7 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
   float xMax_leg = 0.8;
 
   if( legendQuadrant==1 ) {
-    xMin_leg = 0.58;
+    xMin_leg = 0.52;
     xMax_leg = 0.93;
   }
   
@@ -442,7 +567,9 @@ void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBa
 
   char yAxisTitle[200];
   std::string units_text = (units!="") ? (" "+units) : "";
-  if( (h1_data->GetBinWidth(1)) < 0.1 )
+  if( (h1_data->GetBinWidth(1)) < 0.01 )
+    sprintf( yAxisTitle, "Events / (%.3f%s)", h1_data->GetBinWidth(1), units_text.c_str() );
+  else if( (h1_data->GetBinWidth(1)) < 0.1 )
     sprintf( yAxisTitle, "Events / (%.2f%s)", h1_data->GetBinWidth(1), units_text.c_str() );
   else if( ((int)(10.*h1_data->GetBinWidth(1)) % 10) == 0 )
     sprintf( yAxisTitle, "Events / (%.0f%s)", h1_data->GetBinWidth(1), units_text.c_str() );

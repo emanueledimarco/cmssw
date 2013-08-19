@@ -11,7 +11,7 @@
 
 bool use_tagAndProbe = true;
 bool use_ptHatWeight = true;
-bool use_herwig = true;
+bool use_herwig = false;
 
 
 void drawHistoWithQuarkGluonComponents( const std::string& selectionType, DrawBase* db, const std::string& treeName, const std::string& additionalCuts, const std::string& varName, const std::string& canvasSaveName, std::string axisName, const std::string& units="", float ptMin=0., float ptMax=10000., float etaMin=0., float etaMax =10., int nBins=25, float xMin=0., float xMax=1.0001, bool legendQuadrant=1, bool log_aussi=false );

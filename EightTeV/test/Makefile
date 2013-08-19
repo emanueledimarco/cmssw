@@ -25,8 +25,8 @@ drawQGLMCPlots: DrawBase.o fitTools.o Bins.o QGLikelihoodCalculator.o QGMLPCalcu
 drawQGLDataMCPlots: DrawBase.o fitTools.o drawQGLDataMCPlots.cpp
 	$(CC) -Wall $(INCLUDES) -o drawQGLDataMCPlots drawQGLDataMCPlots.cpp DrawBase.o fitTools.o $(ROOTFLAG) $(EXTRALIBS) 
 
-makeSunilTreeFlat: DrawBase.o fitTools.o Bins.o QGLikelihoodCalculator.o QGMLPCalculator.o parameters.o makeSunilTreeFlat.cpp
-	$(CC) -Wall $(INCLUDES) -o makeSunilTreeFlat makeSunilTreeFlat.cpp DrawBase.o fitTools.o Bins.o QGLikelihoodCalculator.o QGMLPCalculator.o parameters.o $(ROOTFLAG) $(EXTRALIBS) -L/afs/cern.ch/work/p/pandolf/CMSSW_5_3_9_patch1_QGSyst/lib/slc5_amd64_gcc462 -lFWCoreParameterSet
+makeSunilTreeFlat: DrawBase.o fitTools.o Bins.o PUWeight.o QGLikelihoodCalculator.o QGMLPCalculator.o parameters.o makeSunilTreeFlat.cpp
+	$(CC) -Wall $(INCLUDES) -o makeSunilTreeFlat makeSunilTreeFlat.cpp DrawBase.o fitTools.o PUWeight.o Bins.o QGLikelihoodCalculator.o QGMLPCalculator.o parameters.o $(ROOTFLAG) $(EXTRALIBS) -L/afs/cern.ch/work/p/pandolf/CMSSW_5_3_9_patch1_QGSyst/lib/slc5_amd64_gcc462 -lFWCoreParameterSet
 
 create_ptAveWeights: create_ptAveWeights.cpp
 	$(CC) -Wall $(INCLUDES) -o create_ptAveWeights create_ptAveWeights.cpp $(ROOTFLAG) $(EXTRALIBS) 
@@ -59,6 +59,9 @@ DrawBase.o: $(CMSSW_BASE)/src/UserCode/pandolf/CommonTools/DrawBase.C fitTools.o
 
 fitTools.o: $(CMSSW_BASE)/src/UserCode/pandolf/CommonTools/fitTools.C
 	$(CC) $(CFLAGS) $(INCLUDES) $(CMSSW_BASE)/src/UserCode/pandolf/CommonTools/fitTools.C $(ROOTFLAG) $(EXTRALIBS)
+
+PUWeight.o: $(CMSSW_BASE)/src/UserCode/pandolf/CommonTools/PUWeight.C 
+	$(CC) $(CFLAGS) $(INCLUDES) $(CMSSW_BASE)/src/UserCode/pandolf/CommonTools/PUWeight.C $(ROOTFLAG) $(EXTRALIBS) 
 
 
 

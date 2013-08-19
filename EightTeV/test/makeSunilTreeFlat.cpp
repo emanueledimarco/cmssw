@@ -209,7 +209,7 @@ int main( int argc, char* argv[] ) {
 
   TFile* filePU_data = TFile::Open("PU_all_minBias69400.root");
   //TFile* filePU_data = TFile::Open("puProfile_Data12.root");
-  TFile* filePU_mc = TFile::Open("2012MC_S10_for53X.root");
+  TFile* filePU_mc = TFile::Open("puProfile_ZJetsMC.root");
   //TFile* filePU_mc = TFile::Open("puProfile_Summer12_53X.root");
   TH1F* h1_nPU_data = (TH1F*)filePU_data->Get("pileup");
   TH1F* h1_nPU_mc = (TH1F*)filePU_mc->Get("pileup");
@@ -344,12 +344,12 @@ int main( int argc, char* argv[] ) {
 
       wt_xsec =  get_xSecWeight(dataset);
 
-      // pu reweighting based on rho:
-      int bin = hPU->FindBin(rho);
-      wt_pu = hPU->GetBinContent(bin);
+      //// pu reweighting based on rho:
+      //int bin = hPU->FindBin(rho);
+      //wt_pu = hPU->GetBinContent(bin);
 
-      //// official pu reweighting:
-      //wt_pu = fPUWeight->GetWeight(npu);
+      // official pu reweighting:
+      wt_pu = fPUWeight->GetWeight(npu);
 
     }
 

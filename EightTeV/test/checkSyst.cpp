@@ -16,8 +16,8 @@ bool doubleMin = true;
 bool sunilTree = false;
 
 
-void drawSinglePlot( DrawBase* db, const std::string& discrim, TH1D* h1_data, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax );
-void drawEffVsPt( DrawBase* db, const std::string& discrim, float thresh1, float thresh3, float etaMin, float etaMax, TH1D* h1_eff_gluon_thresh1, TH1D* h1_eff_gluon_syst_thresh1, TH1D* h1_eff_quark_thresh3, TH1D* h1_eff_quark_syst_thresh3, const std::string& suffix="");
+void drawSinglePlot( const std::string& selection, DrawBase* db, const std::string& discrim, TH1D* h1_data, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax );
+void drawEffVsPt( DrawBase* db, const std::string& discrim, float thresh1, float etaMin, float etaMax, TH1D* h1_eff_gluon_thresh1, TH1D* h1_eff_gluon_syst_thresh1, TH1D* h1_eff_quark_thresh1, TH1D* h1_eff_quark_syst_thresh1, const std::string& suffix="");
 void drawMC_beforeAfter( DrawBase* db, const std::string& discrim, TH1D* h1_qglJet_quark, TH1D* h1_qglJetSyst_quark, TH1D* h1_qglJet_gluon, TH1D* h1_qglJetSyst_gluon, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax );
 
 int main( int argc, char* argv[] ) {
@@ -68,12 +68,12 @@ int main( int argc, char* argv[] ) {
   outfilename = outfilename + "_" + selection + "_" + discrim + ".root";
 
 
-  //TFile* file_puWeights = TFile::Open("puWeights.root");
-  //TH1D* h1_puweights = (TH1D*)file_puWeights->Get("puweights");
+  //TFile* file_eventWeights = TFile::Open("eventWeights.root");
+  //TH1D* h1_eventWeights = (TH1D*)file_eventWeights->Get("eventWeights");
 
 
   //TFile* file = TFile::Open("/afs/cern.ch/user/a/amarini/work/GluonTag/ZJet/ZJet_DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball_Summer12_DR53X-PU_S10_START53_V7A-v1_2.root");
-  std::string mcFileName = (selection=="ZJet") ? "sunilFlat_ZJet_Zjets_12Jul.root" : "sunilFlat_DiJet_flatQCD_P6_Dijets_12Jul.root";
+  std::string mcFileName = (selection=="ZJet") ? "sunilFlat_ZJet_Zjets_12Jul.root" : "sunilFlat_DiJet_flatQCD_P6_Dijets_12Aug_ptHatWeight.root";
   std::cout << "-> Opening MC file: " << mcFileName << std::endl;
   TFile* file = TFile::Open(mcFileName.c_str());
   TTree* tree = (TTree*)file->Get("tree_passedEvents");
@@ -130,14 +130,24 @@ int main( int argc, char* argv[] ) {
   tree->SetBranchAddress(discrim.c_str(), qglJet);
 
 
-  QGSyst qgsyst;
   //qgsyst.ReadDatabaseDoubleMin("../data/SystDatabase.txt");
   //qgsyst.ReadDatabaseDoubleMin("../data/SystZJetHbb_2013_07_23_res.txt");
   //qgsyst.ReadDatabaseDoubleMin("../data/SystDiJet_2013_07_18.txt");
   //qgsyst.ReadDatabaseDoubleMin("../data/SystMB_2013_07_24.txt");
   //qgsyst.ReadDatabaseDoubleMin("../data/SystMB_2013_07_25_DiJetMC.txt");
   //qgsyst.ReadDatabaseDoubleMin("../data/Syst_2013_07_25_DiJetMB_patch.txt");
-  qgsyst.ReadDatabaseDoubleMin("../data/Syst_2013_07_25_DiJetMB_patch2.txt");
+  //qgsyst.ReadDatabaseDoubleMin("../data/Syst_2013_07_25_DiJetMB_patch2.txt");
+
+  //std::string systDatabaseName = "ZJetHbb_2013_08_08_ExtendedEta";
+  //std::string systDatabaseName = "_2013_07_25_DiJetMB_patch3_smoothQ";
+//  std::string systDatabaseName = "SystDatabase";
+  std::string systDatabaseName = "Syst_provaAll6580";
+  //std::string systDatabaseName = "ZJetHbb_2013_07_23_res";
+  std::string systDB_fullPath = "../data/" + systDatabaseName + ".txt";
+  
+  QGSyst qgsyst;
+  qgsyst.ReadDatabaseDoubleMin(systDB_fullPath);
+
 
   std::string nameForSyst = (discrim=="qglJet") ? "QGLHisto" : "QGLMLP";
   qgsyst.SetTagger(nameForSyst);
@@ -155,7 +165,7 @@ int main( int argc, char* argv[] ) {
 
   float xMin = 0.;
 
-  int nBins = 50;
+  int nBins = 25;
   int nBinsFwd = 25;
 
 
@@ -176,6 +186,23 @@ int main( int argc, char* argv[] ) {
   h1_qglJet_gluon_pt2030_eta02_rho040->Sumw2();
   TH1D* h1_qglJetSyst_gluon_pt2030_eta02_rho040 = new TH1D("qglJetSyst_gluon_pt2030_eta02_rho040", "", nBins, xMin, 1.0001);
   h1_qglJetSyst_gluon_pt2030_eta02_rho040->Sumw2();
+
+
+  TH1D* h1_qglJet_pt3040_eta02_rho040 = new TH1D("qglJet_pt3040_eta02_rho040", "", nBins, xMin, 1.0001);
+  h1_qglJet_pt3040_eta02_rho040->Sumw2();
+  TH1D* h1_qglJetSyst_pt3040_eta02_rho040 = new TH1D("qglJetSyst_pt3040_eta02_rho040", "", nBins, xMin, 1.0001);
+  h1_qglJetSyst_pt3040_eta02_rho040->Sumw2();
+
+  TH1D* h1_qglJet_quark_pt3040_eta02_rho040 = new TH1D("qglJet_quark_pt3040_eta02_rho040", "", nBins, xMin, 1.0001);
+  h1_qglJet_quark_pt3040_eta02_rho040->Sumw2();
+  TH1D* h1_qglJetSyst_quark_pt3040_eta02_rho040 = new TH1D("qglJetSyst_quark_pt3040_eta02_rho040", "", nBins, xMin, 1.0001);
+  h1_qglJetSyst_quark_pt3040_eta02_rho040->Sumw2();
+
+  TH1D* h1_qglJet_gluon_pt3040_eta02_rho040 = new TH1D("qglJet_gluon_pt3040_eta02_rho040", "", nBins, xMin, 1.0001);
+  h1_qglJet_gluon_pt3040_eta02_rho040->Sumw2();
+  TH1D* h1_qglJetSyst_gluon_pt3040_eta02_rho040 = new TH1D("qglJetSyst_gluon_pt3040_eta02_rho040", "", nBins, xMin, 1.0001);
+  h1_qglJetSyst_gluon_pt3040_eta02_rho040->Sumw2();
+
 
   TH1D* h1_qglJet_pt4050_eta02_rho040 = new TH1D("qglJet_pt4050_eta02_rho040", "", nBins, xMin, 1.0001);
   h1_qglJet_pt4050_eta02_rho040->Sumw2();
@@ -366,6 +393,21 @@ int main( int argc, char* argv[] ) {
   TH1D* h1_qglJetSyst_gluon_pt2030_eta35_rho040 = new TH1D("qglJetSyst_gluon_pt2030_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJetSyst_gluon_pt2030_eta35_rho040->Sumw2();
 
+  TH1D* h1_qglJet_pt3040_eta35_rho040 = new TH1D("qglJet_pt3040_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
+  h1_qglJet_pt3040_eta35_rho040->Sumw2();
+  TH1D* h1_qglJetSyst_pt3040_eta35_rho040 = new TH1D("qglJetSyst_pt3040_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
+  h1_qglJetSyst_pt3040_eta35_rho040->Sumw2();
+
+  TH1D* h1_qglJet_quark_pt3040_eta35_rho040 = new TH1D("qglJet_quark_pt3040_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
+  h1_qglJet_quark_pt3040_eta35_rho040->Sumw2();
+  TH1D* h1_qglJetSyst_quark_pt3040_eta35_rho040 = new TH1D("qglJetSyst_quark_pt3040_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
+  h1_qglJetSyst_quark_pt3040_eta35_rho040->Sumw2();
+
+  TH1D* h1_qglJet_gluon_pt3040_eta35_rho040 = new TH1D("qglJet_gluon_pt3040_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
+  h1_qglJet_gluon_pt3040_eta35_rho040->Sumw2();
+  TH1D* h1_qglJetSyst_gluon_pt3040_eta35_rho040 = new TH1D("qglJetSyst_gluon_pt3040_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
+  h1_qglJetSyst_gluon_pt3040_eta35_rho040->Sumw2();
+
   TH1D* h1_qglJet_pt4050_eta35_rho040 = new TH1D("qglJet_pt4050_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_qglJet_pt4050_eta35_rho040->Sumw2();
   TH1D* h1_qglJetSyst_pt4050_eta35_rho040 = new TH1D("qglJetSyst_pt4050_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
@@ -446,9 +488,7 @@ int main( int argc, char* argv[] ) {
 
 
   //syst eff histos:
-  float thresh1 = (discrim=="qgMLPJet") ? 0.6 : 0.3;
-  float thresh2 = (discrim=="qgMLPJet") ? 0.5 : 0.5;
-  float thresh3 = (discrim=="qgMLPJet") ? 0.3 : 0.8;
+  float thresh1 = (discrim=="qgMLPJet") ? 0.6 : 0.5;
 
   int nbins_pt = 20;
   const int nbins_pt_plusOne(nbins_pt+1);
@@ -456,80 +496,37 @@ int main( int argc, char* argv[] ) {
   fitTools::getBins_int( nbins_pt_plusOne, ptBins, 20., 2000.);
 
   TH1D* h1_effDenom_centr_quark_thresh1 = new TH1D("effDenom_centr_quark_thresh1", "", nbins_pt, ptBins);
-  TH1D* h1_effDenom_centr_quark_thresh2 = new TH1D("effDenom_centr_quark_thresh2", "", nbins_pt, ptBins);
-  TH1D* h1_effDenom_centr_quark_thresh3 = new TH1D("effDenom_centr_quark_thresh3", "", nbins_pt, ptBins);
-
   TH1D* h1_effNum_centr_quark_thresh1   = new TH1D("effNum_centr_quark_thresh1", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_centr_quark_thresh2   = new TH1D("effNum_centr_quark_thresh2", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_centr_quark_thresh3   = new TH1D("effNum_centr_quark_thresh3", "", nbins_pt, ptBins)  ;
 
   TH1D* h1_effNum_centr_quark_syst_thresh1   = new TH1D("effNum_centr_quark_syst_thresh1", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_centr_quark_syst_thresh2   = new TH1D("effNum_centr_quark_syst_thresh2", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_centr_quark_syst_thresh3   = new TH1D("effNum_centr_quark_syst_thresh3", "", nbins_pt, ptBins)  ;
-
   TH1D* h1_effDenom_centr_gluon_thresh1 = new TH1D("effDenom_centr_gluon_thresh1", "", nbins_pt, ptBins);
-  TH1D* h1_effDenom_centr_gluon_thresh2 = new TH1D("effDenom_centr_gluon_thresh2", "", nbins_pt, ptBins);
-  TH1D* h1_effDenom_centr_gluon_thresh3 = new TH1D("effDenom_centr_gluon_thresh3", "", nbins_pt, ptBins);
 
   TH1D* h1_effNum_centr_gluon_thresh1   = new TH1D("effNum_centr_gluon_thresh1", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_centr_gluon_thresh2   = new TH1D("effNum_centr_gluon_thresh2", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_centr_gluon_thresh3   = new TH1D("effNum_centr_gluon_thresh3", "", nbins_pt, ptBins)  ;
-
   TH1D* h1_effNum_centr_gluon_syst_thresh1   = new TH1D("effNum_centr_gluon_syst_thresh1", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_centr_gluon_syst_thresh2   = new TH1D("effNum_centr_gluon_syst_thresh2", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_centr_gluon_syst_thresh3   = new TH1D("effNum_centr_gluon_syst_thresh3", "", nbins_pt, ptBins)  ;
 
                                                              
 
   TH1D* h1_effDenom_trans_quark_thresh1 = new TH1D("effDenom_trans_quark_thresh1", "", nbins_pt, ptBins);
-  TH1D* h1_effDenom_trans_quark_thresh2 = new TH1D("effDenom_trans_quark_thresh2", "", nbins_pt, ptBins);
-  TH1D* h1_effDenom_trans_quark_thresh3 = new TH1D("effDenom_trans_quark_thresh3", "", nbins_pt, ptBins);
-
   TH1D* h1_effNum_trans_quark_thresh1   = new TH1D("effNum_trans_quark_thresh1", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_trans_quark_thresh2   = new TH1D("effNum_trans_quark_thresh2", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_trans_quark_thresh3   = new TH1D("effNum_trans_quark_thresh3", "", nbins_pt, ptBins)  ;
 
   TH1D* h1_effNum_trans_quark_syst_thresh1   = new TH1D("effNum_trans_quark_syst_thresh1", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_trans_quark_syst_thresh2   = new TH1D("effNum_trans_quark_syst_thresh2", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_trans_quark_syst_thresh3   = new TH1D("effNum_trans_quark_syst_thresh3", "", nbins_pt, ptBins)  ;
-
   TH1D* h1_effDenom_trans_gluon_thresh1 = new TH1D("effDenom_trans_gluon_thresh1", "", nbins_pt, ptBins);
-  TH1D* h1_effDenom_trans_gluon_thresh2 = new TH1D("effDenom_trans_gluon_thresh2", "", nbins_pt, ptBins);
-  TH1D* h1_effDenom_trans_gluon_thresh3 = new TH1D("effDenom_trans_gluon_thresh3", "", nbins_pt, ptBins);
 
   TH1D* h1_effNum_trans_gluon_thresh1   = new TH1D("effNum_trans_gluon_thresh1", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_trans_gluon_thresh2   = new TH1D("effNum_trans_gluon_thresh2", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_trans_gluon_thresh3   = new TH1D("effNum_trans_gluon_thresh3", "", nbins_pt, ptBins)  ;
-
   TH1D* h1_effNum_trans_gluon_syst_thresh1   = new TH1D("effNum_trans_gluon_syst_thresh1", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_trans_gluon_syst_thresh2   = new TH1D("effNum_trans_gluon_syst_thresh2", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_trans_gluon_syst_thresh3   = new TH1D("effNum_trans_gluon_syst_thresh3", "", nbins_pt, ptBins)  ;
 
                                                              
+  Double_t ptBins_fwd[nbins_pt_plusOne];
+  fitTools::getBins_int( nbins_pt_plusOne, ptBins_fwd, 30., 3000.);
 
-  TH1D* h1_effDenom_fwd_quark_thresh1 = new TH1D("effDenom_fwd_quark_thresh1", "", nbins_pt, ptBins);
-  TH1D* h1_effDenom_fwd_quark_thresh2 = new TH1D("effDenom_fwd_quark_thresh2", "", nbins_pt, ptBins);
-  TH1D* h1_effDenom_fwd_quark_thresh3 = new TH1D("effDenom_fwd_quark_thresh3", "", nbins_pt, ptBins);
+  TH1D* h1_effDenom_fwd_quark_thresh1 = new TH1D("effDenom_fwd_quark_thresh1", "", nbins_pt, ptBins_fwd);
+  TH1D* h1_effNum_fwd_quark_thresh1   = new TH1D("effNum_fwd_quark_thresh1", "", nbins_pt, ptBins_fwd)  ;
 
-  TH1D* h1_effNum_fwd_quark_thresh1   = new TH1D("effNum_fwd_quark_thresh1", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_fwd_quark_thresh2   = new TH1D("effNum_fwd_quark_thresh2", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_fwd_quark_thresh3   = new TH1D("effNum_fwd_quark_thresh3", "", nbins_pt, ptBins)  ;
+  TH1D* h1_effNum_fwd_quark_syst_thresh1   = new TH1D("effNum_fwd_quark_syst_thresh1", "", nbins_pt, ptBins_fwd)  ;
+  TH1D* h1_effDenom_fwd_gluon_thresh1 = new TH1D("effDenom_fwd_gluon_thresh1", "", nbins_pt, ptBins_fwd);
 
-  TH1D* h1_effNum_fwd_quark_syst_thresh1   = new TH1D("effNum_fwd_quark_syst_thresh1", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_fwd_quark_syst_thresh2   = new TH1D("effNum_fwd_quark_syst_thresh2", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_fwd_quark_syst_thresh3   = new TH1D("effNum_fwd_quark_syst_thresh3", "", nbins_pt, ptBins)  ;
-
-  TH1D* h1_effDenom_fwd_gluon_thresh1 = new TH1D("effDenom_fwd_gluon_thresh1", "", nbins_pt, ptBins);
-  TH1D* h1_effDenom_fwd_gluon_thresh2 = new TH1D("effDenom_fwd_gluon_thresh2", "", nbins_pt, ptBins);
-  TH1D* h1_effDenom_fwd_gluon_thresh3 = new TH1D("effDenom_fwd_gluon_thresh3", "", nbins_pt, ptBins);
-
-  TH1D* h1_effNum_fwd_gluon_thresh1   = new TH1D("effNum_fwd_gluon_thresh1", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_fwd_gluon_thresh2   = new TH1D("effNum_fwd_gluon_thresh2", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_fwd_gluon_thresh3   = new TH1D("effNum_fwd_gluon_thresh3", "", nbins_pt, ptBins)  ;
-
-  TH1D* h1_effNum_fwd_gluon_syst_thresh1   = new TH1D("effNum_fwd_gluon_syst_thresh1", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_fwd_gluon_syst_thresh2   = new TH1D("effNum_fwd_gluon_syst_thresh2", "", nbins_pt, ptBins)  ;
-  TH1D* h1_effNum_fwd_gluon_syst_thresh3   = new TH1D("effNum_fwd_gluon_syst_thresh3", "", nbins_pt, ptBins)  ;
+  TH1D* h1_effNum_fwd_gluon_thresh1   = new TH1D("effNum_fwd_gluon_thresh1", "", nbins_pt, ptBins_fwd)  ;
+  TH1D* h1_effNum_fwd_gluon_syst_thresh1   = new TH1D("effNum_fwd_gluon_syst_thresh1", "", nbins_pt, ptBins_fwd)  ;
                                                              
 
   // and vs rho:
@@ -538,80 +535,35 @@ int main( int argc, char* argv[] ) {
   float rhoMax = 50.;
 
   TH1D* h1_effDenom_vs_rho_centr_quark_thresh1 = new TH1D("effDenom_vs_rho_centr_quark_thresh1", "", nbins_rho, 0., rhoMax);
-  TH1D* h1_effDenom_vs_rho_centr_quark_thresh2 = new TH1D("effDenom_vs_rho_centr_quark_thresh2", "", nbins_rho, 0., rhoMax);
-  TH1D* h1_effDenom_vs_rho_centr_quark_thresh3 = new TH1D("effDenom_vs_rho_centr_quark_thresh3", "", nbins_rho, 0., rhoMax);
-
   TH1D* h1_effNum_vs_rho_centr_quark_thresh1   = new TH1D("effNum_vs_rho_centr_quark_thresh1", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_centr_quark_thresh2   = new TH1D("effNum_vs_rho_centr_quark_thresh2", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_centr_quark_thresh3   = new TH1D("effNum_vs_rho_centr_quark_thresh3", "", nbins_rho, 0., rhoMax)  ;
 
   TH1D* h1_effNum_vs_rho_centr_quark_syst_thresh1   = new TH1D("effNum_vs_rho_centr_quark_syst_thresh1", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_centr_quark_syst_thresh2   = new TH1D("effNum_vs_rho_centr_quark_syst_thresh2", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_centr_quark_syst_thresh3   = new TH1D("effNum_vs_rho_centr_quark_syst_thresh3", "", nbins_rho, 0., rhoMax)  ;
-
   TH1D* h1_effDenom_vs_rho_centr_gluon_thresh1 = new TH1D("effDenom_vs_rho_centr_gluon_thresh1", "", nbins_rho, 0., rhoMax);
-  TH1D* h1_effDenom_vs_rho_centr_gluon_thresh2 = new TH1D("effDenom_vs_rho_centr_gluon_thresh2", "", nbins_rho, 0., rhoMax);
-  TH1D* h1_effDenom_vs_rho_centr_gluon_thresh3 = new TH1D("effDenom_vs_rho_centr_gluon_thresh3", "", nbins_rho, 0., rhoMax);
 
   TH1D* h1_effNum_vs_rho_centr_gluon_thresh1   = new TH1D("effNum_vs_rho_centr_gluon_thresh1", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_centr_gluon_thresh2   = new TH1D("effNum_vs_rho_centr_gluon_thresh2", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_centr_gluon_thresh3   = new TH1D("effNum_vs_rho_centr_gluon_thresh3", "", nbins_rho, 0., rhoMax)  ;
-
   TH1D* h1_effNum_vs_rho_centr_gluon_syst_thresh1   = new TH1D("effNum_vs_rho_centr_gluon_syst_thresh1", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_centr_gluon_syst_thresh2   = new TH1D("effNum_vs_rho_centr_gluon_syst_thresh2", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_centr_gluon_syst_thresh3   = new TH1D("effNum_vs_rho_centr_gluon_syst_thresh3", "", nbins_rho, 0., rhoMax)  ;
 
                                                              
 
   TH1D* h1_effDenom_vs_rho_trans_quark_thresh1 = new TH1D("effDenom_vs_rho_trans_quark_thresh1", "", nbins_rho, 0., rhoMax);
-  TH1D* h1_effDenom_vs_rho_trans_quark_thresh2 = new TH1D("effDenom_vs_rho_trans_quark_thresh2", "", nbins_rho, 0., rhoMax);
-  TH1D* h1_effDenom_vs_rho_trans_quark_thresh3 = new TH1D("effDenom_vs_rho_trans_quark_thresh3", "", nbins_rho, 0., rhoMax);
-
   TH1D* h1_effNum_vs_rho_trans_quark_thresh1   = new TH1D("effNum_vs_rho_trans_quark_thresh1", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_trans_quark_thresh2   = new TH1D("effNum_vs_rho_trans_quark_thresh2", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_trans_quark_thresh3   = new TH1D("effNum_vs_rho_trans_quark_thresh3", "", nbins_rho, 0., rhoMax)  ;
 
   TH1D* h1_effNum_vs_rho_trans_quark_syst_thresh1   = new TH1D("effNum_vs_rho_trans_quark_syst_thresh1", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_trans_quark_syst_thresh2   = new TH1D("effNum_vs_rho_trans_quark_syst_thresh2", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_trans_quark_syst_thresh3   = new TH1D("effNum_vs_rho_trans_quark_syst_thresh3", "", nbins_rho, 0., rhoMax)  ;
-
   TH1D* h1_effDenom_vs_rho_trans_gluon_thresh1 = new TH1D("effDenom_vs_rho_trans_gluon_thresh1", "", nbins_rho, 0., rhoMax);
-  TH1D* h1_effDenom_vs_rho_trans_gluon_thresh2 = new TH1D("effDenom_vs_rho_trans_gluon_thresh2", "", nbins_rho, 0., rhoMax);
-  TH1D* h1_effDenom_vs_rho_trans_gluon_thresh3 = new TH1D("effDenom_vs_rho_trans_gluon_thresh3", "", nbins_rho, 0., rhoMax);
 
   TH1D* h1_effNum_vs_rho_trans_gluon_thresh1   = new TH1D("effNum_vs_rho_trans_gluon_thresh1", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_trans_gluon_thresh2   = new TH1D("effNum_vs_rho_trans_gluon_thresh2", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_trans_gluon_thresh3   = new TH1D("effNum_vs_rho_trans_gluon_thresh3", "", nbins_rho, 0., rhoMax)  ;
-
   TH1D* h1_effNum_vs_rho_trans_gluon_syst_thresh1   = new TH1D("effNum_vs_rho_trans_gluon_syst_thresh1", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_trans_gluon_syst_thresh2   = new TH1D("effNum_vs_rho_trans_gluon_syst_thresh2", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_trans_gluon_syst_thresh3   = new TH1D("effNum_vs_rho_trans_gluon_syst_thresh3", "", nbins_rho, 0., rhoMax)  ;
 
                                                              
 
   TH1D* h1_effDenom_vs_rho_fwd_quark_thresh1 = new TH1D("effDenom_vs_rho_fwd_quark_thresh1", "", nbins_rho, 0., rhoMax);
-  TH1D* h1_effDenom_vs_rho_fwd_quark_thresh2 = new TH1D("effDenom_vs_rho_fwd_quark_thresh2", "", nbins_rho, 0., rhoMax);
-  TH1D* h1_effDenom_vs_rho_fwd_quark_thresh3 = new TH1D("effDenom_vs_rho_fwd_quark_thresh3", "", nbins_rho, 0., rhoMax);
-
   TH1D* h1_effNum_vs_rho_fwd_quark_thresh1   = new TH1D("effNum_vs_rho_fwd_quark_thresh1", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_fwd_quark_thresh2   = new TH1D("effNum_vs_rho_fwd_quark_thresh2", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_fwd_quark_thresh3   = new TH1D("effNum_vs_rho_fwd_quark_thresh3", "", nbins_rho, 0., rhoMax)  ;
 
   TH1D* h1_effNum_vs_rho_fwd_quark_syst_thresh1   = new TH1D("effNum_vs_rho_fwd_quark_syst_thresh1", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_fwd_quark_syst_thresh2   = new TH1D("effNum_vs_rho_fwd_quark_syst_thresh2", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_fwd_quark_syst_thresh3   = new TH1D("effNum_vs_rho_fwd_quark_syst_thresh3", "", nbins_rho, 0., rhoMax)  ;
-
   TH1D* h1_effDenom_vs_rho_fwd_gluon_thresh1 = new TH1D("effDenom_vs_rho_fwd_gluon_thresh1", "", nbins_rho, 0., rhoMax);
-  TH1D* h1_effDenom_vs_rho_fwd_gluon_thresh2 = new TH1D("effDenom_vs_rho_fwd_gluon_thresh2", "", nbins_rho, 0., rhoMax);
-  TH1D* h1_effDenom_vs_rho_fwd_gluon_thresh3 = new TH1D("effDenom_vs_rho_fwd_gluon_thresh3", "", nbins_rho, 0., rhoMax);
 
   TH1D* h1_effNum_vs_rho_fwd_gluon_thresh1   = new TH1D("effNum_vs_rho_fwd_gluon_thresh1", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_fwd_gluon_thresh2   = new TH1D("effNum_vs_rho_fwd_gluon_thresh2", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_fwd_gluon_thresh3   = new TH1D("effNum_vs_rho_fwd_gluon_thresh3", "", nbins_rho, 0., rhoMax)  ;
-
   TH1D* h1_effNum_vs_rho_fwd_gluon_syst_thresh1   = new TH1D("effNum_vs_rho_fwd_gluon_syst_thresh1", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_fwd_gluon_syst_thresh2   = new TH1D("effNum_vs_rho_fwd_gluon_syst_thresh2", "", nbins_rho, 0., rhoMax)  ;
-  TH1D* h1_effNum_vs_rho_fwd_gluon_syst_thresh3   = new TH1D("effNum_vs_rho_fwd_gluon_syst_thresh3", "", nbins_rho, 0., rhoMax)  ;
                                                              
 
 
@@ -622,6 +574,7 @@ int main( int argc, char* argv[] ) {
     tree->GetEntry(iEntry);
 
     if( njet<1 ) continue;
+    if( selection=="DiJet" && njet<2 ) continue;
 
     //if( rho>40. ) continue;
     //if( mZ<70. || mZ>100. ) continue;
@@ -630,432 +583,394 @@ int main( int argc, char* argv[] ) {
     //if( fabs(etaJet)<2.5 && betaStarJet > 0.2 * log( (float)nvertex - 0.67) ) continue;
     //if( btagged ) continue;
 
-    //float puweight = h1_puweights->GetBinContent((int)rho);
-    float puweight = eventWeight;
+    //float eventWeight = eventWeight;
 
-    //h1_ptZ->Fill( ptZ, puweight );
-    h1_rho->Fill( rho, puweight );
+    //h1_ptZ->Fill( ptZ, eventWeight );
+    h1_rho->Fill( rho, eventWeight );
 
-    bool smearJet = true;
-
+    bool smear = true;
     std::string type = "all";
     if( doubleMin ) {
       if( fabs(pdgId[0])>0 && fabs(pdgId[0])<6 ) type = "quark";
       else if( pdgId[0]==21 ) type = "gluon";
       else { // both 0 and -999
         //smearJet = false;
-        continue;
+        smear=false;
         //type = "gluon";
         //std::cout << "Unknown jet PDG ID (" << pdgIdPartJet << "). Will use gluon instead." << std::endl;
       }
     }
 
 
-    float qglJetSyst = (smearJet) ? qgsyst.Smear(pt[0], eta[0], rho, qglJet[0], type) : qglJet[0];
+    std::vector<float> qglJetSyst;
+    if( smear )
+      qglJetSyst.push_back(qgsyst.Smear(pt[0], eta[0], rho, qglJet[0], type));
+    else
+      qglJetSyst.push_back(qglJet[0]);
 
-    bool discrimOK_thresh1 = (discrim=="qglJet" && qglJet[0]>thresh1) || (discrim=="qgMLPJet" && qglJet[0]<thresh1);
-    bool discrimSystOK_thresh1 = (discrim=="qglJet" && qglJetSyst>thresh1) || (discrim=="qgMLPJet" && qglJetSyst<thresh1);
-    bool discrimOK_thresh2 = (discrim=="qglJet" && qglJet[0]>thresh2) || (discrim=="qgMLPJet" && qglJet[0]<thresh2);
-    bool discrimSystOK_thresh2 = (discrim=="qglJet" && qglJetSyst>thresh2) || (discrim=="qgMLPJet" && qglJetSyst<thresh2);
-    bool discrimOK_thresh3 = (discrim=="qglJet" && qglJet[0]>thresh3) || (discrim=="qgMLPJet" && qglJet[0]<thresh3);
-    bool discrimSystOK_thresh3 = (discrim=="qglJet" && qglJetSyst>thresh3) || (discrim=="qgMLPJet" && qglJetSyst<thresh3);
+    std::vector<bool> discrimOK_thresh1;
+    discrimOK_thresh1.push_back((discrim=="qglJet" && qglJet[0]>thresh1) || (discrim=="qgMLPJet" && qglJet[0]<thresh1));
+    std::vector<bool> discrimSystOK_thresh1;
+    discrimSystOK_thresh1.push_back((discrim=="qglJet" && qglJetSyst[0]>thresh1) || (discrim=="qgMLPJet" && qglJetSyst[0]<thresh1));
 
+    if( selection=="DiJet" ) {
 
-    if( fabs(eta[0])<2. ) {
-
-
-      if( type=="quark" ) {
-
-        h1_effDenom_centr_quark_thresh1->Fill( pt[0] );
-        h1_effDenom_centr_quark_thresh2->Fill( pt[0] );
-        h1_effDenom_centr_quark_thresh3->Fill( pt[0] );
-
-        if( discrimOK_thresh1 ) h1_effNum_centr_quark_thresh1->Fill( pt[0] );
-        if( discrimOK_thresh2 ) h1_effNum_centr_quark_thresh2->Fill( pt[0] );
-        if( discrimOK_thresh3 ) h1_effNum_centr_quark_thresh3->Fill( pt[0] );
-
-        if( discrimSystOK_thresh1 ) h1_effNum_centr_quark_syst_thresh1->Fill( pt[0] );
-        if( discrimSystOK_thresh2 ) h1_effNum_centr_quark_syst_thresh2->Fill( pt[0] );
-        if( discrimSystOK_thresh3 ) h1_effNum_centr_quark_syst_thresh3->Fill( pt[0] );
-
-        h1_effDenom_vs_rho_centr_quark_thresh1->Fill( rho );
-        h1_effDenom_vs_rho_centr_quark_thresh2->Fill( rho );
-        h1_effDenom_vs_rho_centr_quark_thresh3->Fill( rho );
-
-        if( discrimOK_thresh1 ) h1_effNum_vs_rho_centr_quark_thresh1->Fill( rho );
-        if( discrimOK_thresh2 ) h1_effNum_vs_rho_centr_quark_thresh2->Fill( rho );
-        if( discrimOK_thresh3 ) h1_effNum_vs_rho_centr_quark_thresh3->Fill( rho );
-
-        if( discrimSystOK_thresh1 ) h1_effNum_vs_rho_centr_quark_syst_thresh1->Fill( rho );
-        if( discrimSystOK_thresh2 ) h1_effNum_vs_rho_centr_quark_syst_thresh2->Fill( rho );
-        if( discrimSystOK_thresh3 ) h1_effNum_vs_rho_centr_quark_syst_thresh3->Fill( rho );
-
-      } else if( type=="gluon" ) {
-
-        h1_effDenom_centr_gluon_thresh1->Fill( pt[0] );
-        h1_effDenom_centr_gluon_thresh2->Fill( pt[0] );
-        h1_effDenom_centr_gluon_thresh3->Fill( pt[0] );
-
-        if( discrimOK_thresh1 ) h1_effNum_centr_gluon_thresh1->Fill( pt[0] );
-        if( discrimOK_thresh2 ) h1_effNum_centr_gluon_thresh2->Fill( pt[0] );
-        if( discrimOK_thresh3 ) h1_effNum_centr_gluon_thresh3->Fill( pt[0] );
-
-        if( discrimSystOK_thresh1 ) h1_effNum_centr_gluon_syst_thresh1->Fill( pt[0] );
-        if( discrimSystOK_thresh2 ) h1_effNum_centr_gluon_syst_thresh2->Fill( pt[0] );
-        if( discrimSystOK_thresh3 ) h1_effNum_centr_gluon_syst_thresh3->Fill( pt[0] );
-
-        h1_effDenom_vs_rho_centr_gluon_thresh1->Fill( rho );
-        h1_effDenom_vs_rho_centr_gluon_thresh2->Fill( rho );
-        h1_effDenom_vs_rho_centr_gluon_thresh3->Fill( rho );
-
-        if( discrimOK_thresh1 ) h1_effNum_vs_rho_centr_gluon_thresh1->Fill( rho );
-        if( discrimOK_thresh2 ) h1_effNum_vs_rho_centr_gluon_thresh2->Fill( rho );
-        if( discrimOK_thresh3 ) h1_effNum_vs_rho_centr_gluon_thresh3->Fill( rho );
-
-        if( discrimSystOK_thresh1 ) h1_effNum_vs_rho_centr_gluon_syst_thresh1->Fill( rho );
-        if( discrimSystOK_thresh2 ) h1_effNum_vs_rho_centr_gluon_syst_thresh2->Fill( rho );
-        if( discrimSystOK_thresh3 ) h1_effNum_vs_rho_centr_gluon_syst_thresh3->Fill( rho );
-
+      bool smear2 = true;
+      std::string type2 = "all";
+      if( doubleMin ) {
+        if( fabs(pdgId[1])>0 && fabs(pdgId[1])<6 ) type2 = "quark";
+        else if( pdgId[1]==21 ) type2 = "gluon";
+        else { // both 0 and -999
+          //smearJet = false;
+          smear2 = false;
+          //type2 = "gluon";
+          //std::cout << "Unknown jet PDG ID (" << pdgIdPartJet << "). Will use gluon instead." << std::endl;
+        }
       }
 
-
-      if( pt[0] > 20. && pt[0] < 30. ) {
-
-        h1_qglJet_pt2030_eta02_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt2030_eta02_rho040->Fill( qglJetSyst, puweight );
-        if( type=="quark" ) {
-          h1_qglJet_quark_pt2030_eta02_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt2030_eta02_rho040->Fill( qglJetSyst, puweight );
-        } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt2030_eta02_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt2030_eta02_rho040->Fill( qglJetSyst, puweight );
-        }
-
-      } else if( pt[0] > 40. && pt[0] < 50. ) {
-
-        h1_qglJet_pt4050_eta02_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt4050_eta02_rho040->Fill( qglJetSyst, puweight );
-        if( type=="quark" ) {
-          h1_qglJet_quark_pt4050_eta02_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt4050_eta02_rho040->Fill( qglJetSyst, puweight );
-        } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt4050_eta02_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt4050_eta02_rho040->Fill( qglJetSyst, puweight );
-        }
-
-      } else if( pt[0] > 50. && pt[0] < 65. ) {
-
-        h1_qglJet_pt5065_eta02_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt5065_eta02_rho040->Fill( qglJetSyst, puweight );
-        if( type=="quark" ) {
-          h1_qglJet_quark_pt5065_eta02_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt5065_eta02_rho040->Fill( qglJetSyst, puweight );
-        } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt5065_eta02_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt5065_eta02_rho040->Fill( qglJetSyst, puweight );
-        }
-
-      } else if( pt[0] > 65. && pt[0] < 80. ) {
-
-        h1_qglJet_pt6580_eta02_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt6580_eta02_rho040->Fill( qglJetSyst, puweight );
-        if( type=="quark" ) {
-          h1_qglJet_quark_pt6580_eta02_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt6580_eta02_rho040->Fill( qglJetSyst, puweight );
-        } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt6580_eta02_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt6580_eta02_rho040->Fill( qglJetSyst, puweight );
-        }
-
-      } else if( pt[0] > 80. && pt[0] < 100. ) {
-
-        h1_qglJet_pt80100_eta02_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt80100_eta02_rho040->Fill( qglJetSyst, puweight );
-        if( type=="quark" ) {
-          h1_qglJet_quark_pt80100_eta02_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt80100_eta02_rho040->Fill( qglJetSyst, puweight );
-        } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt80100_eta02_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt80100_eta02_rho040->Fill( qglJetSyst, puweight );
-        }
-
-      } else if( pt[0] > 100. && pt[0] < 250. ) {
-
-        h1_qglJet_pt100250_eta02_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt100250_eta02_rho040->Fill( qglJetSyst, puweight );
-        if( type=="quark" ) {
-          h1_qglJet_quark_pt100250_eta02_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt100250_eta02_rho040->Fill( qglJetSyst, puweight );
-        } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt100250_eta02_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt100250_eta02_rho040->Fill( qglJetSyst, puweight );
-        }
-
-      } 
-
-    } else if( fabs(eta[0])<3. ) {
-
-
-      if( type=="quark" ) {
-
-        h1_effDenom_trans_quark_thresh1->Fill( pt[0] );
-        h1_effDenom_trans_quark_thresh2->Fill( pt[0] );
-        h1_effDenom_trans_quark_thresh3->Fill( pt[0] );
-
-        if( discrimOK_thresh1 ) h1_effNum_trans_quark_thresh1->Fill( pt[0] );
-        if( discrimOK_thresh2 ) h1_effNum_trans_quark_thresh2->Fill( pt[0] );
-        if( discrimOK_thresh3 ) h1_effNum_trans_quark_thresh3->Fill( pt[0] );
-
-        if( discrimSystOK_thresh1 ) h1_effNum_trans_quark_syst_thresh1->Fill( pt[0] );
-        if( discrimSystOK_thresh2 ) h1_effNum_trans_quark_syst_thresh2->Fill( pt[0] );
-        if( discrimSystOK_thresh3 ) h1_effNum_trans_quark_syst_thresh3->Fill( pt[0] );
-
-        h1_effDenom_vs_rho_trans_quark_thresh1->Fill( rho );
-        h1_effDenom_vs_rho_trans_quark_thresh2->Fill( rho );
-        h1_effDenom_vs_rho_trans_quark_thresh3->Fill( rho );
-
-        if( discrimOK_thresh1 ) h1_effNum_vs_rho_trans_quark_thresh1->Fill( rho );
-        if( discrimOK_thresh2 ) h1_effNum_vs_rho_trans_quark_thresh2->Fill( rho );
-        if( discrimOK_thresh3 ) h1_effNum_vs_rho_trans_quark_thresh3->Fill( rho );
-
-        if( discrimSystOK_thresh1 ) h1_effNum_vs_rho_trans_quark_syst_thresh1->Fill( rho );
-        if( discrimSystOK_thresh2 ) h1_effNum_vs_rho_trans_quark_syst_thresh2->Fill( rho );
-        if( discrimSystOK_thresh3 ) h1_effNum_vs_rho_trans_quark_syst_thresh3->Fill( rho );
-
-      } else if( type=="gluon" ) {
-
-        h1_effDenom_trans_gluon_thresh1->Fill( pt[0] );
-        h1_effDenom_trans_gluon_thresh2->Fill( pt[0] );
-        h1_effDenom_trans_gluon_thresh3->Fill( pt[0] );
-
-        if( discrimOK_thresh1 ) h1_effNum_trans_gluon_thresh1->Fill( pt[0] );
-        if( discrimOK_thresh2 ) h1_effNum_trans_gluon_thresh2->Fill( pt[0] );
-        if( discrimOK_thresh3 ) h1_effNum_trans_gluon_thresh3->Fill( pt[0] );
-
-        if( discrimSystOK_thresh1 ) h1_effNum_trans_gluon_syst_thresh1->Fill( pt[0] );
-        if( discrimSystOK_thresh2 ) h1_effNum_trans_gluon_syst_thresh2->Fill( pt[0] );
-        if( discrimSystOK_thresh3 ) h1_effNum_trans_gluon_syst_thresh3->Fill( pt[0] );
-
-        h1_effDenom_vs_rho_trans_gluon_thresh1->Fill( rho );
-        h1_effDenom_vs_rho_trans_gluon_thresh2->Fill( rho );
-        h1_effDenom_vs_rho_trans_gluon_thresh3->Fill( rho );
-
-        if( discrimOK_thresh1 ) h1_effNum_vs_rho_trans_gluon_thresh1->Fill( rho );
-        if( discrimOK_thresh2 ) h1_effNum_vs_rho_trans_gluon_thresh2->Fill( rho );
-        if( discrimOK_thresh3 ) h1_effNum_vs_rho_trans_gluon_thresh3->Fill( rho );
-
-        if( discrimSystOK_thresh1 ) h1_effNum_vs_rho_trans_gluon_syst_thresh1->Fill( rho );
-        if( discrimSystOK_thresh2 ) h1_effNum_vs_rho_trans_gluon_syst_thresh2->Fill( rho );
-        if( discrimSystOK_thresh3 ) h1_effNum_vs_rho_trans_gluon_syst_thresh3->Fill( rho );
-
+      if( smear2 ) {
+        qglJetSyst.push_back(qgsyst.Smear(pt[1], eta[1], rho, qglJet[1], type2));
+      } else {
+        qglJetSyst.push_back(qglJet[1]);
       }
+      discrimOK_thresh1.push_back((discrim=="qglJet" && qglJet[1]>thresh1) || (discrim=="qgMLPJet" && qglJet[1]<thresh1));
+      discrimSystOK_thresh1.push_back((discrim=="qglJet" && qglJetSyst[1]>thresh1) || (discrim=="qgMLPJet" && qglJetSyst[1]<thresh1));
+    }
 
 
-      if( pt[0] > 20. && pt[0] < 30. ) {
+    for( unsigned ijet=0; ijet<qglJetSyst.size(); ijet++ ) {
 
-        h1_qglJet_pt2030_eta23_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt2030_eta23_rho040->Fill( qglJetSyst, puweight );
+      if( ijet>1 ) break; //shouldnt be possible
+
+      int tag_index = ijet;
+      int probe_index = qglJetSyst.size()-ijet-1;
+
+
+      if( fabs(eta[probe_index])<2. ) {
+
+
         if( type=="quark" ) {
-          h1_qglJet_quark_pt2030_eta23_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt2030_eta23_rho040->Fill( qglJetSyst, puweight );
+
+          h1_effDenom_centr_quark_thresh1->Fill( pt[tag_index], eventWeight );
+          if( discrimOK_thresh1[probe_index] ) h1_effNum_centr_quark_thresh1->Fill( pt[tag_index], eventWeight );
+          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_centr_quark_syst_thresh1->Fill( pt[tag_index], eventWeight );
+
+          h1_effDenom_vs_rho_centr_quark_thresh1->Fill( rho, eventWeight );
+          if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_centr_quark_thresh1->Fill( rho, eventWeight );
+          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_centr_quark_syst_thresh1->Fill( rho, eventWeight );
+
         } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt2030_eta23_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt2030_eta23_rho040->Fill( qglJetSyst, puweight );
+
+          h1_effDenom_centr_gluon_thresh1->Fill( pt[tag_index], eventWeight );
+          if( discrimOK_thresh1[probe_index] ) h1_effNum_centr_gluon_thresh1->Fill( pt[tag_index], eventWeight );
+          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_centr_gluon_syst_thresh1->Fill( pt[tag_index], eventWeight );
+
+          h1_effDenom_vs_rho_centr_gluon_thresh1->Fill( rho, eventWeight );
+          if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_centr_gluon_thresh1->Fill( rho, eventWeight );
+          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_centr_gluon_syst_thresh1->Fill( rho, eventWeight );
+
         }
 
-      } else if( pt[0] > 40. && pt[0] < 50. ) {
 
-        h1_qglJet_pt4050_eta23_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt4050_eta23_rho040->Fill( qglJetSyst, puweight );
+        if( pt[tag_index] > 20. && pt[tag_index] < 30. ) {
+
+          h1_qglJet_pt2030_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt2030_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt2030_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt2030_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt2030_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt2030_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
+
+        } else if( pt[tag_index] > 30. && pt[tag_index] < 40. ) {
+
+          h1_qglJet_pt3040_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt3040_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt3040_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt3040_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt3040_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt3040_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
+
+        } else if( pt[tag_index] > 40. && pt[tag_index] < 50. ) {
+
+          h1_qglJet_pt4050_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt4050_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt4050_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt4050_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt4050_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt4050_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
+
+        } else if( pt[tag_index] > 50. && pt[tag_index] < 65. ) {
+
+          h1_qglJet_pt5065_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt5065_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt5065_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt5065_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt5065_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt5065_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
+
+        } else if( pt[tag_index] > 65. && pt[tag_index] < 80. ) {
+
+          h1_qglJet_pt6580_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt6580_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt6580_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt6580_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt6580_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt6580_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
+
+        } else if( pt[tag_index] > 80. && pt[tag_index] < 100. ) {
+
+          h1_qglJet_pt80100_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt80100_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt80100_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt80100_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt80100_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt80100_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
+
+        } else if( pt[tag_index] > 100. && pt[tag_index] < 250. ) {
+
+          h1_qglJet_pt100250_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt100250_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt100250_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt100250_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt100250_eta02_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt100250_eta02_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
+
+        } 
+
+      } else if( fabs(eta[probe_index])<3. ) {
+
+
         if( type=="quark" ) {
-          h1_qglJet_quark_pt4050_eta23_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt4050_eta23_rho040->Fill( qglJetSyst, puweight );
+
+          h1_effDenom_trans_quark_thresh1->Fill( pt[tag_index], eventWeight );
+          if( discrimOK_thresh1[probe_index] ) h1_effNum_trans_quark_thresh1->Fill( pt[tag_index], eventWeight );
+          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_trans_quark_syst_thresh1->Fill( pt[tag_index], eventWeight );
+
+          h1_effDenom_vs_rho_trans_quark_thresh1->Fill( rho, eventWeight );
+          if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_trans_quark_thresh1->Fill( rho, eventWeight );
+          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_trans_quark_syst_thresh1->Fill( rho, eventWeight );
+
         } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt4050_eta23_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt4050_eta23_rho040->Fill( qglJetSyst, puweight );
+
+          h1_effDenom_trans_gluon_thresh1->Fill( pt[tag_index], eventWeight );
+          if( discrimOK_thresh1[probe_index] ) h1_effNum_trans_gluon_thresh1->Fill( pt[tag_index], eventWeight );
+          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_trans_gluon_syst_thresh1->Fill( pt[tag_index], eventWeight );
+
+          h1_effDenom_vs_rho_trans_gluon_thresh1->Fill( rho, eventWeight );
+          if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_trans_gluon_thresh1->Fill( rho, eventWeight );
+          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_trans_gluon_syst_thresh1->Fill( rho, eventWeight );
+
         }
 
-      } else if( pt[0] > 50. && pt[0] < 65. ) {
 
-        h1_qglJet_pt5065_eta23_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt5065_eta23_rho040->Fill( qglJetSyst, puweight );
+        if( pt[tag_index] > 20. && pt[tag_index] < 30. ) {
+
+          h1_qglJet_pt2030_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt2030_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt2030_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt2030_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt2030_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt2030_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
+
+        } else if( pt[tag_index] > 40. && pt[tag_index] < 50. ) {
+
+          h1_qglJet_pt4050_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt4050_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt4050_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt4050_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt4050_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt4050_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
+
+        } else if( pt[tag_index] > 50. && pt[tag_index] < 65. ) {
+
+          h1_qglJet_pt5065_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt5065_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt5065_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt5065_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt5065_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt5065_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
+
+        } else if( pt[tag_index] > 65. && pt[tag_index] < 80. ) {
+
+          h1_qglJet_pt6580_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt6580_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt6580_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt6580_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt6580_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt6580_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
+
+        } else if( pt[tag_index] > 80. && pt[tag_index] < 100. ) {
+
+          h1_qglJet_pt80100_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt80100_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt80100_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt80100_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt80100_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt80100_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
+
+        } else if( pt[tag_index] > 100. && pt[tag_index] < 250. ) {
+
+          h1_qglJet_pt100250_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt100250_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt100250_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt100250_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt100250_eta23_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt100250_eta23_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
+
+        } 
+
+      } else if( fabs(eta[probe_index])>3. && fabs(eta[probe_index])<4.7 ) {
+
         if( type=="quark" ) {
-          h1_qglJet_quark_pt5065_eta23_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt5065_eta23_rho040->Fill( qglJetSyst, puweight );
+
+          h1_effDenom_fwd_quark_thresh1->Fill( pt[tag_index], eventWeight );
+          if( discrimOK_thresh1[probe_index] ) h1_effNum_fwd_quark_thresh1->Fill( pt[tag_index], eventWeight );
+          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_fwd_quark_syst_thresh1->Fill( pt[tag_index], eventWeight );
+
+          h1_effDenom_vs_rho_fwd_quark_thresh1->Fill( rho, eventWeight );
+          if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_fwd_quark_thresh1->Fill( rho, eventWeight );
+          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_fwd_quark_syst_thresh1->Fill( rho, eventWeight );
+
         } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt5065_eta23_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt5065_eta23_rho040->Fill( qglJetSyst, puweight );
+
+          h1_effDenom_fwd_gluon_thresh1->Fill( pt[tag_index], eventWeight );
+          if( discrimOK_thresh1[probe_index] ) h1_effNum_fwd_gluon_thresh1->Fill( pt[tag_index], eventWeight );
+          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_fwd_gluon_syst_thresh1->Fill( pt[tag_index], eventWeight );
+
+          h1_effDenom_vs_rho_fwd_gluon_thresh1->Fill( rho, eventWeight );
+          if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_fwd_gluon_thresh1->Fill( rho, eventWeight );
+          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_fwd_gluon_syst_thresh1->Fill( rho, eventWeight );
+
         }
 
-      } else if( pt[0] > 65. && pt[0] < 80. ) {
+        if( pt[tag_index] > 20. && pt[tag_index] < 30. ) {
 
-        h1_qglJet_pt6580_eta23_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt6580_eta23_rho040->Fill( qglJetSyst, puweight );
-        if( type=="quark" ) {
-          h1_qglJet_quark_pt6580_eta23_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt6580_eta23_rho040->Fill( qglJetSyst, puweight );
-        } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt6580_eta23_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt6580_eta23_rho040->Fill( qglJetSyst, puweight );
-        }
+          h1_qglJet_pt2030_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt2030_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt2030_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt2030_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt2030_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt2030_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
 
-      } else if( pt[0] > 80. && pt[0] < 100. ) {
+        } else if( pt[tag_index] > 30. && pt[tag_index] < 40. ) {
 
-        h1_qglJet_pt80100_eta23_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt80100_eta23_rho040->Fill( qglJetSyst, puweight );
-        if( type=="quark" ) {
-          h1_qglJet_quark_pt80100_eta23_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt80100_eta23_rho040->Fill( qglJetSyst, puweight );
-        } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt80100_eta23_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt80100_eta23_rho040->Fill( qglJetSyst, puweight );
-        }
+          h1_qglJet_pt3040_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt3040_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt3040_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt3040_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt3040_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt3040_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
 
-      } else if( pt[0] > 100. && pt[0] < 250. ) {
+        } else if( pt[tag_index] > 40. && pt[tag_index] < 50. ) {
 
-        h1_qglJet_pt100250_eta23_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt100250_eta23_rho040->Fill( qglJetSyst, puweight );
-        if( type=="quark" ) {
-          h1_qglJet_quark_pt100250_eta23_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt100250_eta23_rho040->Fill( qglJetSyst, puweight );
-        } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt100250_eta23_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt100250_eta23_rho040->Fill( qglJetSyst, puweight );
-        }
+          h1_qglJet_pt4050_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt4050_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt4050_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt4050_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt4050_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt4050_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
 
-      } 
+        } else if( pt[tag_index] > 50. && pt[tag_index] < 65. ) {
 
-    } else if( fabs(eta[0])>3. && fabs(eta[0])<4.7 ) {
+          h1_qglJet_pt5065_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt5065_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt5065_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt5065_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt5065_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt5065_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
 
-      if( type=="quark" ) {
+        } else if( pt[tag_index] > 65. && pt[tag_index] < 80. ) {
 
-        h1_effDenom_fwd_quark_thresh1->Fill( pt[0] );
-        h1_effDenom_fwd_quark_thresh2->Fill( pt[0] );
-        h1_effDenom_fwd_quark_thresh3->Fill( pt[0] );
+          h1_qglJet_pt6580_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt6580_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt6580_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt6580_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt6580_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt6580_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
 
-        if( discrimOK_thresh1 ) h1_effNum_fwd_quark_thresh1->Fill( pt[0] );
-        if( discrimOK_thresh2 ) h1_effNum_fwd_quark_thresh2->Fill( pt[0] );
-        if( discrimOK_thresh3 ) h1_effNum_fwd_quark_thresh3->Fill( pt[0] );
+        } else if( pt[tag_index] > 80. && pt[tag_index] < 100. ) {
 
-        if( discrimSystOK_thresh1 ) h1_effNum_fwd_quark_syst_thresh1->Fill( pt[0] );
-        if( discrimSystOK_thresh2 ) h1_effNum_fwd_quark_syst_thresh2->Fill( pt[0] );
-        if( discrimSystOK_thresh3 ) h1_effNum_fwd_quark_syst_thresh3->Fill( pt[0] );
+          h1_qglJet_pt80100_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt80100_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt80100_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt80100_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt80100_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt80100_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
 
-        h1_effDenom_vs_rho_fwd_quark_thresh1->Fill( rho );
-        h1_effDenom_vs_rho_fwd_quark_thresh2->Fill( rho );
-        h1_effDenom_vs_rho_fwd_quark_thresh3->Fill( rho );
+        } else if( pt[tag_index] > 100. && pt[tag_index] < 250. ) {
 
-        if( discrimOK_thresh1 ) h1_effNum_vs_rho_fwd_quark_thresh1->Fill( rho );
-        if( discrimOK_thresh2 ) h1_effNum_vs_rho_fwd_quark_thresh2->Fill( rho );
-        if( discrimOK_thresh3 ) h1_effNum_vs_rho_fwd_quark_thresh3->Fill( rho );
+          h1_qglJet_pt100250_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+          h1_qglJetSyst_pt100250_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          if( type=="quark" ) {
+            h1_qglJet_quark_pt100250_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_quark_pt100250_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          } else if( type=="gluon" ) {
+            h1_qglJet_gluon_pt100250_eta35_rho040->Fill( qglJet[probe_index], eventWeight );
+            h1_qglJetSyst_gluon_pt100250_eta35_rho040->Fill( qglJetSyst[probe_index], eventWeight );
+          }
 
-        if( discrimSystOK_thresh1 ) h1_effNum_vs_rho_fwd_quark_syst_thresh1->Fill( rho );
-        if( discrimSystOK_thresh2 ) h1_effNum_vs_rho_fwd_quark_syst_thresh2->Fill( rho );
-        if( discrimSystOK_thresh3 ) h1_effNum_vs_rho_fwd_quark_syst_thresh3->Fill( rho );
+        } 
 
-      } else if( type=="gluon" ) {
+      } // eta
 
-        h1_effDenom_fwd_gluon_thresh1->Fill( pt[0] );
-        h1_effDenom_fwd_gluon_thresh2->Fill( pt[0] );
-        h1_effDenom_fwd_gluon_thresh3->Fill( pt[0] );
-
-        if( discrimOK_thresh1 ) h1_effNum_fwd_gluon_thresh1->Fill( pt[0] );
-        if( discrimOK_thresh2 ) h1_effNum_fwd_gluon_thresh2->Fill( pt[0] );
-        if( discrimOK_thresh3 ) h1_effNum_fwd_gluon_thresh3->Fill( pt[0] );
-
-        if( discrimSystOK_thresh1 ) h1_effNum_fwd_gluon_syst_thresh1->Fill( pt[0] );
-        if( discrimSystOK_thresh2 ) h1_effNum_fwd_gluon_syst_thresh2->Fill( pt[0] );
-        if( discrimSystOK_thresh3 ) h1_effNum_fwd_gluon_syst_thresh3->Fill( pt[0] );
-
-        h1_effDenom_vs_rho_fwd_gluon_thresh1->Fill( rho );
-        h1_effDenom_vs_rho_fwd_gluon_thresh2->Fill( rho );
-        h1_effDenom_vs_rho_fwd_gluon_thresh3->Fill( rho );
-
-        if( discrimOK_thresh1 ) h1_effNum_vs_rho_fwd_gluon_thresh1->Fill( rho );
-        if( discrimOK_thresh2 ) h1_effNum_vs_rho_fwd_gluon_thresh2->Fill( rho );
-        if( discrimOK_thresh3 ) h1_effNum_vs_rho_fwd_gluon_thresh3->Fill( rho );
-
-        if( discrimSystOK_thresh1 ) h1_effNum_vs_rho_fwd_gluon_syst_thresh1->Fill( rho );
-        if( discrimSystOK_thresh2 ) h1_effNum_vs_rho_fwd_gluon_syst_thresh2->Fill( rho );
-        if( discrimSystOK_thresh3 ) h1_effNum_vs_rho_fwd_gluon_syst_thresh3->Fill( rho );
-
-      }
-
-      if( pt[0] > 20. && pt[0] < 30. ) {
-
-        h1_qglJet_pt2030_eta35_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt2030_eta35_rho040->Fill( qglJetSyst, puweight );
-        if( type=="quark" ) {
-          h1_qglJet_quark_pt2030_eta35_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt2030_eta35_rho040->Fill( qglJetSyst, puweight );
-        } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt2030_eta35_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt2030_eta35_rho040->Fill( qglJetSyst, puweight );
-        }
-
-      } else if( pt[0] > 40. && pt[0] < 50. ) {
-
-        h1_qglJet_pt4050_eta35_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt4050_eta35_rho040->Fill( qglJetSyst, puweight );
-        if( type=="quark" ) {
-          h1_qglJet_quark_pt4050_eta35_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt4050_eta35_rho040->Fill( qglJetSyst, puweight );
-        } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt4050_eta35_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt4050_eta35_rho040->Fill( qglJetSyst, puweight );
-        }
-
-      } else if( pt[0] > 50. && pt[0] < 65. ) {
-
-        h1_qglJet_pt5065_eta35_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt5065_eta35_rho040->Fill( qglJetSyst, puweight );
-        if( type=="quark" ) {
-          h1_qglJet_quark_pt5065_eta35_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt5065_eta35_rho040->Fill( qglJetSyst, puweight );
-        } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt5065_eta35_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt5065_eta35_rho040->Fill( qglJetSyst, puweight );
-        }
-
-      } else if( pt[0] > 65. && pt[0] < 80. ) {
-
-        h1_qglJet_pt6580_eta35_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt6580_eta35_rho040->Fill( qglJetSyst, puweight );
-        if( type=="quark" ) {
-          h1_qglJet_quark_pt6580_eta35_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt6580_eta35_rho040->Fill( qglJetSyst, puweight );
-        } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt6580_eta35_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt6580_eta35_rho040->Fill( qglJetSyst, puweight );
-        }
-
-      } else if( pt[0] > 80. && pt[0] < 100. ) {
-
-        h1_qglJet_pt80100_eta35_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt80100_eta35_rho040->Fill( qglJetSyst, puweight );
-        if( type=="quark" ) {
-          h1_qglJet_quark_pt80100_eta35_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt80100_eta35_rho040->Fill( qglJetSyst, puweight );
-        } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt80100_eta35_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt80100_eta35_rho040->Fill( qglJetSyst, puweight );
-        }
-
-      } else if( pt[0] > 100. && pt[0] < 250. ) {
-
-        h1_qglJet_pt100250_eta35_rho040->Fill( qglJet[0], puweight );
-        h1_qglJetSyst_pt100250_eta35_rho040->Fill( qglJetSyst, puweight );
-        if( type=="quark" ) {
-          h1_qglJet_quark_pt100250_eta35_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_quark_pt100250_eta35_rho040->Fill( qglJetSyst, puweight );
-        } else if( type=="gluon" ) {
-          h1_qglJet_gluon_pt100250_eta35_rho040->Fill( qglJet[0], puweight );
-          h1_qglJetSyst_gluon_pt100250_eta35_rho040->Fill( qglJetSyst, puweight );
-        }
-
-      } 
-
-    } // eta
+    } //for tag and probe
 
   }
 
@@ -1079,6 +994,9 @@ int main( int argc, char* argv[] ) {
 
   TH1D* h1_data_qglJet_pt2030_eta02_rho040 = new TH1D("data_qglJet_pt2030_eta02_rho040", "", nBins, xMin, 1.0001);
   h1_data_qglJet_pt2030_eta02_rho040->Sumw2();
+
+  TH1D* h1_data_qglJet_pt3040_eta02_rho040 = new TH1D("data_qglJet_pt3040_eta02_rho040", "", nBins, xMin, 1.0001);
+  h1_data_qglJet_pt3040_eta02_rho040->Sumw2();
 
   TH1D* h1_data_qglJet_pt4050_eta02_rho040 = new TH1D("data_qglJet_pt4050_eta02_rho040", "", nBins, xMin, 1.0001);
   h1_data_qglJet_pt4050_eta02_rho040->Sumw2();
@@ -1122,6 +1040,9 @@ int main( int argc, char* argv[] ) {
   TH1D* h1_data_qglJet_pt2030_eta35_rho040 = new TH1D("data_qglJet_pt2030_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_data_qglJet_pt2030_eta35_rho040->Sumw2();
 
+  TH1D* h1_data_qglJet_pt3040_eta35_rho040 = new TH1D("data_qglJet_pt3040_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
+  h1_data_qglJet_pt3040_eta35_rho040->Sumw2();
+
   TH1D* h1_data_qglJet_pt4050_eta35_rho040 = new TH1D("data_qglJet_pt4050_eta35_rho040", "", nBinsFwd, xMin, 1.0001);
   h1_data_qglJet_pt4050_eta35_rho040->Sumw2();
 
@@ -1150,91 +1071,116 @@ int main( int argc, char* argv[] ) {
     //h1_data_ptZ->Fill( ptZ );
     h1_data_rho->Fill( rho );
 
-    if( fabs(eta[0])<2. ) {
 
-      if( pt[0] > 20. && pt[0] < 30. ) {
+    int njets_loop = (selection=="ZJet") ? 1 : 2;
 
-        h1_data_qglJet_pt2030_eta02_rho040->Fill( qglJet[0] );
+    for( unsigned ijet=0; ijet<njets_loop; ijet++ ) {
+    
+      if( ijet>1 ) break; //shouldnt be possible
+      
+      int tag_index = ijet;
+      int probe_index = njets_loop-ijet-1;
 
-      } else if( pt[0] > 40. && pt[0] < 50. ) {
 
-        h1_data_qglJet_pt4050_eta02_rho040->Fill( qglJet[0] );
+      if( fabs(eta[probe_index])<2. ) {
 
-      } else if( pt[0] > 50. && pt[0] < 65. ) {
+        if( pt[tag_index] > 20. && pt[tag_index] < 30. ) {
 
-        h1_data_qglJet_pt5065_eta02_rho040->Fill( qglJet[0] );
+          h1_data_qglJet_pt2030_eta02_rho040->Fill( qglJet[probe_index] );
 
-      } else if( pt[0] > 65. && pt[0] < 80. ) {
+        } else if( pt[tag_index] > 30. && pt[tag_index] < 40. ) {
 
-        h1_data_qglJet_pt6580_eta02_rho040->Fill( qglJet[0] );
+          h1_data_qglJet_pt3040_eta02_rho040->Fill( qglJet[probe_index] );
 
-      } else if( pt[0] > 80. && pt[0] < 100. ) {
+        } else if( pt[tag_index] > 30. && pt[tag_index] < 40. ) {
 
-        h1_data_qglJet_pt80100_eta02_rho040->Fill( qglJet[0] );
+          h1_data_qglJet_pt3040_eta02_rho040->Fill( qglJet[probe_index] );
 
-      } else if( pt[0] > 100. && pt[0] < 250. ) {
+        } else if( pt[tag_index] > 40. && pt[tag_index] < 50. ) {
 
-        h1_data_qglJet_pt100250_eta02_rho040->Fill( qglJet[0] );
+          h1_data_qglJet_pt4050_eta02_rho040->Fill( qglJet[probe_index] );
 
-      } 
+        } else if( pt[tag_index] > 50. && pt[tag_index] < 65. ) {
 
-    } else if( fabs(eta[0])<3. ) {
+          h1_data_qglJet_pt5065_eta02_rho040->Fill( qglJet[probe_index] );
 
-      if( pt[0] > 20. && pt[0] < 30. ) {
+        } else if( pt[tag_index] > 65. && pt[tag_index] < 80. ) {
 
-        h1_data_qglJet_pt2030_eta23_rho040->Fill( qglJet[0] );
+          h1_data_qglJet_pt6580_eta02_rho040->Fill( qglJet[probe_index] );
 
-      } else if( pt[0] > 40. && pt[0] < 50. ) {
+        } else if( pt[tag_index] > 80. && pt[tag_index] < 100. ) {
 
-        h1_data_qglJet_pt4050_eta23_rho040->Fill( qglJet[0] );
+          h1_data_qglJet_pt80100_eta02_rho040->Fill( qglJet[probe_index] );
 
-      } else if( pt[0] > 50. && pt[0] < 65. ) {
+        } else if( pt[tag_index] > 100. && pt[tag_index] < 250. ) {
 
-        h1_data_qglJet_pt5065_eta23_rho040->Fill( qglJet[0] );
+          h1_data_qglJet_pt100250_eta02_rho040->Fill( qglJet[probe_index] );
 
-      } else if( pt[0] > 65. && pt[0] < 80. ) {
+        } 
 
-        h1_data_qglJet_pt6580_eta23_rho040->Fill( qglJet[0] );
+      } else if( fabs(eta[probe_index])<3. ) {
 
-      } else if( pt[0] > 80. && pt[0] < 100. ) {
+        if( pt[tag_index] > 20. && pt[tag_index] < 30. ) {
 
-        h1_data_qglJet_pt80100_eta23_rho040->Fill( qglJet[0] );
+          h1_data_qglJet_pt2030_eta23_rho040->Fill( qglJet[probe_index] );
 
-      } else if( pt[0] > 100. && pt[0] < 250. ) {
+        } else if( pt[tag_index] > 40. && pt[tag_index] < 50. ) {
 
-        h1_data_qglJet_pt100250_eta23_rho040->Fill( qglJet[0] );
+          h1_data_qglJet_pt4050_eta23_rho040->Fill( qglJet[probe_index] );
 
-      } 
+        } else if( pt[tag_index] > 50. && pt[tag_index] < 65. ) {
 
-    } else if( fabs(eta[0])>3. && fabs(eta[0])<4.7 ) {
+          h1_data_qglJet_pt5065_eta23_rho040->Fill( qglJet[probe_index] );
 
-      if( pt[0] > 20. && pt[0] < 30. ) {
+        } else if( pt[tag_index] > 65. && pt[tag_index] < 80. ) {
 
-        h1_data_qglJet_pt2030_eta35_rho040->Fill( qglJet[0] );
+          h1_data_qglJet_pt6580_eta23_rho040->Fill( qglJet[probe_index] );
 
-      } else if( pt[0] > 40. && pt[0] < 50. ) {
+        } else if( pt[tag_index] > 80. && pt[tag_index] < 100. ) {
 
-        h1_data_qglJet_pt4050_eta35_rho040->Fill( qglJet[0] );
+          h1_data_qglJet_pt80100_eta23_rho040->Fill( qglJet[probe_index] );
 
-      } else if( pt[0] > 50. && pt[0] < 65. ) {
+        } else if( pt[tag_index] > 100. && pt[tag_index] < 250. ) {
 
-        h1_data_qglJet_pt5065_eta35_rho040->Fill( qglJet[0] );
+          h1_data_qglJet_pt100250_eta23_rho040->Fill( qglJet[probe_index] );
 
-      } else if( pt[0] > 65. && pt[0] < 80. ) {
+        } 
 
-        h1_data_qglJet_pt6580_eta35_rho040->Fill( qglJet[0] );
+      } else if( fabs(eta[probe_index])>3. && fabs(eta[probe_index])<4.7 ) {
 
-      } else if( pt[0] > 80. && pt[0] < 100. ) {
+        if( pt[tag_index] > 20. && pt[tag_index] < 30. ) {
 
-        h1_data_qglJet_pt80100_eta35_rho040->Fill( qglJet[0] );
+          h1_data_qglJet_pt2030_eta35_rho040->Fill( qglJet[probe_index] );
 
-      } else if( pt[0] > 100. && pt[0] < 250. ) {
+        } else if( pt[tag_index] > 30. && pt[tag_index] < 40. ) {
 
-        h1_data_qglJet_pt100250_eta35_rho040->Fill( qglJet[0] );
+          h1_data_qglJet_pt3040_eta35_rho040->Fill( qglJet[probe_index] );
 
-      } 
+        } else if( pt[tag_index] > 40. && pt[tag_index] < 50. ) {
 
-    } // eta
+          h1_data_qglJet_pt4050_eta35_rho040->Fill( qglJet[probe_index] );
+
+        } else if( pt[tag_index] > 50. && pt[tag_index] < 65. ) {
+
+          h1_data_qglJet_pt5065_eta35_rho040->Fill( qglJet[probe_index] );
+
+        } else if( pt[tag_index] > 65. && pt[tag_index] < 80. ) {
+
+          h1_data_qglJet_pt6580_eta35_rho040->Fill( qglJet[probe_index] );
+
+        } else if( pt[tag_index] > 80. && pt[tag_index] < 100. ) {
+
+          h1_data_qglJet_pt80100_eta35_rho040->Fill( qglJet[probe_index] );
+
+        } else if( pt[tag_index] > 100. && pt[tag_index] < 250. ) {
+
+          h1_data_qglJet_pt100250_eta35_rho040->Fill( qglJet[probe_index] );
+
+        } 
+
+      } // eta
+
+    } // for tag and probe
 
   }
 
@@ -1242,33 +1188,36 @@ int main( int argc, char* argv[] ) {
   DrawBase* db = new DrawBase("checkSystSyst");
   db->add_dataFile(file, "data"); //ok thats the MC file but who cares
 
-  std::string outputdir = "checkSystPlots_" + selection;
+  std::string outputdir = "checkSystPlots_" + selection + "_" + systDatabaseName;
   db->set_outputdir(outputdir);
   std::string mkdir_command = "mkdir -p " + outputdir;
   system(mkdir_command.c_str());
   
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt2030_eta02_rho040, h1_qglJet_pt2030_eta02_rho040, h1_qglJetSyst_pt2030_eta02_rho040, 20., 30., 0., 2., 0., 40.);
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt4050_eta02_rho040, h1_qglJet_pt4050_eta02_rho040, h1_qglJetSyst_pt4050_eta02_rho040, 40., 50., 0., 2., 0., 40.);
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt5065_eta02_rho040, h1_qglJet_pt5065_eta02_rho040, h1_qglJetSyst_pt5065_eta02_rho040, 50., 65., 0., 2., 0., 40.);
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt6580_eta02_rho040, h1_qglJet_pt6580_eta02_rho040, h1_qglJetSyst_pt6580_eta02_rho040, 65., 80., 0., 2., 0., 40.);
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt80100_eta02_rho040,h1_qglJet_pt80100_eta02_rho040, h1_qglJetSyst_pt80100_eta02_rho040, 80., 100., 0., 2., 0., 40.);
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt100250_eta02_rho040,h1_qglJet_pt100250_eta02_rho040, h1_qglJetSyst_pt100250_eta02_rho040, 100., 250., 0., 2., 0., 40.);
+  drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt2030_eta02_rho040, h1_qglJet_pt2030_eta02_rho040, h1_qglJetSyst_pt2030_eta02_rho040, 20., 30., 0., 2., 0., 40.);
+  drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt3040_eta02_rho040, h1_qglJet_pt3040_eta02_rho040, h1_qglJetSyst_pt3040_eta02_rho040, 30., 40., 0., 2., 0., 40.);
+  drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt4050_eta02_rho040, h1_qglJet_pt4050_eta02_rho040, h1_qglJetSyst_pt4050_eta02_rho040, 40., 50., 0., 2., 0., 40.);
+  drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt5065_eta02_rho040, h1_qglJet_pt5065_eta02_rho040, h1_qglJetSyst_pt5065_eta02_rho040, 50., 65., 0., 2., 0., 40.);
+  drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt6580_eta02_rho040, h1_qglJet_pt6580_eta02_rho040, h1_qglJetSyst_pt6580_eta02_rho040, 65., 80., 0., 2., 0., 40.);
+  drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt80100_eta02_rho040,h1_qglJet_pt80100_eta02_rho040, h1_qglJetSyst_pt80100_eta02_rho040, 80., 100., 0., 2., 0., 40.);
+  drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt100250_eta02_rho040,h1_qglJet_pt100250_eta02_rho040, h1_qglJetSyst_pt100250_eta02_rho040, 100., 250., 0., 2., 0., 40.);
 
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt2030_eta23_rho040, h1_qglJet_pt2030_eta23_rho040, h1_qglJetSyst_pt2030_eta23_rho040, 20., 30., 2., 3., 0., 40.);
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt4050_eta23_rho040, h1_qglJet_pt4050_eta23_rho040, h1_qglJetSyst_pt4050_eta23_rho040, 40., 50., 2., 3., 0., 40.);
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt5065_eta23_rho040, h1_qglJet_pt5065_eta23_rho040, h1_qglJetSyst_pt5065_eta23_rho040, 50., 65., 2., 3., 0., 40.);
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt6580_eta23_rho040, h1_qglJet_pt6580_eta23_rho040, h1_qglJetSyst_pt6580_eta23_rho040, 65., 80., 2., 3., 0., 40.);
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt80100_eta23_rho040,h1_qglJet_pt80100_eta23_rho040, h1_qglJetSyst_pt80100_eta23_rho040, 80., 100., 2., 3., 0., 40.);
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt100250_eta23_rho040,h1_qglJet_pt100250_eta23_rho040, h1_qglJetSyst_pt100250_eta23_rho040, 100., 250., 2., 3., 0., 40.);
+  //drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt2030_eta23_rho040, h1_qglJet_pt2030_eta23_rho040, h1_qglJetSyst_pt2030_eta23_rho040, 20., 30., 2., 3., 0., 40.);
+  //drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt4050_eta23_rho040, h1_qglJet_pt4050_eta23_rho040, h1_qglJetSyst_pt4050_eta23_rho040, 40., 50., 2., 3., 0., 40.);
+  //drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt5065_eta23_rho040, h1_qglJet_pt5065_eta23_rho040, h1_qglJetSyst_pt5065_eta23_rho040, 50., 65., 2., 3., 0., 40.);
+  //drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt6580_eta23_rho040, h1_qglJet_pt6580_eta23_rho040, h1_qglJetSyst_pt6580_eta23_rho040, 65., 80., 2., 3., 0., 40.);
+  //drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt80100_eta23_rho040,h1_qglJet_pt80100_eta23_rho040, h1_qglJetSyst_pt80100_eta23_rho040, 80., 100., 2., 3., 0., 40.);
+  //drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt100250_eta23_rho040,h1_qglJet_pt100250_eta23_rho040, h1_qglJetSyst_pt100250_eta23_rho040, 100., 250., 2., 3., 0., 40.);
 
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt2030_eta35_rho040, h1_qglJet_pt2030_eta35_rho040, h1_qglJetSyst_pt2030_eta35_rho040, 20., 30., 3., 4.7, 0., 40.);
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt4050_eta35_rho040, h1_qglJet_pt4050_eta35_rho040, h1_qglJetSyst_pt4050_eta35_rho040, 40., 50., 3., 4.7, 0., 40.);
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt5065_eta35_rho040, h1_qglJet_pt5065_eta35_rho040, h1_qglJetSyst_pt5065_eta35_rho040, 50., 65., 3., 4.7, 0., 40.);
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt6580_eta35_rho040, h1_qglJet_pt6580_eta35_rho040, h1_qglJetSyst_pt6580_eta35_rho040, 65., 80., 3., 4.7, 0., 40.);
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt80100_eta35_rho040,h1_qglJet_pt80100_eta35_rho040, h1_qglJetSyst_pt80100_eta35_rho040, 80., 100., 3., 4.7, 0., 40.);
-  drawSinglePlot( db, discrim, h1_data_qglJet_pt100250_eta35_rho040,h1_qglJet_pt100250_eta35_rho040, h1_qglJetSyst_pt100250_eta35_rho040, 100., 250., 3., 4.7, 0., 40.);
+  drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt2030_eta35_rho040, h1_qglJet_pt2030_eta35_rho040, h1_qglJetSyst_pt2030_eta35_rho040, 20., 30., 3., 4.7, 0., 40.);
+  drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt3040_eta35_rho040, h1_qglJet_pt3040_eta35_rho040, h1_qglJetSyst_pt3040_eta35_rho040, 30., 40., 3., 4.7, 0., 40.);
+  drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt4050_eta35_rho040, h1_qglJet_pt4050_eta35_rho040, h1_qglJetSyst_pt4050_eta35_rho040, 40., 50., 3., 4.7, 0., 40.);
+  drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt5065_eta35_rho040, h1_qglJet_pt5065_eta35_rho040, h1_qglJetSyst_pt5065_eta35_rho040, 50., 65., 3., 4.7, 0., 40.);
+  drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt6580_eta35_rho040, h1_qglJet_pt6580_eta35_rho040, h1_qglJetSyst_pt6580_eta35_rho040, 65., 80., 3., 4.7, 0., 40.);
+  drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt80100_eta35_rho040,h1_qglJet_pt80100_eta35_rho040, h1_qglJetSyst_pt80100_eta35_rho040, 80., 100., 3., 4.7, 0., 40.);
+  drawSinglePlot( selection, db, discrim, h1_data_qglJet_pt100250_eta35_rho040,h1_qglJet_pt100250_eta35_rho040, h1_qglJetSyst_pt100250_eta35_rho040, 100., 250., 3., 4.7, 0., 40.);
 
   drawMC_beforeAfter( db, discrim, h1_qglJet_quark_pt2030_eta02_rho040, h1_qglJetSyst_quark_pt2030_eta02_rho040, h1_qglJet_gluon_pt2030_eta02_rho040, h1_qglJetSyst_gluon_pt2030_eta02_rho040, 20., 30., 0., 2., 0., 40.);
+  drawMC_beforeAfter( db, discrim, h1_qglJet_quark_pt3040_eta02_rho040, h1_qglJetSyst_quark_pt3040_eta02_rho040, h1_qglJet_gluon_pt3040_eta02_rho040, h1_qglJetSyst_gluon_pt3040_eta02_rho040, 30., 40., 0., 2., 0., 40.);
   drawMC_beforeAfter( db, discrim, h1_qglJet_quark_pt4050_eta02_rho040, h1_qglJetSyst_quark_pt4050_eta02_rho040, h1_qglJet_gluon_pt4050_eta02_rho040, h1_qglJetSyst_gluon_pt4050_eta02_rho040, 40., 50., 0., 2., 0., 40.);
   drawMC_beforeAfter( db, discrim, h1_qglJet_quark_pt5065_eta02_rho040, h1_qglJetSyst_quark_pt5065_eta02_rho040, h1_qglJet_gluon_pt5065_eta02_rho040, h1_qglJetSyst_gluon_pt5065_eta02_rho040, 50., 65., 0., 2., 0., 40.);
   drawMC_beforeAfter( db, discrim, h1_qglJet_quark_pt6580_eta02_rho040, h1_qglJetSyst_quark_pt6580_eta02_rho040, h1_qglJet_gluon_pt6580_eta02_rho040, h1_qglJetSyst_gluon_pt6580_eta02_rho040, 65., 80., 0., 2., 0., 40.);
@@ -1283,6 +1232,7 @@ int main( int argc, char* argv[] ) {
   drawMC_beforeAfter( db, discrim, h1_qglJet_quark_pt100250_eta23_rho040, h1_qglJetSyst_quark_pt100250_eta23_rho040, h1_qglJet_gluon_pt100250_eta23_rho040, h1_qglJetSyst_gluon_pt100250_eta23_rho040, 100., 250., 2., 3., 0., 40.);
 
   drawMC_beforeAfter( db, discrim, h1_qglJet_quark_pt2030_eta35_rho040, h1_qglJetSyst_quark_pt2030_eta35_rho040, h1_qglJet_gluon_pt2030_eta35_rho040, h1_qglJetSyst_gluon_pt2030_eta35_rho040, 20., 30., 3., 4.7, 0., 40.);
+  drawMC_beforeAfter( db, discrim, h1_qglJet_quark_pt3040_eta35_rho040, h1_qglJetSyst_quark_pt3040_eta35_rho040, h1_qglJet_gluon_pt3040_eta35_rho040, h1_qglJetSyst_gluon_pt3040_eta35_rho040, 30., 40., 3., 4.7, 0., 40.);
   drawMC_beforeAfter( db, discrim, h1_qglJet_quark_pt4050_eta35_rho040, h1_qglJetSyst_quark_pt4050_eta35_rho040, h1_qglJet_gluon_pt4050_eta35_rho040, h1_qglJetSyst_gluon_pt4050_eta35_rho040, 40., 50., 3., 4.7, 0., 40.);
   drawMC_beforeAfter( db, discrim, h1_qglJet_quark_pt5065_eta35_rho040, h1_qglJetSyst_quark_pt5065_eta35_rho040, h1_qglJet_gluon_pt5065_eta35_rho040, h1_qglJetSyst_gluon_pt5065_eta35_rho040, 50., 65., 3., 4.7, 0., 40.);
   drawMC_beforeAfter( db, discrim, h1_qglJet_quark_pt6580_eta35_rho040, h1_qglJetSyst_quark_pt6580_eta35_rho040, h1_qglJet_gluon_pt6580_eta35_rho040, h1_qglJetSyst_gluon_pt6580_eta35_rho040, 65., 80., 3., 4.7, 0., 40.);
@@ -1291,328 +1241,142 @@ int main( int argc, char* argv[] ) {
 
   // and now the syst smearing efficiencies:
   TH1D* h1_eff_centr_quark_thresh1 = new TH1D(*h1_effNum_centr_quark_thresh1);
-  TH1D* h1_eff_centr_quark_thresh2 = new TH1D(*h1_effNum_centr_quark_thresh2);
-  TH1D* h1_eff_centr_quark_thresh3 = new TH1D(*h1_effNum_centr_quark_thresh3);
-
   TH1D* h1_eff_centr_quark_syst_thresh1 = new TH1D(*h1_effNum_centr_quark_syst_thresh1);
-  TH1D* h1_eff_centr_quark_syst_thresh2 = new TH1D(*h1_effNum_centr_quark_syst_thresh2);
-  TH1D* h1_eff_centr_quark_syst_thresh3 = new TH1D(*h1_effNum_centr_quark_syst_thresh3);
 
   TH1D* h1_eff_centr_gluon_thresh1 = new TH1D(*h1_effNum_centr_gluon_thresh1);
-  TH1D* h1_eff_centr_gluon_thresh2 = new TH1D(*h1_effNum_centr_gluon_thresh2);
-  TH1D* h1_eff_centr_gluon_thresh3 = new TH1D(*h1_effNum_centr_gluon_thresh3);
-
   TH1D* h1_eff_centr_gluon_syst_thresh1 = new TH1D(*h1_effNum_centr_gluon_syst_thresh1);
-  TH1D* h1_eff_centr_gluon_syst_thresh2 = new TH1D(*h1_effNum_centr_gluon_syst_thresh2);
-  TH1D* h1_eff_centr_gluon_syst_thresh3 = new TH1D(*h1_effNum_centr_gluon_syst_thresh3);
-
 
 
   TH1D* h1_eff_trans_quark_thresh1 = new TH1D(*h1_effNum_trans_quark_thresh1);
-  TH1D* h1_eff_trans_quark_thresh2 = new TH1D(*h1_effNum_trans_quark_thresh2);
-  TH1D* h1_eff_trans_quark_thresh3 = new TH1D(*h1_effNum_trans_quark_thresh3);
-
   TH1D* h1_eff_trans_quark_syst_thresh1 = new TH1D(*h1_effNum_trans_quark_syst_thresh1);
-  TH1D* h1_eff_trans_quark_syst_thresh2 = new TH1D(*h1_effNum_trans_quark_syst_thresh2);
-  TH1D* h1_eff_trans_quark_syst_thresh3 = new TH1D(*h1_effNum_trans_quark_syst_thresh3);
 
   TH1D* h1_eff_trans_gluon_thresh1 = new TH1D(*h1_effNum_trans_gluon_thresh1);
-  TH1D* h1_eff_trans_gluon_thresh2 = new TH1D(*h1_effNum_trans_gluon_thresh2);
-  TH1D* h1_eff_trans_gluon_thresh3 = new TH1D(*h1_effNum_trans_gluon_thresh3);
-
   TH1D* h1_eff_trans_gluon_syst_thresh1 = new TH1D(*h1_effNum_trans_gluon_syst_thresh1);
-  TH1D* h1_eff_trans_gluon_syst_thresh2 = new TH1D(*h1_effNum_trans_gluon_syst_thresh2);
-  TH1D* h1_eff_trans_gluon_syst_thresh3 = new TH1D(*h1_effNum_trans_gluon_syst_thresh3);
 
 
   TH1D* h1_eff_fwd_quark_thresh1 = new TH1D(*h1_effNum_fwd_quark_thresh1);
-  TH1D* h1_eff_fwd_quark_thresh2 = new TH1D(*h1_effNum_fwd_quark_thresh2);
-  TH1D* h1_eff_fwd_quark_thresh3 = new TH1D(*h1_effNum_fwd_quark_thresh3);
-
   TH1D* h1_eff_fwd_quark_syst_thresh1 = new TH1D(*h1_effNum_fwd_quark_syst_thresh1);
-  TH1D* h1_eff_fwd_quark_syst_thresh2 = new TH1D(*h1_effNum_fwd_quark_syst_thresh2);
-  TH1D* h1_eff_fwd_quark_syst_thresh3 = new TH1D(*h1_effNum_fwd_quark_syst_thresh3);
 
   TH1D* h1_eff_fwd_gluon_thresh1 = new TH1D(*h1_effNum_fwd_gluon_thresh1);
-  TH1D* h1_eff_fwd_gluon_thresh2 = new TH1D(*h1_effNum_fwd_gluon_thresh2);
-  TH1D* h1_eff_fwd_gluon_thresh3 = new TH1D(*h1_effNum_fwd_gluon_thresh3);
-
   TH1D* h1_eff_fwd_gluon_syst_thresh1 = new TH1D(*h1_effNum_fwd_gluon_syst_thresh1);
-  TH1D* h1_eff_fwd_gluon_syst_thresh2 = new TH1D(*h1_effNum_fwd_gluon_syst_thresh2);
-  TH1D* h1_eff_fwd_gluon_syst_thresh3 = new TH1D(*h1_effNum_fwd_gluon_syst_thresh3);
 
 
   h1_eff_centr_quark_thresh1->Divide(h1_effDenom_centr_quark_thresh1);
-  h1_eff_centr_quark_thresh2->Divide(h1_effDenom_centr_quark_thresh2);
-  h1_eff_centr_quark_thresh3->Divide(h1_effDenom_centr_quark_thresh3);
-
   h1_eff_centr_quark_syst_thresh1->Divide(h1_effDenom_centr_quark_thresh1);
-  h1_eff_centr_quark_syst_thresh2->Divide(h1_effDenom_centr_quark_thresh2);
-  h1_eff_centr_quark_syst_thresh3->Divide(h1_effDenom_centr_quark_thresh3);
 
   h1_eff_centr_gluon_thresh1->Divide(h1_effDenom_centr_gluon_thresh1);
-  h1_eff_centr_gluon_thresh2->Divide(h1_effDenom_centr_gluon_thresh2);
-  h1_eff_centr_gluon_thresh3->Divide(h1_effDenom_centr_gluon_thresh3);
-
   h1_eff_centr_gluon_syst_thresh1->Divide(h1_effDenom_centr_gluon_thresh1);
-  h1_eff_centr_gluon_syst_thresh2->Divide(h1_effDenom_centr_gluon_thresh2);
-  h1_eff_centr_gluon_syst_thresh3->Divide(h1_effDenom_centr_gluon_thresh3);
 
 
   h1_eff_trans_quark_thresh1->Divide(h1_effDenom_trans_quark_thresh1);
-  h1_eff_trans_quark_thresh2->Divide(h1_effDenom_trans_quark_thresh2);
-  h1_eff_trans_quark_thresh3->Divide(h1_effDenom_trans_quark_thresh3);
-
   h1_eff_trans_quark_syst_thresh1->Divide(h1_effDenom_trans_quark_thresh1);
-  h1_eff_trans_quark_syst_thresh2->Divide(h1_effDenom_trans_quark_thresh2);
-  h1_eff_trans_quark_syst_thresh3->Divide(h1_effDenom_trans_quark_thresh3);
 
   h1_eff_trans_gluon_thresh1->Divide(h1_effDenom_trans_gluon_thresh1);
-  h1_eff_trans_gluon_thresh2->Divide(h1_effDenom_trans_gluon_thresh2);
-  h1_eff_trans_gluon_thresh3->Divide(h1_effDenom_trans_gluon_thresh3);
-
   h1_eff_trans_gluon_syst_thresh1->Divide(h1_effDenom_trans_gluon_thresh1);
-  h1_eff_trans_gluon_syst_thresh2->Divide(h1_effDenom_trans_gluon_thresh2);
-  h1_eff_trans_gluon_syst_thresh3->Divide(h1_effDenom_trans_gluon_thresh3);
-
 
 
   h1_eff_fwd_quark_thresh1->Divide(h1_effDenom_fwd_quark_thresh1);
-  h1_eff_fwd_quark_thresh2->Divide(h1_effDenom_fwd_quark_thresh2);
-  h1_eff_fwd_quark_thresh3->Divide(h1_effDenom_fwd_quark_thresh3);
-
   h1_eff_fwd_quark_syst_thresh1->Divide(h1_effDenom_fwd_quark_thresh1);
-  h1_eff_fwd_quark_syst_thresh2->Divide(h1_effDenom_fwd_quark_thresh2);
-  h1_eff_fwd_quark_syst_thresh3->Divide(h1_effDenom_fwd_quark_thresh3);
 
   h1_eff_fwd_gluon_thresh1->Divide(h1_effDenom_fwd_gluon_thresh1);
-  h1_eff_fwd_gluon_thresh2->Divide(h1_effDenom_fwd_gluon_thresh2);
-  h1_eff_fwd_gluon_thresh3->Divide(h1_effDenom_fwd_gluon_thresh3);
-
   h1_eff_fwd_gluon_syst_thresh1->Divide(h1_effDenom_fwd_gluon_thresh1);
-  h1_eff_fwd_gluon_syst_thresh2->Divide(h1_effDenom_fwd_gluon_thresh2);
-  h1_eff_fwd_gluon_syst_thresh3->Divide(h1_effDenom_fwd_gluon_thresh3);
 
 
   // set good enough errors:
   for( unsigned ibin=1; ibin<nbins_pt+1; ++ibin ) {
 
     h1_eff_centr_quark_thresh1->SetBinError(ibin, sqrt(h1_eff_centr_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_centr_quark_thresh1->GetBinContent(ibin))/h1_effDenom_centr_quark_thresh1->GetBinContent(ibin)));
-    h1_eff_centr_quark_thresh2->SetBinError(ibin, sqrt(h1_eff_centr_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_centr_quark_thresh1->GetBinContent(ibin))/h1_effDenom_centr_quark_thresh2->GetBinContent(ibin)));
-    h1_eff_centr_quark_thresh3->SetBinError(ibin, sqrt(h1_eff_centr_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_centr_quark_thresh1->GetBinContent(ibin))/h1_effDenom_centr_quark_thresh3->GetBinContent(ibin)));
-
     h1_eff_centr_quark_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_centr_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_centr_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_centr_quark_thresh1->GetBinContent(ibin)));
-    h1_eff_centr_quark_syst_thresh2->SetBinError(ibin, sqrt(h1_eff_centr_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_centr_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_centr_quark_thresh2->GetBinContent(ibin)));
-    h1_eff_centr_quark_syst_thresh3->SetBinError(ibin, sqrt(h1_eff_centr_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_centr_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_centr_quark_thresh3->GetBinContent(ibin)));
 
     h1_eff_centr_gluon_thresh1->SetBinError(ibin, sqrt(h1_eff_centr_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_centr_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_centr_gluon_thresh1->GetBinContent(ibin)));
-    h1_eff_centr_gluon_thresh2->SetBinError(ibin, sqrt(h1_eff_centr_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_centr_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_centr_gluon_thresh2->GetBinContent(ibin)));
-    h1_eff_centr_gluon_thresh3->SetBinError(ibin, sqrt(h1_eff_centr_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_centr_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_centr_gluon_thresh3->GetBinContent(ibin)));
-
     h1_eff_centr_gluon_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_centr_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_centr_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_centr_gluon_thresh1->GetBinContent(ibin)));
-    h1_eff_centr_gluon_syst_thresh2->SetBinError(ibin, sqrt(h1_eff_centr_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_centr_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_centr_gluon_thresh2->GetBinContent(ibin)));
-    h1_eff_centr_gluon_syst_thresh3->SetBinError(ibin, sqrt(h1_eff_centr_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_centr_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_centr_gluon_thresh3->GetBinContent(ibin)));
 
     h1_eff_trans_quark_thresh1->SetBinError(ibin, sqrt(h1_eff_trans_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_trans_quark_thresh1->GetBinContent(ibin))/h1_effDenom_trans_quark_thresh1->GetBinContent(ibin)));
-    h1_eff_trans_quark_thresh2->SetBinError(ibin, sqrt(h1_eff_trans_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_trans_quark_thresh1->GetBinContent(ibin))/h1_effDenom_trans_quark_thresh2->GetBinContent(ibin)));
-    h1_eff_trans_quark_thresh3->SetBinError(ibin, sqrt(h1_eff_trans_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_trans_quark_thresh1->GetBinContent(ibin))/h1_effDenom_trans_quark_thresh3->GetBinContent(ibin)));
-
     h1_eff_trans_quark_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_trans_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_trans_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_trans_quark_thresh1->GetBinContent(ibin)));
-    h1_eff_trans_quark_syst_thresh2->SetBinError(ibin, sqrt(h1_eff_trans_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_trans_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_trans_quark_thresh2->GetBinContent(ibin)));
-    h1_eff_trans_quark_syst_thresh3->SetBinError(ibin, sqrt(h1_eff_trans_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_trans_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_trans_quark_thresh3->GetBinContent(ibin)));
 
     h1_eff_trans_gluon_thresh1->SetBinError(ibin, sqrt(h1_eff_trans_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_trans_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_trans_gluon_thresh1->GetBinContent(ibin)));
-    h1_eff_trans_gluon_thresh2->SetBinError(ibin, sqrt(h1_eff_trans_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_trans_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_trans_gluon_thresh2->GetBinContent(ibin)));
-    h1_eff_trans_gluon_thresh3->SetBinError(ibin, sqrt(h1_eff_trans_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_trans_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_trans_gluon_thresh3->GetBinContent(ibin)));
-
     h1_eff_trans_gluon_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_trans_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_trans_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_trans_gluon_thresh1->GetBinContent(ibin)));
-    h1_eff_trans_gluon_syst_thresh2->SetBinError(ibin, sqrt(h1_eff_trans_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_trans_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_trans_gluon_thresh2->GetBinContent(ibin)));
-    h1_eff_trans_gluon_syst_thresh3->SetBinError(ibin, sqrt(h1_eff_trans_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_trans_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_trans_gluon_thresh3->GetBinContent(ibin)));
 
     h1_eff_fwd_quark_thresh1->SetBinError(ibin, sqrt(h1_eff_fwd_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_fwd_quark_thresh1->GetBinContent(ibin))/h1_effDenom_fwd_quark_thresh1->GetBinContent(ibin)));
-    h1_eff_fwd_quark_thresh2->SetBinError(ibin, sqrt(h1_eff_fwd_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_fwd_quark_thresh1->GetBinContent(ibin))/h1_effDenom_fwd_quark_thresh2->GetBinContent(ibin)));
-    h1_eff_fwd_quark_thresh3->SetBinError(ibin, sqrt(h1_eff_fwd_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_fwd_quark_thresh1->GetBinContent(ibin))/h1_effDenom_fwd_quark_thresh3->GetBinContent(ibin)));
-
     h1_eff_fwd_quark_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_fwd_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_fwd_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_fwd_quark_thresh1->GetBinContent(ibin)));
-    h1_eff_fwd_quark_syst_thresh2->SetBinError(ibin, sqrt(h1_eff_fwd_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_fwd_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_fwd_quark_thresh2->GetBinContent(ibin)));
-    h1_eff_fwd_quark_syst_thresh3->SetBinError(ibin, sqrt(h1_eff_fwd_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_fwd_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_fwd_quark_thresh3->GetBinContent(ibin)));
 
     h1_eff_fwd_gluon_thresh1->SetBinError(ibin, sqrt(h1_eff_fwd_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_fwd_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_fwd_gluon_thresh1->GetBinContent(ibin)));
-    h1_eff_fwd_gluon_thresh2->SetBinError(ibin, sqrt(h1_eff_fwd_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_fwd_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_fwd_gluon_thresh2->GetBinContent(ibin)));
-    h1_eff_fwd_gluon_thresh3->SetBinError(ibin, sqrt(h1_eff_fwd_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_fwd_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_fwd_gluon_thresh3->GetBinContent(ibin)));
-
     h1_eff_fwd_gluon_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_fwd_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_fwd_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_fwd_gluon_thresh1->GetBinContent(ibin)));
-    h1_eff_fwd_gluon_syst_thresh2->SetBinError(ibin, sqrt(h1_eff_fwd_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_fwd_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_fwd_gluon_thresh2->GetBinContent(ibin)));
-    h1_eff_fwd_gluon_syst_thresh3->SetBinError(ibin, sqrt(h1_eff_fwd_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_fwd_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_fwd_gluon_thresh3->GetBinContent(ibin)));
 
   }
 
 
-  drawEffVsPt(db, discrim, thresh1, thresh1, 0., 2., h1_eff_centr_gluon_thresh1, h1_eff_centr_gluon_syst_thresh1, h1_eff_centr_quark_thresh1, h1_eff_centr_quark_syst_thresh1);
-  drawEffVsPt(db, discrim, thresh1, thresh1, 2., 3., h1_eff_trans_gluon_thresh1, h1_eff_trans_gluon_syst_thresh1, h1_eff_trans_quark_thresh1, h1_eff_trans_quark_syst_thresh1);
-  drawEffVsPt(db, discrim, thresh1, thresh1, 3., 4.7, h1_eff_fwd_gluon_thresh1, h1_eff_fwd_gluon_syst_thresh1, h1_eff_fwd_quark_thresh1, h1_eff_fwd_quark_syst_thresh1);
-
-  drawEffVsPt(db, discrim, thresh2, thresh2, 0., 2., h1_eff_centr_gluon_thresh2, h1_eff_centr_gluon_syst_thresh2, h1_eff_centr_quark_thresh2, h1_eff_centr_quark_syst_thresh2, "_thresh2");
-  drawEffVsPt(db, discrim, thresh2, thresh2, 2., 3., h1_eff_trans_gluon_thresh2, h1_eff_trans_gluon_syst_thresh2, h1_eff_trans_quark_thresh2, h1_eff_trans_quark_syst_thresh2, "_thresh2");
-  drawEffVsPt(db, discrim, thresh2, thresh2, 3., 4.7, h1_eff_fwd_gluon_thresh2, h1_eff_fwd_gluon_syst_thresh2, h1_eff_fwd_quark_thresh2, h1_eff_fwd_quark_syst_thresh2, "_thresh2");
+  drawEffVsPt(db, discrim, thresh1, 0., 2., h1_eff_centr_gluon_thresh1, h1_eff_centr_gluon_syst_thresh1, h1_eff_centr_quark_thresh1, h1_eff_centr_quark_syst_thresh1);
+  drawEffVsPt(db, discrim, thresh1, 2., 3., h1_eff_trans_gluon_thresh1, h1_eff_trans_gluon_syst_thresh1, h1_eff_trans_quark_thresh1, h1_eff_trans_quark_syst_thresh1);
+  drawEffVsPt(db, discrim, thresh1, 3., 4.7, h1_eff_fwd_gluon_thresh1, h1_eff_fwd_gluon_syst_thresh1, h1_eff_fwd_quark_thresh1, h1_eff_fwd_quark_syst_thresh1);
 
 
   // and vs rho:
   TH1D* h1_eff_vs_rho_centr_quark_thresh1 = new TH1D(*h1_effNum_vs_rho_centr_quark_thresh1);
-  TH1D* h1_eff_vs_rho_centr_quark_thresh2 = new TH1D(*h1_effNum_vs_rho_centr_quark_thresh2);
-  TH1D* h1_eff_vs_rho_centr_quark_thresh3 = new TH1D(*h1_effNum_vs_rho_centr_quark_thresh3);
-
   TH1D* h1_eff_vs_rho_centr_quark_syst_thresh1 = new TH1D(*h1_effNum_vs_rho_centr_quark_syst_thresh1);
-  TH1D* h1_eff_vs_rho_centr_quark_syst_thresh2 = new TH1D(*h1_effNum_vs_rho_centr_quark_syst_thresh2);
-  TH1D* h1_eff_vs_rho_centr_quark_syst_thresh3 = new TH1D(*h1_effNum_vs_rho_centr_quark_syst_thresh3);
 
   TH1D* h1_eff_vs_rho_centr_gluon_thresh1 = new TH1D(*h1_effNum_vs_rho_centr_gluon_thresh1);
-  TH1D* h1_eff_vs_rho_centr_gluon_thresh2 = new TH1D(*h1_effNum_vs_rho_centr_gluon_thresh2);
-  TH1D* h1_eff_vs_rho_centr_gluon_thresh3 = new TH1D(*h1_effNum_vs_rho_centr_gluon_thresh3);
-
   TH1D* h1_eff_vs_rho_centr_gluon_syst_thresh1 = new TH1D(*h1_effNum_vs_rho_centr_gluon_syst_thresh1);
-  TH1D* h1_eff_vs_rho_centr_gluon_syst_thresh2 = new TH1D(*h1_effNum_vs_rho_centr_gluon_syst_thresh2);
-  TH1D* h1_eff_vs_rho_centr_gluon_syst_thresh3 = new TH1D(*h1_effNum_vs_rho_centr_gluon_syst_thresh3);
 
   TH1D* h1_eff_vs_rho_trans_quark_thresh1 = new TH1D(*h1_effNum_vs_rho_trans_quark_thresh1);
-  TH1D* h1_eff_vs_rho_trans_quark_thresh2 = new TH1D(*h1_effNum_vs_rho_trans_quark_thresh2);
-  TH1D* h1_eff_vs_rho_trans_quark_thresh3 = new TH1D(*h1_effNum_vs_rho_trans_quark_thresh3);
-
   TH1D* h1_eff_vs_rho_trans_quark_syst_thresh1 = new TH1D(*h1_effNum_vs_rho_trans_quark_syst_thresh1);
-  TH1D* h1_eff_vs_rho_trans_quark_syst_thresh2 = new TH1D(*h1_effNum_vs_rho_trans_quark_syst_thresh2);
-  TH1D* h1_eff_vs_rho_trans_quark_syst_thresh3 = new TH1D(*h1_effNum_vs_rho_trans_quark_syst_thresh3);
 
   TH1D* h1_eff_vs_rho_trans_gluon_thresh1 = new TH1D(*h1_effNum_vs_rho_trans_gluon_thresh1);
-  TH1D* h1_eff_vs_rho_trans_gluon_thresh2 = new TH1D(*h1_effNum_vs_rho_trans_gluon_thresh2);
-  TH1D* h1_eff_vs_rho_trans_gluon_thresh3 = new TH1D(*h1_effNum_vs_rho_trans_gluon_thresh3);
-
   TH1D* h1_eff_vs_rho_trans_gluon_syst_thresh1 = new TH1D(*h1_effNum_vs_rho_trans_gluon_syst_thresh1);
-  TH1D* h1_eff_vs_rho_trans_gluon_syst_thresh2 = new TH1D(*h1_effNum_vs_rho_trans_gluon_syst_thresh2);
-  TH1D* h1_eff_vs_rho_trans_gluon_syst_thresh3 = new TH1D(*h1_effNum_vs_rho_trans_gluon_syst_thresh3);
 
   TH1D* h1_eff_vs_rho_fwd_quark_thresh1 = new TH1D(*h1_effNum_vs_rho_fwd_quark_thresh1);
-  TH1D* h1_eff_vs_rho_fwd_quark_thresh2 = new TH1D(*h1_effNum_vs_rho_fwd_quark_thresh2);
-  TH1D* h1_eff_vs_rho_fwd_quark_thresh3 = new TH1D(*h1_effNum_vs_rho_fwd_quark_thresh3);
-
   TH1D* h1_eff_vs_rho_fwd_quark_syst_thresh1 = new TH1D(*h1_effNum_vs_rho_fwd_quark_syst_thresh1);
-  TH1D* h1_eff_vs_rho_fwd_quark_syst_thresh2 = new TH1D(*h1_effNum_vs_rho_fwd_quark_syst_thresh2);
-  TH1D* h1_eff_vs_rho_fwd_quark_syst_thresh3 = new TH1D(*h1_effNum_vs_rho_fwd_quark_syst_thresh3);
 
   TH1D* h1_eff_vs_rho_fwd_gluon_thresh1 = new TH1D(*h1_effNum_vs_rho_fwd_gluon_thresh1);
-  TH1D* h1_eff_vs_rho_fwd_gluon_thresh2 = new TH1D(*h1_effNum_vs_rho_fwd_gluon_thresh2);
-  TH1D* h1_eff_vs_rho_fwd_gluon_thresh3 = new TH1D(*h1_effNum_vs_rho_fwd_gluon_thresh3);
-
   TH1D* h1_eff_vs_rho_fwd_gluon_syst_thresh1 = new TH1D(*h1_effNum_vs_rho_fwd_gluon_syst_thresh1);
-  TH1D* h1_eff_vs_rho_fwd_gluon_syst_thresh2 = new TH1D(*h1_effNum_vs_rho_fwd_gluon_syst_thresh2);
-  TH1D* h1_eff_vs_rho_fwd_gluon_syst_thresh3 = new TH1D(*h1_effNum_vs_rho_fwd_gluon_syst_thresh3);
 
 
   h1_eff_vs_rho_centr_quark_thresh1->Divide(h1_effDenom_vs_rho_centr_quark_thresh1);
-  h1_eff_vs_rho_centr_quark_thresh2->Divide(h1_effDenom_vs_rho_centr_quark_thresh2);
-  h1_eff_vs_rho_centr_quark_thresh3->Divide(h1_effDenom_vs_rho_centr_quark_thresh3);
-
   h1_eff_vs_rho_centr_quark_syst_thresh1->Divide(h1_effDenom_vs_rho_centr_quark_thresh1);
-  h1_eff_vs_rho_centr_quark_syst_thresh2->Divide(h1_effDenom_vs_rho_centr_quark_thresh2);
-  h1_eff_vs_rho_centr_quark_syst_thresh3->Divide(h1_effDenom_vs_rho_centr_quark_thresh3);
 
   h1_eff_vs_rho_centr_gluon_thresh1->Divide(h1_effDenom_vs_rho_centr_gluon_thresh1);
-  h1_eff_vs_rho_centr_gluon_thresh2->Divide(h1_effDenom_vs_rho_centr_gluon_thresh2);
-  h1_eff_vs_rho_centr_gluon_thresh3->Divide(h1_effDenom_vs_rho_centr_gluon_thresh3);
-
   h1_eff_vs_rho_centr_gluon_syst_thresh1->Divide(h1_effDenom_vs_rho_centr_gluon_thresh1);
-  h1_eff_vs_rho_centr_gluon_syst_thresh2->Divide(h1_effDenom_vs_rho_centr_gluon_thresh2);
-  h1_eff_vs_rho_centr_gluon_syst_thresh3->Divide(h1_effDenom_vs_rho_centr_gluon_thresh3);
 
   h1_eff_vs_rho_trans_quark_thresh1->Divide(h1_effDenom_vs_rho_trans_quark_thresh1);
-  h1_eff_vs_rho_trans_quark_thresh2->Divide(h1_effDenom_vs_rho_trans_quark_thresh2);
-  h1_eff_vs_rho_trans_quark_thresh3->Divide(h1_effDenom_vs_rho_trans_quark_thresh3);
-
   h1_eff_vs_rho_trans_quark_syst_thresh1->Divide(h1_effDenom_vs_rho_trans_quark_thresh1);
-  h1_eff_vs_rho_trans_quark_syst_thresh2->Divide(h1_effDenom_vs_rho_trans_quark_thresh2);
-  h1_eff_vs_rho_trans_quark_syst_thresh3->Divide(h1_effDenom_vs_rho_trans_quark_thresh3);
 
   h1_eff_vs_rho_trans_gluon_thresh1->Divide(h1_effDenom_vs_rho_trans_gluon_thresh1);
-  h1_eff_vs_rho_trans_gluon_thresh2->Divide(h1_effDenom_vs_rho_trans_gluon_thresh2);
-  h1_eff_vs_rho_trans_gluon_thresh3->Divide(h1_effDenom_vs_rho_trans_gluon_thresh3);
-
   h1_eff_vs_rho_trans_gluon_syst_thresh1->Divide(h1_effDenom_vs_rho_trans_gluon_thresh1);
-  h1_eff_vs_rho_trans_gluon_syst_thresh2->Divide(h1_effDenom_vs_rho_trans_gluon_thresh2);
-  h1_eff_vs_rho_trans_gluon_syst_thresh3->Divide(h1_effDenom_vs_rho_trans_gluon_thresh3);
 
   h1_eff_vs_rho_fwd_quark_thresh1->Divide(h1_effDenom_vs_rho_fwd_quark_thresh1);
-  h1_eff_vs_rho_fwd_quark_thresh2->Divide(h1_effDenom_vs_rho_fwd_quark_thresh2);
-  h1_eff_vs_rho_fwd_quark_thresh3->Divide(h1_effDenom_vs_rho_fwd_quark_thresh3);
-
   h1_eff_vs_rho_fwd_quark_syst_thresh1->Divide(h1_effDenom_vs_rho_fwd_quark_thresh1);
-  h1_eff_vs_rho_fwd_quark_syst_thresh2->Divide(h1_effDenom_vs_rho_fwd_quark_thresh2);
-  h1_eff_vs_rho_fwd_quark_syst_thresh3->Divide(h1_effDenom_vs_rho_fwd_quark_thresh3);
 
   h1_eff_vs_rho_fwd_gluon_thresh1->Divide(h1_effDenom_vs_rho_fwd_gluon_thresh1);
-  h1_eff_vs_rho_fwd_gluon_thresh2->Divide(h1_effDenom_vs_rho_fwd_gluon_thresh2);
-  h1_eff_vs_rho_fwd_gluon_thresh3->Divide(h1_effDenom_vs_rho_fwd_gluon_thresh3);
-
   h1_eff_vs_rho_fwd_gluon_syst_thresh1->Divide(h1_effDenom_vs_rho_fwd_gluon_thresh1);
-  h1_eff_vs_rho_fwd_gluon_syst_thresh2->Divide(h1_effDenom_vs_rho_fwd_gluon_thresh2);
-  h1_eff_vs_rho_fwd_gluon_syst_thresh3->Divide(h1_effDenom_vs_rho_fwd_gluon_thresh3);
 
 
   // set good enough errors:
   for( unsigned ibin=1; ibin<nbins_rho+1; ++ibin ) {
 
     h1_eff_vs_rho_centr_quark_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_rho_centr_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_centr_quark_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_centr_quark_thresh1->GetBinContent(ibin)));
-    h1_eff_vs_rho_centr_quark_thresh2->SetBinError(ibin, sqrt(h1_eff_vs_rho_centr_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_centr_quark_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_centr_quark_thresh2->GetBinContent(ibin)));
-    h1_eff_vs_rho_centr_quark_thresh3->SetBinError(ibin, sqrt(h1_eff_vs_rho_centr_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_centr_quark_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_centr_quark_thresh3->GetBinContent(ibin)));
-
     h1_eff_vs_rho_centr_quark_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_rho_centr_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_centr_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_centr_quark_thresh1->GetBinContent(ibin)));
-    h1_eff_vs_rho_centr_quark_syst_thresh2->SetBinError(ibin, sqrt(h1_eff_vs_rho_centr_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_centr_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_centr_quark_thresh2->GetBinContent(ibin)));
-    h1_eff_vs_rho_centr_quark_syst_thresh3->SetBinError(ibin, sqrt(h1_eff_vs_rho_centr_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_centr_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_centr_quark_thresh3->GetBinContent(ibin)));
 
     h1_eff_vs_rho_trans_gluon_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_gluon_thresh1->GetBinContent(ibin)));
-    h1_eff_vs_rho_trans_gluon_thresh2->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_gluon_thresh2->GetBinContent(ibin)));
-    h1_eff_vs_rho_trans_gluon_thresh3->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_gluon_thresh3->GetBinContent(ibin)));
-
     h1_eff_vs_rho_trans_gluon_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_gluon_thresh1->GetBinContent(ibin)));
-    h1_eff_vs_rho_trans_gluon_syst_thresh2->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_gluon_thresh2->GetBinContent(ibin)));
-    h1_eff_vs_rho_trans_gluon_syst_thresh3->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_gluon_thresh3->GetBinContent(ibin)));
 
     h1_eff_vs_rho_trans_quark_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_quark_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_quark_thresh1->GetBinContent(ibin)));
-    h1_eff_vs_rho_trans_quark_thresh2->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_quark_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_quark_thresh2->GetBinContent(ibin)));
-    h1_eff_vs_rho_trans_quark_thresh3->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_quark_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_quark_thresh3->GetBinContent(ibin)));
-
     h1_eff_vs_rho_trans_quark_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_quark_thresh1->GetBinContent(ibin)));
-    h1_eff_vs_rho_trans_quark_syst_thresh2->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_quark_thresh2->GetBinContent(ibin)));
-    h1_eff_vs_rho_trans_quark_syst_thresh3->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_quark_thresh3->GetBinContent(ibin)));
 
     h1_eff_vs_rho_trans_gluon_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_gluon_thresh1->GetBinContent(ibin)));
-    h1_eff_vs_rho_trans_gluon_thresh2->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_gluon_thresh2->GetBinContent(ibin)));
-    h1_eff_vs_rho_trans_gluon_thresh3->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_gluon_thresh3->GetBinContent(ibin)));
-
     h1_eff_vs_rho_trans_gluon_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_gluon_thresh1->GetBinContent(ibin)));
-    h1_eff_vs_rho_trans_gluon_syst_thresh2->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_gluon_thresh2->GetBinContent(ibin)));
-    h1_eff_vs_rho_trans_gluon_syst_thresh3->SetBinError(ibin, sqrt(h1_eff_vs_rho_trans_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_trans_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_trans_gluon_thresh3->GetBinContent(ibin)));
 
     h1_eff_vs_rho_fwd_quark_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_rho_fwd_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_fwd_quark_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_fwd_quark_thresh1->GetBinContent(ibin)));
-    h1_eff_vs_rho_fwd_quark_thresh2->SetBinError(ibin, sqrt(h1_eff_vs_rho_fwd_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_fwd_quark_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_fwd_quark_thresh2->GetBinContent(ibin)));
-    h1_eff_vs_rho_fwd_quark_thresh3->SetBinError(ibin, sqrt(h1_eff_vs_rho_fwd_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_fwd_quark_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_fwd_quark_thresh3->GetBinContent(ibin)));
-
     h1_eff_vs_rho_fwd_quark_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_rho_fwd_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_fwd_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_fwd_quark_thresh1->GetBinContent(ibin)));
-    h1_eff_vs_rho_fwd_quark_syst_thresh2->SetBinError(ibin, sqrt(h1_eff_vs_rho_fwd_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_fwd_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_fwd_quark_thresh2->GetBinContent(ibin)));
-    h1_eff_vs_rho_fwd_quark_syst_thresh3->SetBinError(ibin, sqrt(h1_eff_vs_rho_fwd_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_fwd_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_fwd_quark_thresh3->GetBinContent(ibin)));
 
     h1_eff_vs_rho_fwd_gluon_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_rho_fwd_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_fwd_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_fwd_gluon_thresh1->GetBinContent(ibin)));
-    h1_eff_vs_rho_fwd_gluon_thresh2->SetBinError(ibin, sqrt(h1_eff_vs_rho_fwd_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_fwd_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_fwd_gluon_thresh2->GetBinContent(ibin)));
-    h1_eff_vs_rho_fwd_gluon_thresh3->SetBinError(ibin, sqrt(h1_eff_vs_rho_fwd_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_fwd_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_fwd_gluon_thresh3->GetBinContent(ibin)));
-
     h1_eff_vs_rho_fwd_gluon_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_rho_fwd_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_fwd_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_fwd_gluon_thresh1->GetBinContent(ibin)));
-    h1_eff_vs_rho_fwd_gluon_syst_thresh2->SetBinError(ibin, sqrt(h1_eff_vs_rho_fwd_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_fwd_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_fwd_gluon_thresh2->GetBinContent(ibin)));
-    h1_eff_vs_rho_fwd_gluon_syst_thresh3->SetBinError(ibin, sqrt(h1_eff_vs_rho_fwd_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_rho_fwd_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_rho_fwd_gluon_thresh3->GetBinContent(ibin)));
 
   }
 
 
-  drawEffVsPt(db, discrim, thresh1, thresh1, 0., 2., h1_eff_vs_rho_centr_gluon_thresh1, h1_eff_vs_rho_centr_gluon_syst_thresh1, h1_eff_vs_rho_centr_quark_thresh1, h1_eff_vs_rho_centr_quark_syst_thresh1);
-  drawEffVsPt(db, discrim, thresh1, thresh1, 2., 3., h1_eff_vs_rho_trans_gluon_thresh1, h1_eff_vs_rho_trans_gluon_syst_thresh1, h1_eff_vs_rho_trans_quark_thresh1, h1_eff_vs_rho_trans_quark_syst_thresh1);
-  drawEffVsPt(db, discrim, thresh1, thresh1, 3., 4.7, h1_eff_vs_rho_fwd_gluon_thresh1, h1_eff_vs_rho_fwd_gluon_syst_thresh1, h1_eff_vs_rho_fwd_quark_thresh1, h1_eff_vs_rho_fwd_quark_syst_thresh1);
+  drawEffVsPt(db, discrim, thresh1, 0., 2., h1_eff_vs_rho_centr_gluon_thresh1, h1_eff_vs_rho_centr_gluon_syst_thresh1, h1_eff_vs_rho_centr_quark_thresh1, h1_eff_vs_rho_centr_quark_syst_thresh1);
+  drawEffVsPt(db, discrim, thresh1, 2., 3., h1_eff_vs_rho_trans_gluon_thresh1, h1_eff_vs_rho_trans_gluon_syst_thresh1, h1_eff_vs_rho_trans_quark_thresh1, h1_eff_vs_rho_trans_quark_syst_thresh1);
+  drawEffVsPt(db, discrim, thresh1, 3., 4.7, h1_eff_vs_rho_fwd_gluon_thresh1, h1_eff_vs_rho_fwd_gluon_syst_thresh1, h1_eff_vs_rho_fwd_quark_thresh1, h1_eff_vs_rho_fwd_quark_syst_thresh1);
 
 
   outfile->cd();
@@ -1625,6 +1389,9 @@ int main( int argc, char* argv[] ) {
 
   h1_qglJet_pt2030_eta02_rho040->Write();
   h1_qglJetSyst_pt2030_eta02_rho040->Write();
+  
+  h1_qglJet_pt3040_eta02_rho040->Write();
+  h1_qglJetSyst_pt3040_eta02_rho040->Write();
   
   h1_qglJet_pt4050_eta02_rho040->Write();
   h1_qglJetSyst_pt4050_eta02_rho040->Write();
@@ -1644,6 +1411,9 @@ int main( int argc, char* argv[] ) {
   h1_qglJet_pt2030_eta35_rho040->Write();
   h1_qglJetSyst_pt2030_eta35_rho040->Write();
   
+  h1_qglJet_pt3040_eta35_rho040->Write();
+  h1_qglJetSyst_pt3040_eta35_rho040->Write();
+  
   h1_qglJet_pt4050_eta35_rho040->Write();
   h1_qglJetSyst_pt4050_eta35_rho040->Write();
   
@@ -1659,6 +1429,8 @@ int main( int argc, char* argv[] ) {
 
   h1_data_qglJet_pt2030_eta02_rho040->Write();
   
+  h1_data_qglJet_pt3040_eta02_rho040->Write();
+  
   h1_data_qglJet_pt4050_eta02_rho040->Write();
   
   h1_data_qglJet_pt5065_eta02_rho040->Write();
@@ -1670,6 +1442,8 @@ int main( int argc, char* argv[] ) {
   h1_data_qglJet_pt100250_eta02_rho040->Write();
 
   h1_data_qglJet_pt2030_eta35_rho040->Write();
+
+  h1_data_qglJet_pt3040_eta35_rho040->Write();
 
   h1_data_qglJet_pt4050_eta35_rho040->Write();
   
@@ -1688,7 +1462,7 @@ int main( int argc, char* argv[] ) {
 }
 
 
-void drawSinglePlot( DrawBase* db, const std::string& discrim, TH1D* h1_data, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax ) {
+void drawSinglePlot( const std::string& selection, DrawBase* db, const std::string& discrim, TH1D* h1_data, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax ) {
 
 
   TCanvas* c1 = new TCanvas("c1", "", 600, 600);
@@ -1735,10 +1509,13 @@ void drawSinglePlot( DrawBase* db, const std::string& discrim, TH1D* h1_data, TH
 
   TLegend* legend = new TLegend(0.25, 0.66, 0.7, 0.9, legendTitle);
   legend->SetFillColor(0);
-  legend->SetTextSize(0.038);
-  legend->AddEntry( h1_data, "Data", "p" );
-  legend->AddEntry( h1_qgl, "MC Before Smearing", "L" );
-  legend->AddEntry( h1_qglSyst, "MC After Smearing", "L" );
+  legend->SetTextSize(0.04);
+  if( selection=="DiJet" )
+    legend->AddEntry( h1_data, "Dijet data", "p" );
+  else 
+    legend->AddEntry( h1_data, "Z+Jet data", "p" );
+  legend->AddEntry( h1_qgl, "MC before smearing", "L" );
+  legend->AddEntry( h1_qglSyst, "MC after smearing", "L" );
   legend->Draw("same");
 
 
@@ -1768,7 +1545,7 @@ void drawSinglePlot( DrawBase* db, const std::string& discrim, TH1D* h1_data, TH
 
 
 
-void drawEffVsPt( DrawBase* db, const std::string& discrim, float thresh1, float thresh3, float etaMin, float etaMax, TH1D* h1_eff_gluon_thresh1, TH1D* h1_eff_gluon_syst_thresh1, TH1D* h1_eff_quark_thresh3, TH1D* h1_eff_quark_syst_thresh3, const std::string& suffix ) {
+void drawEffVsPt( DrawBase* db, const std::string& discrim, float thresh1, float etaMin, float etaMax, TH1D* h1_eff_gluon_thresh1, TH1D* h1_eff_gluon_syst_thresh1, TH1D* h1_eff_quark_thresh1, TH1D* h1_eff_quark_syst_thresh1, const std::string& suffix ) {
 
 
 
@@ -1794,14 +1571,17 @@ void drawEffVsPt( DrawBase* db, const std::string& discrim, float thresh1, float
     else if( etaMax>2. )
       xMax = 210.;
     else
-      xMax = 500.;
+      xMax = 520.;
 
   }
 
 
+  std::string discrim_text = (discrim=="qgMLPJet") ? "MLP" : "LD";
+  std::string operator_discrim = (discrim=="qgMLPJet") ? "<" : ">";
 
 
   float xMin = (isRho) ? 0. : 20.;
+  if( !isRho && etaMax > 4. ) xMin = 30.;
 
   TH2D* h2_axes = new TH2D("axes", "", 10, xMin, xMax, 10, 0., 1.);
   if( isRho )
@@ -1811,7 +1591,9 @@ void drawEffVsPt( DrawBase* db, const std::string& discrim, float thresh1, float
     h2_axes->GetXaxis()->SetMoreLogLabels();
     h2_axes->GetXaxis()->SetNoExponent();
   }
-  h2_axes->SetYTitle("Efficiency");
+  char yAxisTitle[300];
+  sprintf( yAxisTitle, "Efficiency (%s %s %.1f)", discrim_text.c_str(), operator_discrim.c_str(), thresh1);
+  h2_axes->SetYTitle(yAxisTitle);
 
 
   h1_eff_gluon_thresh1->SetMarkerStyle(20);
@@ -1824,61 +1606,80 @@ void drawEffVsPt( DrawBase* db, const std::string& discrim, float thresh1, float
   h1_eff_gluon_syst_thresh1->SetMarkerColor(46);
   h1_eff_gluon_syst_thresh1->SetLineColor(kBlack);
 
-  h1_eff_quark_thresh3->SetMarkerStyle(21);
-  h1_eff_quark_thresh3->SetMarkerSize(1.6);
-  h1_eff_quark_thresh3->SetMarkerColor(38);
-  h1_eff_quark_thresh3->SetLineColor(kBlack);
+  h1_eff_quark_thresh1->SetMarkerStyle(21);
+  h1_eff_quark_thresh1->SetMarkerSize(1.6);
+  h1_eff_quark_thresh1->SetMarkerColor(38);
+  h1_eff_quark_thresh1->SetLineColor(kBlack);
 
-  h1_eff_quark_syst_thresh3->SetMarkerStyle(25);
-  h1_eff_quark_syst_thresh3->SetMarkerSize(1.6);
-  h1_eff_quark_syst_thresh3->SetMarkerColor(38);
-  h1_eff_quark_syst_thresh3->SetLineColor(kBlack);
+  h1_eff_quark_syst_thresh1->SetMarkerStyle(25);
+  h1_eff_quark_syst_thresh1->SetMarkerSize(1.6);
+  h1_eff_quark_syst_thresh1->SetMarkerColor(38);
+  h1_eff_quark_syst_thresh1->SetLineColor(kBlack);
 
   TPaveText* labelTop = db->get_labelTop();
   TPaveText* labelEta = new TPaveText(0.22, 0.83, 0.36, 0.93, "brNDC");
-  //TPaveText* labelEta = new TPaveText(0.72, 0.83, 0.93, 0.93, "brNDC");
   labelEta->AddText(etaText);
   labelEta->SetTextSize(0.038);
   labelEta->SetFillColor(0);
 
-  std::string discrim_text = (discrim=="qgMLPJet") ? "MLP" : "LD";
-  std::string operator_discrim = (discrim=="qgMLPJet") ? "<" : ">";
+  TPaveText* labelEta_bottom = new TPaveText(0.22, 0.2, 0.36, 0.25, "brNDC");
+  labelEta_bottom->AddText(etaText);
+  labelEta_bottom->SetTextSize(0.038);
+  labelEta_bottom->SetFillColor(0);
+
   char gluon_text[500];
-  sprintf( gluon_text, "Gluon Eff. (%s %s %.1f)", discrim_text.c_str(), operator_discrim.c_str(), thresh1 );
+  sprintf( gluon_text, "Gluon" );
   char gluon_syst_text[500];
-  sprintf( gluon_syst_text, "Gluon Eff. (%s %s %.1f) After Syst.", discrim_text.c_str(), operator_discrim.c_str(), thresh1 );
+  sprintf( gluon_syst_text, "Gluon (after syst.)" );
   char quark_text[500];
-  sprintf( quark_text, "Quark Eff. (%s %s %.1f)", discrim_text.c_str(), operator_discrim.c_str(), thresh3 );
+  sprintf( quark_text, "Quark" );
   char quark_syst_text[500];
-  sprintf( quark_syst_text, "Quark Eff. (%s %s %.1f) After Syst.", discrim_text.c_str(), operator_discrim.c_str(), thresh3 );
+  sprintf( quark_syst_text, "Quark (after syst.)" );
 
 
   char legendTitle[300];
   sprintf( legendTitle, "Quark-Gluon %s", discrim_text.c_str() );
   //sprintf( legendTitle, "Quark-Gluon %s, %s", discrim_text.c_str(), etaText );
 
-  TLegend* legend = new TLegend( 0.18, 0.18, 0.5, 0.43, legendTitle );
-  legend->SetTextSize(0.035);
+  TLegend* legend = new TLegend( 0.18, 0.18, 0.5, 0.43 );
+  //TLegend* legend = new TLegend( 0.18, 0.18, 0.5, 0.43, legendTitle );
+  legend->SetTextSize(0.04);
   legend->SetFillColor(kWhite);
-  legend->AddEntry( h1_eff_quark_thresh3, quark_text, "P");
-  legend->AddEntry( h1_eff_quark_syst_thresh3, quark_syst_text, "P");
+  legend->AddEntry( h1_eff_quark_thresh1, quark_text, "P");
+  legend->AddEntry( h1_eff_quark_syst_thresh1, quark_syst_text, "P");
   legend->AddEntry( h1_eff_gluon_thresh1, gluon_text, "P");
   legend->AddEntry( h1_eff_gluon_syst_thresh1, gluon_syst_text, "P");
+
+  TLegend* legend_quark = new TLegend( 0.17, 0.79, 0.45, 0.91 );
+  legend_quark->SetTextSize(0.04);
+  legend_quark->SetFillColor(kWhite);
+  legend_quark->AddEntry( h1_eff_quark_thresh1, quark_text, "P");
+  legend_quark->AddEntry( h1_eff_quark_syst_thresh1, quark_syst_text, "P");
+
+  TLegend* legend_gluon = new TLegend( 0.55, 0.79, 0.83, 0.91 );
+  legend_gluon->SetTextSize(0.04);
+  legend_gluon->SetFillColor(kWhite);
+  legend_gluon->AddEntry( h1_eff_gluon_thresh1, gluon_text, "P");
+  legend_gluon->AddEntry( h1_eff_gluon_syst_thresh1, gluon_syst_text, "P");
+
 
   TCanvas* c1 = new TCanvas("c1", "", 600, 600);
   c1->cd();
   if( !isRho )
     c1->SetLogx();
   h2_axes->Draw();
-  legend->Draw("same");
+  //legend->Draw("same");
+  //labelEta->Draw("same");
+  legend_gluon->Draw("same");
+  legend_quark->Draw("same");
+  labelEta_bottom->Draw("same");
   labelTop->Draw("same");
-  labelEta->Draw("same");
   //labelEta->Draw("same");
   gStyle->SetErrorX(0);
   h1_eff_gluon_thresh1->Draw("p same");
   h1_eff_gluon_syst_thresh1->Draw("p same");
-  h1_eff_quark_thresh3->Draw("p same");
-  h1_eff_quark_syst_thresh3->Draw("p same");
+  h1_eff_quark_thresh1->Draw("p same");
+  h1_eff_quark_syst_thresh1->Draw("p same");
 
 
   gPad->RedrawAxis();

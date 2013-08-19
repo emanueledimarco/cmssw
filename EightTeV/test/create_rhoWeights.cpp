@@ -6,38 +6,46 @@
 
 
 
+bool ptHatReweight = true;
+
 
 int main(int argc, char* argv[]) {
 
-  if( argc < 2 ) {
-    std::cout << "USAGE: ./create_rhoWeights [dataset]" << std::endl;
-    std::cout << "where [dataset] can be either \"ZJet\" or \"JetPD\" or \"MB\"" << std::endl;
+  if( argc < 3 ) {
+    std::cout << "USAGE: ./create_rhoWeights [mcDataset] [selection]" << std::endl;
+    std::cout << "where [selection] can be either \"ZJet\" or \"DiJet\"" << std::endl;
     exit(11);
   }
 
 
-  std::string dataset(argv[1]);
-  if( dataset!="MB" && dataset!="JetPD" && dataset!="ZJet" ) {
-    std::cout << "Only supporting \"JetPD\" and \"MB\" and \"ZJet\" at the moment. Exiting." << std::endl;
+  std::string mcDataset(argv[1]);
+
+
+  std::string selection(argv[2]);
+  if( selection!="ZJet" && selection!="DiJet" ) {
+    std::cout << "Only supporting \"ZJet\" and \"DiJet\" selections at the moment. Exiting." << std::endl;
     exit(13);
   }
 
-  std::string mcDataset;
+
+
   std::string dataDataset;
-  if( dataset=="MB" ) {
-    mcDataset = "flatQCD_P6_Dijets_12Jul"; 
-    dataDataset = "data2012ABCD_MBPD_12Jul"; 
-  } else if( dataset=="JetPD" ) {
-    mcDataset = "flatQCD_P6_Dijets_12Jul"; 
-    dataDataset = "data2012ABCD_JetPD_12Jul"; 
-  } else if( dataset=="ZJet" ) {
-    mcDataset = "Zjets_12Jul";
-    dataDataset = "data2012ABCD_MuPD_12Jul"; 
-  }
+  if( selection=="Zjet" )
+    dataDataset = "data2012ABCD_MuPD_12Jul";
+  else if( selection=="DiJet" )
+    dataDataset = "data2012ABCD_MBPD_12Jul"; //fuck the JetPD
 
-  std::string selectionType = (dataset=="ZJet") ? "ZJet" : "DiJet";
 
-  std::string mcFileName = "sunilFlat_" + selectionType + "_" + mcDataset + ".root";
+
+  //std::cout << "HAVE YOU DONE THE pT REWEIGHTING FIRST?" << std::endl;
+  //std::string tmp_string;
+  //std::cin >> tmp_string;
+
+  std::string selectionType = (selection=="ZJet") ? "ZJet" : "DiJet";
+
+  std::string mcFileName = "sunilFlat_" + selectionType + "_" + mcDataset;
+  if( selection=="DiJet" && ptHatReweight ) mcFileName += "_ptHatWeight";
+  mcFileName += ".root";
   std::string dataFileName = "sunilFlat_" + selectionType + "_" + dataDataset + ".root";
 
   TFile* mcFile = TFile::Open(mcFileName.c_str());
@@ -52,7 +60,7 @@ int main(int argc, char* argv[]) {
   TH1D* h1_rho_data = new TH1D("rho_data", "", 90, 0., 45.);
   TH1D* h1_rho_mc = new TH1D("rho_mc", "", 90., 0., 45.);
 
-  mcTree->Project( "rho_mc", "rhoPF");
+  mcTree->Project( "rho_mc", "rhoPF", "wt_pteta");
   dataTree->Project( "rho_data", "rhoPF");
 
  

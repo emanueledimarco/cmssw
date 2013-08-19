@@ -40,6 +40,8 @@ void QGSyst::ReadDatabase(std::string fileName)
 	database_.close();
 }
 
+
+
 void QGSyst::ReadDatabaseDoubleMin(std::string fileName)
 {
 	database_.open(fileName.c_str(),std::ios::in);
@@ -74,6 +76,10 @@ void QGSyst::ReadDatabaseDoubleMin(std::string fileName)
     		}	
 	database_.close();
 }
+
+
+
+
 
 float QGSyst::function(float x0, float a ,float b,float min,float max)
 {

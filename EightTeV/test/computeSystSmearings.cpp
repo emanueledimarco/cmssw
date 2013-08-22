@@ -12,6 +12,7 @@
 #include "fitTools.h"
 
 
+bool use_herwig = true;
 
 
 struct FitParameters {
@@ -65,7 +66,11 @@ int main( int argc, char* argv[] ) {
 
 
 
-  std::string mcFileName = (selection=="ZJet") ? "sunilFlat_ZJet_Zjets_12Jul.root" : "sunilFlat_DiJet_flatQCD_P6_Dijets_12Aug_ptHatWeight.root";
+  std::string mcFileName;
+  if( use_herwig ) 
+    mcFileName = (selection=="ZJet") ? "sunilFlat_ZJet_Zjets_Hpp.root" : "sunilFlat_DiJet_flatQCD_HPP_Dijets_12Aug_ptHatWeight.root";
+  else
+    mcFileName = (selection=="ZJet") ? "sunilFlat_ZJet_Zjets_12Jul.root" : "sunilFlat_DiJet_flatQCD_P6_Dijets_12Aug_ptHatWeight.root";
   std::cout << "-> Opening MC file: " << mcFileName << std::endl;
   TFile* file = TFile::Open(mcFileName.c_str());
   TTree* tree = (TTree*)file->Get("tree_passedEvents");
@@ -76,11 +81,13 @@ int main( int argc, char* argv[] ) {
   tree_data->Add(dataFileName.c_str());
 
 
-  std::string outfilename = "SystDB_new_"+selection+".txt";
+  std::string outfilename = "SystDB_new_"+selection;
+  if( use_herwig ) outfilename += "_Hpp";
+  outfilename += ".txt";
   ofstream systdbfile(outfilename.c_str());
-  //systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 30., 40., 0., 2. ) << std::endl;
-  //systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 40., 50., 0., 2. ) << std::endl;
-  //systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 50., 65., 0., 2. ) << std::endl;
+  systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 30., 40., 0., 2. ) << std::endl;
+  systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 40., 50., 0., 2. ) << std::endl;
+  systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 50., 65., 0., 2. ) << std::endl;
   systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 65., 80., 0., 2. ) << std::endl;
   systdbfile << scanSingleBin( selection, tree, tree_data, discrim, 80., 100., 0., 2. ) << std::endl;
 
@@ -106,19 +113,39 @@ std::string scanSingleBin( const std::string& selection, TTree* tree, TTree* tre
   std::cout << std::endl;
   std::cout << "-> First round: smear only gluons." << std::endl;
 
+  int jet_ptindex = (selection=="DiJet") ? 1 : 0;
 
   char commonCondition[1023];
-  sprintf( commonCondition, "ptJet>%f && ptJet<%f && abs(etaJet)>=%f && abs(etaJet)<%f", ptMin, ptMax, etaMin, etaMax );
+  sprintf( commonCondition, "ptJet[%d]>%f && ptJet[%d]<%f && abs(etaJet[0])>=%f && abs(etaJet[0])<%f", jet_ptindex, ptMin, jet_ptindex, ptMax, etaMin, etaMax );
+
+  std::string discrimName = discrim + "[0]";
 
   TH1D* h1_data = new TH1D("data", "", 30, 0., 1.0001);
-  tree_data->Project("data", discrim.c_str(), commonCondition );
+  tree_data->Project("data", discrimName.c_str(), commonCondition );
+
+
+  if( selection=="DiJet" ) {
+
+    char commonCondition2[500];
+    sprintf( commonCondition2, "ptJet[0]>%f && ptJet[0]<%f && abs(etaJet[1])>=%f && abs(etaJet[1])<%f", ptMin, ptMax, etaMin, etaMax );
+
+    TH1D* h1_data2 = new TH1D( "data2", "", 30, 0., 1.0001);
+
+    std::string discrimName2 = discrim + "[1]";
+    tree_data->Project( "data2", discrimName2.c_str(), commonCondition2 );
+
+    h1_data->Add( h1_data2 );
+
+    delete h1_data2;
+
+  }
 
 
   float chi2min = 100000.;
   float g_a_min = 1.;
   float g_b_min = 0.;
 
-  for( float g_a = 0.7; g_a<1.02; g_a+=0.02 ) {
+  for( float g_a = 0.84; g_a<1.1; g_a+=0.02 ) {
 
     for( float g_b = -0.5; g_b<0.5; g_b+=0.1 ) {
 
@@ -145,9 +172,9 @@ std::string scanSingleBin( const std::string& selection, TTree* tree, TTree* tre
   float q_a_min = 1.;
   float q_b_min = 0.;
 
-  for( float q_a = 0.965; q_a<1.015; q_a+=0.005 ) {
+  for( float q_a = 0.9; q_a<1.02; q_a+=0.02 ) {
 
-    for( float q_b = -0.2; q_b<0.2; q_b+=0.1 ) {
+    for( float q_b = -0.5; q_b<0.5; q_b+=0.1 ) {
 
       std::cout << "Scanning: q_a = " << q_a << "  q_b = " << q_b << std::endl;
 
@@ -174,10 +201,10 @@ std::string scanSingleBin( const std::string& selection, TTree* tree, TTree* tre
 
   for( float corr_g_a = 0.98; corr_g_a<1.02; corr_g_a+=0.01 ) {
 
-    for( float corr_g_b = 0.98; corr_g_b<1.02; corr_g_b+=0.01 ) {
+    for( float corr_g_b = -0.04; corr_g_b<0.04; corr_g_b+=0.02 ) {
 
       float g_a = g_a_min*corr_g_a;
-      float g_b = g_b_min*corr_g_b;
+      float g_b = g_b_min+corr_g_b;
 
       std::cout << "Scanning: g_a = " << g_a << "  g_b = " << g_b << std::endl;
 
@@ -219,24 +246,63 @@ FitParameters getSingleChiSquare( const std::string& selection, char* commonCond
 
 
   char quarkCondition[1023];
-  sprintf( quarkCondition, "eventWeight*(abs(pdgIdJet)<6  && abs(pdgIdJet)!=0 && %s)", commonCondition );
+  sprintf( quarkCondition, "eventWeight*(abs(pdgIdJet[0])<6  && abs(pdgIdJet[0])!=0 && %s)", commonCondition );
   char gluonCondition[1023];
-  sprintf( gluonCondition, "eventWeight*(pdgIdJet==21     && abs(pdgIdJet)!=0 && %s)", commonCondition );
+  sprintf( gluonCondition, "eventWeight*(pdgIdJet[0]==21     && abs(pdgIdJet[0])!=0 && %s)", commonCondition );
   char undefCondition[1023];
-  sprintf( undefCondition, "eventWeight*(pdgIdJet==0 && %s)", commonCondition );
+  sprintf( undefCondition, "eventWeight*(pdgIdJet[0]==0 && %s)", commonCondition );
 
-  tree->Project( "mc_quark", discrim.c_str(), quarkCondition );
-  tree->Project( "mc_gluon", discrim.c_str(), gluonCondition );
-  tree->Project( "mc_undef", discrim.c_str(), undefCondition );
+  std::string discrimName = discrim + "[0]";
+
+  tree->Project( "mc_quark", discrimName.c_str(), quarkCondition );
+  tree->Project( "mc_gluon", discrimName.c_str(), gluonCondition );
+  tree->Project( "mc_undef", discrimName.c_str(), undefCondition );
 
   char smearedVar_quark[1023];
-  sprintf( smearedVar_quark, "TMath::TanH( %f* TMath::ATanH(2.*%s-1.)+%f )/2.+.5 ", q_a, discrim.c_str(), q_b );
+  sprintf( smearedVar_quark, "TMath::TanH( %f* TMath::ATanH(2.*%s-1.)+%f )/2.+.5 ", q_a, discrimName.c_str(), q_b );
   char smearedVar_gluon[1023];
-  sprintf( smearedVar_gluon, "TMath::TanH( %f* TMath::ATanH(2.*%s-1.)+%f )/2.+.5 ", g_a, discrim.c_str(), g_b );
+  sprintf( smearedVar_gluon, "TMath::TanH( %f* TMath::ATanH(2.*%s-1.)+%f )/2.+.5 ", g_a, discrimName.c_str(), g_b );
 
   tree->Project( "mc_undef", discrim.c_str(),  undefCondition ); //don't smear undefined
   tree->Project( "mc_quark", smearedVar_quark, quarkCondition );
   tree->Project( "mc_gluon", smearedVar_gluon, gluonCondition );
+
+  if( selection=="DiJet" ) {
+
+    TString commonCondition2(commonCondition);
+    commonCondition2.ReplaceAll( "ptJet[1]", "ptJet[0]" );
+    commonCondition2.ReplaceAll( "etaJet[0]", "etaJet[1]" );
+
+    TH1D* h1_mc_quark2 = new TH1D( "mc_quark2", "", 30, 0., 1.0001 );
+    TH1D* h1_mc_gluon2 = new TH1D( "mc_gluon2", "", 30, 0., 1.0001 );
+    TH1D* h1_mc_undef2 = new TH1D( "mc_undef2", "", 30, 0., 1.0001 );
+
+    TString quarkCondition2 = "eventWeight*(abs(pdgIdJet[1])<6  && abs(pdgIdJet[1])!=0 && " + commonCondition2 + ")";
+    TString gluonCondition2 = "eventWeight*(abs(pdgIdJet[1])==21 && " + commonCondition2 + ")";
+    TString undefCondition2 = "eventWeight*(abs(pdgIdJet[1])==0 && " + commonCondition2 + ")";
+
+    //char quarkCondition2[800];
+    //sprintf( quarkCondition2, "eventWeight*(abs(pdgIdJet[1])<6  && abs(pdgIdJet[1])!=0 && %s)", commonCondition2 );
+    //char gluonCondition2[800];
+    //sprintf( gluonCondition2, "eventWeight*(pdgIdJet[1]==21     && abs(pdgIdJet[1])!=0 && %s)", commonCondition2 );
+    //char puCondition2[800];
+    //sprintf( puCondition2,     "eventWeight*(pdgIdJet[1]==0 && %s)", commonCondition2 );
+
+    std::string discrimName2 = discrim + "[1]";
+
+    tree->Project( "mc_quark2", discrimName2.c_str(), quarkCondition2 );
+    tree->Project( "mc_gluon2", discrimName2.c_str(), gluonCondition2 );
+    tree->Project( "mc_undef2", discrimName2.c_str(), undefCondition2 );
+
+    h1_mc_quark->Add( h1_mc_quark2 );
+    h1_mc_gluon->Add( h1_mc_gluon2 );
+    h1_mc_undef->Add( h1_mc_undef2 );
+
+    delete h1_mc_quark2;
+    delete h1_mc_gluon2;
+    delete h1_mc_undef2;
+
+  } //if dijet
 
   TH1D* h1_mc_tot = new TH1D(*h1_mc_undef);
   h1_mc_tot->Add(h1_mc_quark);

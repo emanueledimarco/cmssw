@@ -10,7 +10,7 @@
 
 
 
-std::string treeType = "sunil"; //can be andrea/tom/sunil
+std::string treeType = "andrea"; //can be andrea/tom/sunil
 
 bool pthat_reweight = true;
 
@@ -136,10 +136,10 @@ int main( int argc, char* argv[] ) {
   std::vector<float>* v_jetBeta;
   std::vector<float>* v_jetBtag;
   std::vector<float>* v_jetPtD_QC;
-  std::vector<float>* v_MuEta;
-  std::vector<float>* v_MuPhi;
-  std::vector<float>* v_MuPt;
-  std::vector<float>* v_MuEnergy;
+  std::vector<float>* v_lepEta;
+  std::vector<float>* v_lepPhi;
+  std::vector<float>* v_lepPt;
+  std::vector<float>* v_lepEnergy;
   std::vector<int>*   v_lepChId;
   std::vector<int>*   v_jetPdgId;
   std::vector<int>*   v_jetMultiplicity;
@@ -153,10 +153,10 @@ int main( int argc, char* argv[] ) {
   v_jetBeta=0;
   v_jetBtag=0;
   v_jetPtD_QC=0;
-  v_MuEta=0;
-  v_MuPhi=0;
-  v_MuPt=0;
-  v_MuEnergy=0;
+  v_lepEta=0;
+  v_lepPhi=0;
+  v_lepPt=0;
+  v_lepEnergy=0;
   v_lepChId=0;
   v_jetPdgId=0;
   v_jetMultiplicity=0;
@@ -243,10 +243,10 @@ int main( int argc, char* argv[] ) {
     sunilTree->SetBranchAddress("jetQG_mult_L", &v_jetMultiplicity,&b_jetMultiplicity);
     if( selectionType=="ZJet" ) {                                    
       sunilTree->SetBranchAddress("lepChId",    &v_lepChId,        &b_lepChId);
-      sunilTree->SetBranchAddress("lepPt",      &v_MuPt,           &b_MuPt);
-      sunilTree->SetBranchAddress("lepEta",     &v_MuEta,          &b_MuEta);
-      sunilTree->SetBranchAddress("lepPhi",     &v_MuPhi,          &b_MuPhi);
-      sunilTree->SetBranchAddress("lepEnergy",  &v_MuEnergy,       &b_MuEnergy);
+      sunilTree->SetBranchAddress("lepPt",      &v_lepPt,           &b_MuPt);
+      sunilTree->SetBranchAddress("lepEta",     &v_lepEta,          &b_MuEta);
+      sunilTree->SetBranchAddress("lepPhi",     &v_lepPhi,          &b_MuPhi);
+      sunilTree->SetBranchAddress("lepE",  &v_lepEnergy,       &b_MuEnergy);
     }
 
   } //if andrea
@@ -487,37 +487,34 @@ int main( int argc, char* argv[] ) {
 
       // convert:
 
-std::cout << v_lepChId->size() << std::endl;
-std::cout << v_jetPt->size() << std::endl;
-std::cout << v_MuEta->size() << std::endl;
-      MuEta    [0] = (v_MuEta->size()>0) ?    v_MuEta->at(0) : -999.;
-      MuPhi    [0] = (v_MuPhi->size()>0) ?    v_MuPhi->at(0) : -999.;
-      MuPt     [0] = (v_MuPt->size()>0) ?     v_MuPt->at(0) : -999.;
-      MuEnergy [0] = (v_MuEnergy->size()>0) ? v_MuEnergy->at(0) : -999.;
-      MuEta    [1] = (v_MuEta->size()>1) ?    v_MuEta->at(1) : -999.;
-      MuPhi    [1] = (v_MuPhi->size()>1) ?    v_MuPhi->at(1) : -999.;
-      MuPt     [1] = (v_MuPt->size()>1) ?     v_MuPt->at(1) : -999.;
-      MuEnergy [1] = (v_MuEnergy->size()>1) ? v_MuEnergy->at(1) : -999.;
+      MuEta    [0] = (v_lepEta->size()>0) ?    v_lepEta->at(0) : -999.;
+      MuPhi    [0] = (v_lepPhi->size()>0) ?    v_lepPhi->at(0) : -999.;
+      MuPt     [0] = (v_lepPt->size()>0) ?     v_lepPt->at(0) : -999.;
+      MuEnergy [0] = (v_lepEnergy->size()>0) ? v_lepEnergy->at(0) : -999.;
+      MuEta    [1] = (v_lepEta->size()>1) ?    v_lepEta->at(1) : -999.;
+      MuPhi    [1] = (v_lepPhi->size()>1) ?    v_lepPhi->at(1) : -999.;
+      MuPt     [1] = (v_lepPt->size()>1) ?     v_lepPt->at(1) : -999.;
+      MuEnergy [1] = (v_lepEnergy->size()>1) ? v_lepEnergy->at(1) : -999.;
 
-      jetPt    [0] = v_jetPt->at(0);
-      jetEta   [0] = v_jetEta->at(0);
-      jetPhi   [0] = v_jetPhi->at(0);
-      jetEnergy[0] = v_jetEnergy->at(0);
-      jetBeta  [0] = v_jetBeta->at(0);
-      jetBtag  [0] = v_jetBtag->at(0);
-      jetPtD_QC[0] = v_jetPtD_QC->at(0);
-      axis2_QC[0]  = v_axis2_QC->at(0);
+      jetPt    [0] = (v_jetPt->size()>0) ?     v_jetPt->at(0) : -999.;
+      jetEta   [0] = (v_jetEta->size()>0) ?    v_jetEta->at(0) : -999.;
+      jetPhi   [0] = (v_jetPhi->size()>0) ?    v_jetPhi->at(0) : -999.;
+      jetEnergy[0] = (v_jetEnergy->size()>0) ? v_jetEnergy->at(0) : -999.;
+      jetBeta  [0] = (v_jetBeta->size()>0) ?   v_jetBeta->at(0) : -999.;
+      jetBtag  [0] = (v_jetBtag->size()>0) ?   v_jetBtag->at(0) : -999.;
+      jetPtD_QC[0] = (v_jetPtD_QC->size()>0) ? v_jetPtD_QC->at(0) : -999.;
+      axis2_QC[0]  = (v_axis2_QC->size()>0) ?  v_axis2_QC->at(0) : -999.;
+
+      jetPt    [1] = (v_jetPt->size()>1) ?     v_jetPt->at(1) : -999.;
+      jetEta   [1] = (v_jetEta->size()>1) ?    v_jetEta->at(1) : -999.;
+      jetPhi   [1] = (v_jetPhi->size()>1) ?    v_jetPhi->at(1) : -999.;
+      jetEnergy[1] = (v_jetEnergy->size()>1) ? v_jetEnergy->at(1) : -999.;
+      jetBeta  [1] = (v_jetBeta->size()>1) ?   v_jetBeta->at(1) : -999.;
+      jetBtag  [1] = (v_jetBtag->size()>1) ?   v_jetBtag->at(1) : -999.;
+      jetPtD_QC[1] = (v_jetPtD_QC->size()>1) ? v_jetPtD_QC->at(1) : -999.;
+      axis2_QC[1]  = (v_axis2_QC->size()>1) ?  v_axis2_QC->at(1) : -999.;
 
       
-      jetPt    [1] = (nJet>0) ? v_jetPt->at(1) : -999.;
-      jetEta   [1] = (nJet>0) ? v_jetEta->at(1) : -999.;
-      jetPhi   [1] = (nJet>0) ? v_jetPhi->at(1) : -999.;
-      jetEnergy[1] = (nJet>0) ? v_jetEnergy->at(1) : -999.;
-      jetBeta  [1] = (nJet>0) ? v_jetBeta->at(1) : -999.;
-      jetBtag  [1] = (nJet>0) ? v_jetBtag->at(1) : -999.;
-      jetPtD_QC[1] = (nJet>0) ? v_jetPtD_QC->at(1) : -999.;
-      axis2_QC[1]  = (nJet>0) ? v_axis2_QC->at(1) : -999.;
-
     }
 
 

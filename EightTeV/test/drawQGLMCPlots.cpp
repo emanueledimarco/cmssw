@@ -56,7 +56,7 @@ int main() {
   if( sunilTree )
     tree->Add("/afs/cern.ch/work/s/sunil/public/forTom/analysis_flatQCD_P6_Dijets.root/Hbb/events");
   else
-    tree->Add("sunilFlat_DiJet_flatQCD_P6_Dijets_12Jul.root/tree_passedEvents");
+    tree->Add("sunilFlat_DiJet_flatQCD_P6_Dijets_12Aug_ptHatWeight.root/tree_passedEvents");
     //tree->Add("sunilFlat_ZJet_Zjets_12Jul.root/tree_passedEvents");
     //tree->Add("/cmsrm/pc25_2/pandolf/MC/Summer12/QCD_Pt-15to3000_TuneZ2_Flat_8TeV_pythia6_Summer12_DR53X-PU_S10_START53_V7A-v1_finalQG_withCHS_JEC53X/QG_2ndLevelTree_QCD_Pt-15to3000_TuneZ2_Flat_8TeV_pythia6_Summer12_DR53X-PU_S10_START53_V7A-v1_finalQG_withCHS_JEC53X_*.root");
   
@@ -94,7 +94,7 @@ int main() {
   //HistosSinglePt h_pt2030 = drawSinglePtBin( db, qglc, qglc_old, tree, 20., 30. );
   //HistosSinglePt h_pt3040 = drawSinglePtBin( db, qglc, qglc_old, tree, 30., 40. );
   HistosSinglePt h_pt4050 = drawSinglePtBin( db, qglc, qglc_old, tree, 40., 50. );
-  //HistosSinglePt h_pt5065 = drawSinglePtBin( db, qglc, qglc_old, tree, 50., 65. );
+  HistosSinglePt h_pt5065 = drawSinglePtBin( db, qglc, qglc_old, tree, 50., 65. );
   //HistosSinglePt h_pt5080 = drawSinglePtBin( db, qglc, qglc_old, tree, 50., 80. );
   //HistosSinglePt h_pt6080 = drawSinglePtBin( db, qglc, qglc_old, tree, 60., 80. );
   HistosSinglePt h_pt80100 = drawSinglePtBin( db, qglc, qglc_old, tree, 80., 100. );
@@ -670,7 +670,7 @@ HistosSinglePt drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLi
 
 
 
-  // and now the discriminator RoCs
+  // and now the Discriminant RoCs
 
   drawRoC(db, ptMin, ptMax, "", h1_qgl_newHisto_gluon, h1_qgl_newHisto_quark, h1_qgl_old_gluon, h1_qgl_old_quark, 0, 0, "|#eta| < 2");
 
@@ -913,9 +913,9 @@ void drawPlot( DrawBase* db, TH1D* h1_gluon, TH1D* h1_quark, std::string name, f
 
   TH2D* h2_axes = new TH2D("axes", "", 10, h1_gluon->GetXaxis()->GetXmin(), h1_gluon->GetXaxis()->GetXmax(), 10, 0., ymax);
   if( isMLP )
-    h2_axes->SetXTitle("Quark-Gluon MLP Discriminator");
+    h2_axes->SetXTitle("Quark-Gluon MLP Discriminant");
   else
-    h2_axes->SetXTitle("Quark-Gluon Likelihood Discriminator");
+    h2_axes->SetXTitle("Quark-Gluon Likelihood Discriminant");
   h2_axes->SetYTitle("Normalized To Unity");
 
   TCanvas* c1 = new TCanvas("c1", "", 600, 600);
@@ -1019,7 +1019,7 @@ void drawPlot( DrawBase* db, TH1D* h1_gluon, TH1D* h1_quark, std::string name, f
 //
 //
 //  TH2D* h2_axes = new TH2D("axes", "", 10, 0., 1.0001, 10, 0., ymax);
-//  h2_axes->SetXTitle("Q-G Discriminator");
+//  h2_axes->SetXTitle("Q-G Discriminant");
 //  h2_axes->SetYTitle("Normalized To Unity");
 //
 //  TCanvas* c1 = new TCanvas("c1", "", 600, 600);
@@ -1375,9 +1375,9 @@ void compareTrees( DrawBase* db, TTree* tree, TTree* tree_herwig, float ptMin, f
   compareSingleVariable( "axis2_QCJet", "-ln(Axis_{2})", 50, 1., 7., db, tree, tree_herwig, ptMin, ptMax, etaMin, etaMax, "-log(axis2_QCJet[0])" );
   compareSingleVariable( "nPFCand_QC_ptCut", "PFCandidate Multiplicity", 50, 0., 50., db, tree, tree_herwig, ptMin, ptMax, etaMin, etaMax, "nChg_QCJet[0] + nNeutral_ptCutJet[0]" );
 
-  compareSingleVariable( "qgMLPJet", "Quark-Gluon MLP Discriminator", 50, 0., 1.0001, db, tree, tree_herwig, ptMin, ptMax, etaMin, etaMax );
+  compareSingleVariable( "qgMLPJet", "Quark-Gluon MLP Discriminant", 50, 0., 1.0001, db, tree, tree_herwig, ptMin, ptMax, etaMin, etaMax );
 
-  //compareSingleVariable( "qgl", "Quark-Gluon Likelihood Discriminator", 50, 0., 1.0001, db, tree, tree_herwig, ptMin, ptMax, etaMin, etaMax );
+  //compareSingleVariable( "qgl", "Quark-Gluon Likelihood Discriminant", 50, 0., 1.0001, db, tree, tree_herwig, ptMin, ptMax, etaMin, etaMax );
 
 
 }

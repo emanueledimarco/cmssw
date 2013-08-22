@@ -4,7 +4,7 @@ CFLAGS = -Wall -c -g
 ROOFIT_INCLUDE := $(shell cd $(CMSSW_BASE); scram tool info roofitcore | grep INCLUDE= | sed 's|INCLUDE=||')
 ROOFIT_LIBDIR := $(shell cd $(CMSSW_BASE); scram tool info roofitcore | grep LIBDIR= | sed 's|LIBDIR=||')
 
-INCLUDES = -I. -I$(ROOTSYS)/include  -I$(ROOFIT_INCLUDE)/ -I$(CMSSW_BASE)/src -I$(CMSSW_BASE)/src/UserCode/pandolf/CommonTools -I$(CMSSW_BASE)/src/UserCode/pandolf/ -I$(CMSSW_BASE)/src/QuarkGluonTagger/EightTeV/interface
+INCLUDES = -I. -I$(ROOTSYS)/include  -I$(ROOFIT_INCLUDE)/ -I$(CMSSW_BASE)/src -I$(CMSSW_BASE)/src/CommonTools -I$(CMSSW_BASE)/src/UserCode/pandolf/ -I$(CMSSW_BASE)/src/QuarkGluonTagger/EightTeV/interface
 
 ROOTSYS  ?= ERROR_RootSysIsNotDefined
 
@@ -25,8 +25,17 @@ drawQGLMCPlots: DrawBase.o fitTools.o Bins.o QGLikelihoodCalculator.o QGMLPCalcu
 drawQGLDataMCPlots: DrawBase.o fitTools.o drawQGLDataMCPlots.cpp
 	$(CC) -Wall $(INCLUDES) -o drawQGLDataMCPlots drawQGLDataMCPlots.cpp DrawBase.o fitTools.o $(ROOTFLAG) $(EXTRALIBS) 
 
+drawFractions: DrawBase.o fitTools.o drawFractions.cpp
+	$(CC) -Wall $(INCLUDES) -o drawFractions drawFractions.cpp DrawBase.o fitTools.o $(ROOTFLAG) $(EXTRALIBS) 
+
 makeSunilTreeFlat: DrawBase.o fitTools.o Bins.o PUWeight.o QGLikelihoodCalculator.o QGMLPCalculator.o parameters.o makeSunilTreeFlat.cpp
 	$(CC) -Wall $(INCLUDES) -o makeSunilTreeFlat makeSunilTreeFlat.cpp DrawBase.o fitTools.o PUWeight.o Bins.o QGLikelihoodCalculator.o QGMLPCalculator.o parameters.o $(ROOTFLAG) $(EXTRALIBS) -L/afs/cern.ch/work/p/pandolf/CMSSW_5_3_9_patch1_QGSyst/lib/slc5_amd64_gcc462 -lFWCoreParameterSet
+
+makeAndreaTreeFlat: DrawBase.o fitTools.o Bins.o PUWeight.o QGLikelihoodCalculator.o QGMLPCalculator.o parameters.o makeAndreaTreeFlat.cpp
+	$(CC) -Wall $(INCLUDES) -o makeAndreaTreeFlat makeAndreaTreeFlat.cpp DrawBase.o fitTools.o PUWeight.o Bins.o QGLikelihoodCalculator.o QGMLPCalculator.o parameters.o $(ROOTFLAG) $(EXTRALIBS) -L/afs/cern.ch/work/p/pandolf/CMSSW_5_3_9_patch1_QGSyst/lib/slc5_amd64_gcc462 -lFWCoreParameterSet
+
+stupidTree: DrawBase.o fitTools.o Bins.o PUWeight.o QGLikelihoodCalculator.o QGMLPCalculator.o parameters.o stupidTree.cpp
+	$(CC) -Wall $(INCLUDES) -o stupidTree stupidTree.cpp DrawBase.o fitTools.o PUWeight.o Bins.o QGLikelihoodCalculator.o QGMLPCalculator.o parameters.o $(ROOTFLAG) $(EXTRALIBS) -L/afs/cern.ch/work/p/pandolf/CMSSW_5_3_9_patch1_QGSyst/lib/slc5_amd64_gcc462 -lFWCoreParameterSet
 
 create_ptAveWeights: create_ptAveWeights.cpp
 	$(CC) -Wall $(INCLUDES) -o create_ptAveWeights create_ptAveWeights.cpp $(ROOTFLAG) $(EXTRALIBS) 
@@ -54,14 +63,14 @@ Bins.o: $(CMSSW_BASE)/src/QuarkGluonTagger/EightTeV/src/Bins.cc
 QGSyst.o: $(CMSSW_BASE)/src/QuarkGluonTagger/EightTeV/src/QGSyst.cc
 	$(CC) $(CFLAGS) $(INCLUDES) $(CMSSW_BASE)/src/QuarkGluonTagger/EightTeV/src/QGSyst.cc $(ROOTFLAG)
 
-DrawBase.o: $(CMSSW_BASE)/src/UserCode/pandolf/CommonTools/DrawBase.C fitTools.o
-	$(CC) $(CFLAGS) $(INCLUDES) fitTools.o $(CMSSW_BASE)/src/UserCode/pandolf/CommonTools/DrawBase.C $(ROOTFLAG) $(EXTRALIBS) 
+DrawBase.o: $(CMSSW_BASE)/src/CommonTools/DrawBase.C fitTools.o
+	$(CC) $(CFLAGS) $(INCLUDES) fitTools.o $(CMSSW_BASE)/src/CommonTools/DrawBase.C $(ROOTFLAG) $(EXTRALIBS) 
 
-fitTools.o: $(CMSSW_BASE)/src/UserCode/pandolf/CommonTools/fitTools.C
-	$(CC) $(CFLAGS) $(INCLUDES) $(CMSSW_BASE)/src/UserCode/pandolf/CommonTools/fitTools.C $(ROOTFLAG) $(EXTRALIBS)
+fitTools.o: $(CMSSW_BASE)/src/CommonTools/fitTools.C
+	$(CC) $(CFLAGS) $(INCLUDES) $(CMSSW_BASE)/src/CommonTools/fitTools.C $(ROOTFLAG) $(EXTRALIBS)
 
-PUWeight.o: $(CMSSW_BASE)/src/UserCode/pandolf/CommonTools/PUWeight.C 
-	$(CC) $(CFLAGS) $(INCLUDES) $(CMSSW_BASE)/src/UserCode/pandolf/CommonTools/PUWeight.C $(ROOTFLAG) $(EXTRALIBS) 
+PUWeight.o: $(CMSSW_BASE)/src/CommonTools/PUWeight.C 
+	$(CC) $(CFLAGS) $(INCLUDES) $(CMSSW_BASE)/src/CommonTools/PUWeight.C $(ROOTFLAG) $(EXTRALIBS) 
 
 
 

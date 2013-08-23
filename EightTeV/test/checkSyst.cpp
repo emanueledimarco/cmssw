@@ -14,7 +14,7 @@
 
 bool doubleMin = true;
 bool sunilTree = false;
-bool use_herwig = false;
+bool use_herwig = true;
 
 
 void drawSinglePlot( const std::string& selection, DrawBase* db, const std::string& discrim, TH1D* h1_data, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax );
@@ -141,8 +141,11 @@ int main( int argc, char* argv[] ) {
   //std::string systDatabaseName = "SystDiJetTP_2013_08_21_bugfix";
   //std::string systDatabaseName = "Syst_provaAll6580";
   //std::string systDatabaseName = "ZJetHbb_2013_07_23_res";
-  std::string systDB_fullPath = "../data/" + systDatabaseName + ".txt";
+  std::string systDB_fullPath = "../data/" + systDatabaseName;
+  if( use_herwig ) systDB_fullPath += "_Hpp";
+  systDB_fullPath += ".txt";
   
+  std::cout << "-> Loading syst DB file: " << systDB_fullPath << std::endl;
   QGSyst qgsyst;
   qgsyst.ReadDatabaseDoubleMin(systDB_fullPath);
 

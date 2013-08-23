@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
   }
 
   DrawBase* db = new DrawBase("qgdatamc");
-  db->set_lumi(13500.);
+  db->set_lumi(19500.);
 
   std::string outputdir = "QGLDataMCPlots_" + selectionType;
   if( use_MB && selectionType=="DiJets" )
@@ -209,23 +209,23 @@ int main(int argc, char* argv[]) {
   drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminant", "", 40., 50., 3., 4.7);
   drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminant", "", 50., 65., 3., 4.7);
   drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminant", "", 65., 80., 3., 4.7);
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "ptJet[0]>30. && ptJet[1]>30.", "qglJet[0]", "qglJet_jetpt30", "Quark-Gluon Likelihood Discriminant", "", 40., 50., 3., 4.7);
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "ptJet[0]>40. && ptJet[1]>40.", "qglJet[0]", "qglJet_jetpt40", "Quark-Gluon Likelihood Discriminant", "", 40., 50., 3., 4.7);
+//  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "ptJet[0]>30. && ptJet[1]>30.", "qglJet[0]", "qglJet_jetpt30", "Quark-Gluon Likelihood Discriminant", "", 40., 50., 3., 4.7);
+//  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "ptJet[0]>40. && ptJet[1]>40.", "qglJet[0]", "qglJet_jetpt40", "Quark-Gluon Likelihood Discriminant", "", 40., 50., 3., 4.7);
   drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminant", "", 80., 100., 3., 4.7);
 
   //drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminant", "", 20., 30., 3., 4.7);
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminant", "", 30., 40., 3., 4.7);
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminant", "", 40., 50., 3., 4.7);
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminant", "", 50., 65., 3., 4.7);
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminant", "", 65., 80., 3., 4.7);
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminant", "", 80., 100., 3., 4.7);
-
-
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminant", "", 40., 50., 2., 3.);
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminant", "", 80., 100., 2., 3.);
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminant", "", 200., 250., 2., 3.);
-
-  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "axis1_QCJet[0]*axis1_QCJet[0]+axis2_QCJet[0]*axis2_QCJet[0]<0.06", "qglJet[0]", "qglJet_PUID", "Quark-Gluon Likelihood Discriminant", "", 40., 50., 3., 4.7);
+//  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminant", "", 30., 40., 3., 4.7);
+//  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminant", "", 40., 50., 3., 4.7);
+//  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminant", "", 50., 65., 3., 4.7);
+//  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminant", "", 65., 80., 3., 4.7);
+//  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglNoMultCorrJet[0]", "qglNoMultCorrJet", "Quark-Gluon Likelihood Discriminant", "", 80., 100., 3., 4.7);
+//
+//
+//  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminant", "", 40., 50., 2., 3.);
+//  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminant", "", 80., 100., 2., 3.);
+//  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "qglJet[0]", "qglJet", "Quark-Gluon Likelihood Discriminant", "", 200., 250., 2., 3.);
+//
+//  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "axis1_QCJet[0]*axis1_QCJet[0]+axis2_QCJet[0]*axis2_QCJet[0]<0.06", "qglJet[0]", "qglJet_PUID", "Quark-Gluon Likelihood Discriminant", "", 40., 50., 3., 4.7);
 
   return 0;
 

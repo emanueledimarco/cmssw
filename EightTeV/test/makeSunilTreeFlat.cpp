@@ -4,13 +4,13 @@
 #include "TChain.h"
 #include "TLorentzVector.h"
 #include "QuarkGluonTagger/EightTeV/interface/QGLikelihoodCalculator.h"
-#include "/afs/cern.ch/work/p/pandolf/CMSSW_5_3_9_patch1_QGSyst/src/QuarkGluonTagger/EightTeV/interface/QGMLPCalculator.h"
+#include "QuarkGluonTagger/EightTeV/interface/QGMLPCalculator.h"
 
 #include "PUWeight.h"
 
 
 
-std::string treeType = "andrea"; //can be andrea/tom/sunil
+std::string treeType = "sunil"; //can be andrea/tom/sunil
 
 bool pthat_reweight = true;
 
@@ -304,7 +304,7 @@ int main( int argc, char* argv[] ) {
   //QGMLPCalculator* qgmlp = new QGMLPCalculator("MLP","QuarkGluonTagger/EightTeV/data/", true);
 
 
-  PUWeight* fPUWeight = new PUWeight(-1, "2012", "Summer12");
+  /* PUWeight* fPUWeight = new PUWeight(-1, "2012", "Summer12");
 
   TFile* filePU_data = TFile::Open("PU_all_minBias69400.root");
   //TFile* filePU_data = TFile::Open("puProfile_Data12.root");
@@ -314,6 +314,7 @@ int main( int argc, char* argv[] ) {
   TH1F* h1_nPU_mc = (TH1F*)filePU_mc->Get("pileup");
   fPUWeight->SetDataHistogram(h1_nPU_data);
   fPUWeight->SetMCHistogram(h1_nPU_mc);
+	*/
 
   std::vector<float> puWeight;
   //puWeight.push_back(0.421312);

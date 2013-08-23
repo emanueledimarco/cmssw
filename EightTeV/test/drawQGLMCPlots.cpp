@@ -8,7 +8,7 @@
 #include "TChain.h"
 #include "TLorentzVector.h"
 #include "QuarkGluonTagger/EightTeV/interface/QGLikelihoodCalculator.h"
-#include "/afs/cern.ch/work/p/pandolf/CMSSW_5_3_9_patch1_QGSyst/src/QuarkGluonTagger/EightTeV/interface/QGMLPCalculator.h"
+#include "QuarkGluonTagger/EightTeV/interface/QGMLPCalculator.h"
 
 
 

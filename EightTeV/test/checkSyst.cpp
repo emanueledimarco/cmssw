@@ -18,7 +18,7 @@ bool use_herwig = false;
 
 
 void drawSinglePlot( const std::string& selection, DrawBase* db, const std::string& discrim, TH1D* h1_data, TH1D* h1_qgl, TH1D* h1_qglSyst, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax );
-void drawEffVsPt( DrawBase* db, const std::string& discrim, float thresh1, float etaMin, float etaMax, TH1D* h1_eff_gluon_thresh1, TH1D* h1_eff_gluon_syst_thresh1, TH1D* h1_eff_quark_thresh1, TH1D* h1_eff_quark_syst_thresh1, const std::string& suffix="");
+void drawEffVsPt( DrawBase* db, const std::string& discrim, float thresh1, const std::string xVarName, float etaMin, float etaMax, TH1D* h1_eff_gluon_thresh1, TH1D* h1_eff_gluon_syst_thresh1, TH1D* h1_eff_quark_thresh1, TH1D* h1_eff_quark_syst_thresh1, const std::string& suffix="" );
 void drawMC_beforeAfter( DrawBase* db, const std::string& discrim, TH1D* h1_qglJet_quark, TH1D* h1_qglJetSyst_quark, TH1D* h1_qglJet_gluon, TH1D* h1_qglJetSyst_gluon, float ptMin, float ptMax, float etaMin, float etaMax, float rhoMin, float rhoMax );
 
 
@@ -96,6 +96,7 @@ int main( int argc, char* argv[] ) {
 
 
   float eventWeight;
+  int nvertex;
   int njet;
   float pt[20];
   float eta[20];
@@ -122,6 +123,7 @@ int main( int argc, char* argv[] ) {
   tree->SetBranchAddress("etaJet", eta);
   tree->SetBranchAddress("pdgIdJet", pdgId);
   tree->SetBranchAddress("rhoPF", &rho);
+  tree->SetBranchAddress("nvertex", &nvertex);
   tree->SetBranchAddress("nChargedJet", nCharged);
   tree->SetBranchAddress("nNeutralJet", nNeutral);
   tree->SetBranchAddress("ptDJet", ptD);
@@ -533,8 +535,8 @@ int main( int argc, char* argv[] ) {
 
   // and vs rho:
 
-  int nbins_rho = 25;
-  float rhoMax = 50.;
+  int nbins_rho = 15;
+  float rhoMax = 35.;
 
   TH1D* h1_effDenom_vs_rho_centr_quark_thresh1 = new TH1D("effDenom_vs_rho_centr_quark_thresh1", "", nbins_rho, 0., rhoMax);
   TH1D* h1_effNum_vs_rho_centr_quark_thresh1   = new TH1D("effNum_vs_rho_centr_quark_thresh1", "", nbins_rho, 0., rhoMax)  ;
@@ -566,6 +568,45 @@ int main( int argc, char* argv[] ) {
 
   TH1D* h1_effNum_vs_rho_fwd_gluon_thresh1   = new TH1D("effNum_vs_rho_fwd_gluon_thresh1", "", nbins_rho, 0., rhoMax)  ;
   TH1D* h1_effNum_vs_rho_fwd_gluon_syst_thresh1   = new TH1D("effNum_vs_rho_fwd_gluon_syst_thresh1", "", nbins_rho, 0., rhoMax)  ;
+                                                             
+
+
+  // and vs nvertex:
+
+  int nvertexMax = 20;
+  int nbins_nvertex = 10;
+  TH1D* h1_effDenom_vs_nvertex_centr_quark_thresh1 = new TH1D("effDenom_vs_nvertex_centr_quark_thresh1", "", nbins_nvertex, 0., nvertexMax);
+  TH1D* h1_effNum_vs_nvertex_centr_quark_thresh1   = new TH1D("effNum_vs_nvertex_centr_quark_thresh1", "", nbins_nvertex, 0., nvertexMax)  ;
+
+  TH1D* h1_effNum_vs_nvertex_centr_quark_syst_thresh1   = new TH1D("effNum_vs_nvertex_centr_quark_syst_thresh1", "", nbins_nvertex, 0., nvertexMax)  ;
+  TH1D* h1_effDenom_vs_nvertex_centr_gluon_thresh1 = new TH1D("effDenom_vs_nvertex_centr_gluon_thresh1", "", nbins_nvertex, 0., nvertexMax);
+
+  TH1D* h1_effNum_vs_nvertex_centr_gluon_thresh1   = new TH1D("effNum_vs_nvertex_centr_gluon_thresh1", "", nbins_nvertex, 0., nvertexMax)  ;
+  TH1D* h1_effNum_vs_nvertex_centr_gluon_syst_thresh1   = new TH1D("effNum_vs_nvertex_centr_gluon_syst_thresh1", "", nbins_nvertex, 0., nvertexMax)  ;
+
+                                                             
+
+  TH1D* h1_effDenom_vs_nvertex_trans_quark_thresh1 = new TH1D("effDenom_vs_nvertex_trans_quark_thresh1", "", nbins_nvertex, 0., nvertexMax);
+  TH1D* h1_effNum_vs_nvertex_trans_quark_thresh1   = new TH1D("effNum_vs_nvertex_trans_quark_thresh1", "", nbins_nvertex, 0., nvertexMax)  ;
+
+  TH1D* h1_effNum_vs_nvertex_trans_quark_syst_thresh1   = new TH1D("effNum_vs_nvertex_trans_quark_syst_thresh1", "", nbins_nvertex, 0., nvertexMax)  ;
+  TH1D* h1_effDenom_vs_nvertex_trans_gluon_thresh1 = new TH1D("effDenom_vs_nvertex_trans_gluon_thresh1", "", nbins_nvertex, 0., nvertexMax);
+
+  TH1D* h1_effNum_vs_nvertex_trans_gluon_thresh1   = new TH1D("effNum_vs_nvertex_trans_gluon_thresh1", "", nbins_nvertex, 0., nvertexMax)  ;
+  TH1D* h1_effNum_vs_nvertex_trans_gluon_syst_thresh1   = new TH1D("effNum_vs_nvertex_trans_gluon_syst_thresh1", "", nbins_nvertex, 0., nvertexMax)  ;
+
+                                                             
+
+  TH1D* h1_effDenom_vs_nvertex_fwd_quark_thresh1 = new TH1D("effDenom_vs_nvertex_fwd_quark_thresh1", "", nbins_nvertex, 0., nvertexMax);
+  TH1D* h1_effNum_vs_nvertex_fwd_quark_thresh1   = new TH1D("effNum_vs_nvertex_fwd_quark_thresh1", "", nbins_nvertex, 0., nvertexMax)  ;
+
+  TH1D* h1_effNum_vs_nvertex_fwd_quark_syst_thresh1   = new TH1D("effNum_vs_nvertex_fwd_quark_syst_thresh1", "", nbins_nvertex, 0., nvertexMax)  ;
+  TH1D* h1_effDenom_vs_nvertex_fwd_gluon_thresh1 = new TH1D("effDenom_vs_nvertex_fwd_gluon_thresh1", "", nbins_nvertex, 0., nvertexMax);
+
+  TH1D* h1_effNum_vs_nvertex_fwd_gluon_thresh1   = new TH1D("effNum_vs_nvertex_fwd_gluon_thresh1", "", nbins_nvertex, 0., nvertexMax)  ;
+  TH1D* h1_effNum_vs_nvertex_fwd_gluon_syst_thresh1   = new TH1D("effNum_vs_nvertex_fwd_gluon_syst_thresh1", "", nbins_nvertex, 0., nvertexMax)  ;
+
+
                                                              
 
 
@@ -656,9 +697,15 @@ int main( int argc, char* argv[] ) {
           if( discrimOK_thresh1[probe_index] ) h1_effNum_centr_quark_thresh1->Fill( pt[tag_index], eventWeight );
           if( discrimSystOK_thresh1[probe_index] ) h1_effNum_centr_quark_syst_thresh1->Fill( pt[tag_index], eventWeight );
 
-          h1_effDenom_vs_rho_centr_quark_thresh1->Fill( rho, eventWeight );
-          if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_centr_quark_thresh1->Fill( rho, eventWeight );
-          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_centr_quark_syst_thresh1->Fill( rho, eventWeight );
+          if( pt[tag_index]>30. ) {
+            h1_effDenom_vs_rho_centr_quark_thresh1->Fill( rho, eventWeight );
+            if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_centr_quark_thresh1->Fill( rho, eventWeight );
+            if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_centr_quark_syst_thresh1->Fill( rho, eventWeight );
+
+            h1_effDenom_vs_nvertex_centr_quark_thresh1->Fill( nvertex, eventWeight );
+            if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_nvertex_centr_quark_thresh1->Fill( nvertex, eventWeight );
+            if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_nvertex_centr_quark_syst_thresh1->Fill( nvertex, eventWeight );
+          }
 
         } else if( type[probe_index]=="gluon" ) {
 
@@ -666,9 +713,15 @@ int main( int argc, char* argv[] ) {
           if( discrimOK_thresh1[probe_index] ) h1_effNum_centr_gluon_thresh1->Fill( pt[tag_index], eventWeight );
           if( discrimSystOK_thresh1[probe_index] ) h1_effNum_centr_gluon_syst_thresh1->Fill( pt[tag_index], eventWeight );
 
-          h1_effDenom_vs_rho_centr_gluon_thresh1->Fill( rho, eventWeight );
-          if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_centr_gluon_thresh1->Fill( rho, eventWeight );
-          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_centr_gluon_syst_thresh1->Fill( rho, eventWeight );
+          if( pt[tag_index]>30. ) {
+            h1_effDenom_vs_rho_centr_gluon_thresh1->Fill( rho, eventWeight );
+            if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_centr_gluon_thresh1->Fill( rho, eventWeight );
+            if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_centr_gluon_syst_thresh1->Fill( rho, eventWeight );
+
+            h1_effDenom_vs_nvertex_centr_gluon_thresh1->Fill( nvertex, eventWeight );
+            if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_nvertex_centr_gluon_thresh1->Fill( nvertex, eventWeight );
+            if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_nvertex_centr_gluon_syst_thresh1->Fill( nvertex, eventWeight );
+          }
 
         }
 
@@ -770,9 +823,15 @@ int main( int argc, char* argv[] ) {
           if( discrimOK_thresh1[probe_index] ) h1_effNum_trans_quark_thresh1->Fill( pt[tag_index], eventWeight );
           if( discrimSystOK_thresh1[probe_index] ) h1_effNum_trans_quark_syst_thresh1->Fill( pt[tag_index], eventWeight );
 
-          h1_effDenom_vs_rho_trans_quark_thresh1->Fill( rho, eventWeight );
-          if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_trans_quark_thresh1->Fill( rho, eventWeight );
-          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_trans_quark_syst_thresh1->Fill( rho, eventWeight );
+          if( pt[tag_index]>30. ) {
+            h1_effDenom_vs_rho_trans_quark_thresh1->Fill( rho, eventWeight );
+            if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_trans_quark_thresh1->Fill( rho, eventWeight );
+            if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_trans_quark_syst_thresh1->Fill( rho, eventWeight );
+
+            h1_effDenom_vs_nvertex_trans_quark_thresh1->Fill( nvertex, eventWeight );
+            if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_nvertex_trans_quark_thresh1->Fill( nvertex, eventWeight );
+            if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_nvertex_trans_quark_syst_thresh1->Fill( nvertex, eventWeight );
+          }
 
         } else if( type[probe_index]=="gluon" ) {
 
@@ -780,9 +839,15 @@ int main( int argc, char* argv[] ) {
           if( discrimOK_thresh1[probe_index] ) h1_effNum_trans_gluon_thresh1->Fill( pt[tag_index], eventWeight );
           if( discrimSystOK_thresh1[probe_index] ) h1_effNum_trans_gluon_syst_thresh1->Fill( pt[tag_index], eventWeight );
 
-          h1_effDenom_vs_rho_trans_gluon_thresh1->Fill( rho, eventWeight );
-          if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_trans_gluon_thresh1->Fill( rho, eventWeight );
-          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_trans_gluon_syst_thresh1->Fill( rho, eventWeight );
+          if( pt[tag_index]>30. ) {
+            h1_effDenom_vs_rho_trans_gluon_thresh1->Fill( rho, eventWeight );
+            if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_trans_gluon_thresh1->Fill( rho, eventWeight );
+            if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_trans_gluon_syst_thresh1->Fill( rho, eventWeight );
+
+            h1_effDenom_vs_nvertex_trans_gluon_thresh1->Fill( nvertex, eventWeight );
+            if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_nvertex_trans_gluon_thresh1->Fill( nvertex, eventWeight );
+            if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_nvertex_trans_gluon_syst_thresh1->Fill( nvertex, eventWeight );
+          }
 
         }
 
@@ -869,9 +934,15 @@ int main( int argc, char* argv[] ) {
           if( discrimOK_thresh1[probe_index] ) h1_effNum_fwd_quark_thresh1->Fill( pt[tag_index], eventWeight );
           if( discrimSystOK_thresh1[probe_index] ) h1_effNum_fwd_quark_syst_thresh1->Fill( pt[tag_index], eventWeight );
 
-          h1_effDenom_vs_rho_fwd_quark_thresh1->Fill( rho, eventWeight );
-          if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_fwd_quark_thresh1->Fill( rho, eventWeight );
-          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_fwd_quark_syst_thresh1->Fill( rho, eventWeight );
+          if( pt[tag_index]>30. ) {
+            h1_effDenom_vs_rho_fwd_quark_thresh1->Fill( rho, eventWeight );
+            if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_fwd_quark_thresh1->Fill( rho, eventWeight );
+            if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_fwd_quark_syst_thresh1->Fill( rho, eventWeight );
+
+            h1_effDenom_vs_nvertex_fwd_quark_thresh1->Fill( nvertex, eventWeight );
+            if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_nvertex_fwd_quark_thresh1->Fill( nvertex, eventWeight );
+            if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_nvertex_fwd_quark_syst_thresh1->Fill( nvertex, eventWeight );
+          }
 
         } else if( type[probe_index]=="gluon" ) {
 
@@ -879,9 +950,15 @@ int main( int argc, char* argv[] ) {
           if( discrimOK_thresh1[probe_index] ) h1_effNum_fwd_gluon_thresh1->Fill( pt[tag_index], eventWeight );
           if( discrimSystOK_thresh1[probe_index] ) h1_effNum_fwd_gluon_syst_thresh1->Fill( pt[tag_index], eventWeight );
 
-          h1_effDenom_vs_rho_fwd_gluon_thresh1->Fill( rho, eventWeight );
-          if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_fwd_gluon_thresh1->Fill( rho, eventWeight );
-          if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_fwd_gluon_syst_thresh1->Fill( rho, eventWeight );
+          if( pt[tag_index]>30. ) {
+            h1_effDenom_vs_rho_fwd_gluon_thresh1->Fill( rho, eventWeight );
+            if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_rho_fwd_gluon_thresh1->Fill( rho, eventWeight );
+            if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_rho_fwd_gluon_syst_thresh1->Fill( rho, eventWeight );
+
+            h1_effDenom_vs_nvertex_fwd_gluon_thresh1->Fill( nvertex, eventWeight );
+            if( discrimOK_thresh1[probe_index] ) h1_effNum_vs_nvertex_fwd_gluon_thresh1->Fill( nvertex, eventWeight );
+            if( discrimSystOK_thresh1[probe_index] ) h1_effNum_vs_nvertex_fwd_gluon_syst_thresh1->Fill( nvertex, eventWeight );
+          }
 
         }
 
@@ -1311,9 +1388,9 @@ int main( int argc, char* argv[] ) {
   }
 
 
-  drawEffVsPt(db, discrim, thresh1, 0., 2., h1_eff_centr_gluon_thresh1, h1_eff_centr_gluon_syst_thresh1, h1_eff_centr_quark_thresh1, h1_eff_centr_quark_syst_thresh1);
-  drawEffVsPt(db, discrim, thresh1, 2., 3., h1_eff_trans_gluon_thresh1, h1_eff_trans_gluon_syst_thresh1, h1_eff_trans_quark_thresh1, h1_eff_trans_quark_syst_thresh1);
-  drawEffVsPt(db, discrim, thresh1, 3., 4.7, h1_eff_fwd_gluon_thresh1, h1_eff_fwd_gluon_syst_thresh1, h1_eff_fwd_quark_thresh1, h1_eff_fwd_quark_syst_thresh1);
+  drawEffVsPt(db, discrim, thresh1, "pt", 0., 2., h1_eff_centr_gluon_thresh1, h1_eff_centr_gluon_syst_thresh1, h1_eff_centr_quark_thresh1, h1_eff_centr_quark_syst_thresh1);
+  drawEffVsPt(db, discrim, thresh1, "pt", 2., 3., h1_eff_trans_gluon_thresh1, h1_eff_trans_gluon_syst_thresh1, h1_eff_trans_quark_thresh1, h1_eff_trans_quark_syst_thresh1);
+  drawEffVsPt(db, discrim, thresh1, "pt", 3., 4.7, h1_eff_fwd_gluon_thresh1, h1_eff_fwd_gluon_syst_thresh1, h1_eff_fwd_quark_thresh1, h1_eff_fwd_quark_syst_thresh1);
 
 
 
@@ -1380,9 +1457,80 @@ int main( int argc, char* argv[] ) {
   }
 
 
-  drawEffVsPt(db, discrim, thresh1, 0., 2., h1_eff_vs_rho_centr_gluon_thresh1, h1_eff_vs_rho_centr_gluon_syst_thresh1, h1_eff_vs_rho_centr_quark_thresh1, h1_eff_vs_rho_centr_quark_syst_thresh1);
-  drawEffVsPt(db, discrim, thresh1, 2., 3., h1_eff_vs_rho_trans_gluon_thresh1, h1_eff_vs_rho_trans_gluon_syst_thresh1, h1_eff_vs_rho_trans_quark_thresh1, h1_eff_vs_rho_trans_quark_syst_thresh1);
-  drawEffVsPt(db, discrim, thresh1, 3., 4.7, h1_eff_vs_rho_fwd_gluon_thresh1, h1_eff_vs_rho_fwd_gluon_syst_thresh1, h1_eff_vs_rho_fwd_quark_thresh1, h1_eff_vs_rho_fwd_quark_syst_thresh1);
+  drawEffVsPt(db, discrim, thresh1, "rho", 0., 2., h1_eff_vs_rho_centr_gluon_thresh1, h1_eff_vs_rho_centr_gluon_syst_thresh1, h1_eff_vs_rho_centr_quark_thresh1, h1_eff_vs_rho_centr_quark_syst_thresh1);
+  drawEffVsPt(db, discrim, thresh1, "rho", 2., 3., h1_eff_vs_rho_trans_gluon_thresh1, h1_eff_vs_rho_trans_gluon_syst_thresh1, h1_eff_vs_rho_trans_quark_thresh1, h1_eff_vs_rho_trans_quark_syst_thresh1);
+  drawEffVsPt(db, discrim, thresh1, "rho", 3., 4.7, h1_eff_vs_rho_fwd_gluon_thresh1, h1_eff_vs_rho_fwd_gluon_syst_thresh1, h1_eff_vs_rho_fwd_quark_thresh1, h1_eff_vs_rho_fwd_quark_syst_thresh1);
+
+
+
+
+
+  // and vs nvertex:
+  TH1D* h1_eff_vs_nvertex_centr_quark_thresh1 = new TH1D(*h1_effNum_vs_nvertex_centr_quark_thresh1);
+  TH1D* h1_eff_vs_nvertex_centr_quark_syst_thresh1 = new TH1D(*h1_effNum_vs_nvertex_centr_quark_syst_thresh1);
+
+  TH1D* h1_eff_vs_nvertex_centr_gluon_thresh1 = new TH1D(*h1_effNum_vs_nvertex_centr_gluon_thresh1);
+  TH1D* h1_eff_vs_nvertex_centr_gluon_syst_thresh1 = new TH1D(*h1_effNum_vs_nvertex_centr_gluon_syst_thresh1);
+
+  TH1D* h1_eff_vs_nvertex_trans_quark_thresh1 = new TH1D(*h1_effNum_vs_nvertex_trans_quark_thresh1);
+  TH1D* h1_eff_vs_nvertex_trans_quark_syst_thresh1 = new TH1D(*h1_effNum_vs_nvertex_trans_quark_syst_thresh1);
+
+  TH1D* h1_eff_vs_nvertex_trans_gluon_thresh1 = new TH1D(*h1_effNum_vs_nvertex_trans_gluon_thresh1);
+  TH1D* h1_eff_vs_nvertex_trans_gluon_syst_thresh1 = new TH1D(*h1_effNum_vs_nvertex_trans_gluon_syst_thresh1);
+
+  TH1D* h1_eff_vs_nvertex_fwd_quark_thresh1 = new TH1D(*h1_effNum_vs_nvertex_fwd_quark_thresh1);
+  TH1D* h1_eff_vs_nvertex_fwd_quark_syst_thresh1 = new TH1D(*h1_effNum_vs_nvertex_fwd_quark_syst_thresh1);
+
+  TH1D* h1_eff_vs_nvertex_fwd_gluon_thresh1 = new TH1D(*h1_effNum_vs_nvertex_fwd_gluon_thresh1);
+  TH1D* h1_eff_vs_nvertex_fwd_gluon_syst_thresh1 = new TH1D(*h1_effNum_vs_nvertex_fwd_gluon_syst_thresh1);
+
+
+  h1_eff_vs_nvertex_centr_quark_thresh1->Divide(h1_effDenom_vs_nvertex_centr_quark_thresh1);
+  h1_eff_vs_nvertex_centr_quark_syst_thresh1->Divide(h1_effDenom_vs_nvertex_centr_quark_thresh1);
+
+  h1_eff_vs_nvertex_centr_gluon_thresh1->Divide(h1_effDenom_vs_nvertex_centr_gluon_thresh1);
+  h1_eff_vs_nvertex_centr_gluon_syst_thresh1->Divide(h1_effDenom_vs_nvertex_centr_gluon_thresh1);
+
+  h1_eff_vs_nvertex_trans_quark_thresh1->Divide(h1_effDenom_vs_nvertex_trans_quark_thresh1);
+  h1_eff_vs_nvertex_trans_quark_syst_thresh1->Divide(h1_effDenom_vs_nvertex_trans_quark_thresh1);
+
+  h1_eff_vs_nvertex_trans_gluon_thresh1->Divide(h1_effDenom_vs_nvertex_trans_gluon_thresh1);
+  h1_eff_vs_nvertex_trans_gluon_syst_thresh1->Divide(h1_effDenom_vs_nvertex_trans_gluon_thresh1);
+
+  h1_eff_vs_nvertex_fwd_quark_thresh1->Divide(h1_effDenom_vs_nvertex_fwd_quark_thresh1);
+  h1_eff_vs_nvertex_fwd_quark_syst_thresh1->Divide(h1_effDenom_vs_nvertex_fwd_quark_thresh1);
+
+  h1_eff_vs_nvertex_fwd_gluon_thresh1->Divide(h1_effDenom_vs_nvertex_fwd_gluon_thresh1);
+  h1_eff_vs_nvertex_fwd_gluon_syst_thresh1->Divide(h1_effDenom_vs_nvertex_fwd_gluon_thresh1);
+
+
+  // set good enough errors:
+  for( unsigned ibin=1; ibin<nbins_nvertex+1; ++ibin ) {
+
+    h1_eff_vs_nvertex_centr_quark_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_nvertex_centr_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_nvertex_centr_quark_thresh1->GetBinContent(ibin))/h1_effDenom_vs_nvertex_centr_quark_thresh1->GetBinContent(ibin)));
+    h1_eff_vs_nvertex_centr_quark_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_nvertex_centr_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_nvertex_centr_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_nvertex_centr_quark_thresh1->GetBinContent(ibin)));
+
+    h1_eff_vs_nvertex_trans_gluon_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_nvertex_trans_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_nvertex_trans_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_vs_nvertex_trans_gluon_thresh1->GetBinContent(ibin)));
+    h1_eff_vs_nvertex_trans_gluon_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_nvertex_trans_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_nvertex_trans_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_nvertex_trans_gluon_thresh1->GetBinContent(ibin)));
+
+    h1_eff_vs_nvertex_trans_quark_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_nvertex_trans_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_nvertex_trans_quark_thresh1->GetBinContent(ibin))/h1_effDenom_vs_nvertex_trans_quark_thresh1->GetBinContent(ibin)));
+    h1_eff_vs_nvertex_trans_quark_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_nvertex_trans_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_nvertex_trans_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_nvertex_trans_quark_thresh1->GetBinContent(ibin)));
+
+    h1_eff_vs_nvertex_trans_gluon_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_nvertex_trans_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_nvertex_trans_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_vs_nvertex_trans_gluon_thresh1->GetBinContent(ibin)));
+    h1_eff_vs_nvertex_trans_gluon_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_nvertex_trans_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_nvertex_trans_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_nvertex_trans_gluon_thresh1->GetBinContent(ibin)));
+
+    h1_eff_vs_nvertex_fwd_quark_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_nvertex_fwd_quark_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_nvertex_fwd_quark_thresh1->GetBinContent(ibin))/h1_effDenom_vs_nvertex_fwd_quark_thresh1->GetBinContent(ibin)));
+    h1_eff_vs_nvertex_fwd_quark_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_nvertex_fwd_quark_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_nvertex_fwd_quark_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_nvertex_fwd_quark_thresh1->GetBinContent(ibin)));
+
+    h1_eff_vs_nvertex_fwd_gluon_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_nvertex_fwd_gluon_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_nvertex_fwd_gluon_thresh1->GetBinContent(ibin))/h1_effDenom_vs_nvertex_fwd_gluon_thresh1->GetBinContent(ibin)));
+    h1_eff_vs_nvertex_fwd_gluon_syst_thresh1->SetBinError(ibin, sqrt(h1_eff_vs_nvertex_fwd_gluon_syst_thresh1->GetBinContent(ibin)*(1.-h1_eff_vs_nvertex_fwd_gluon_syst_thresh1->GetBinContent(ibin))/h1_effDenom_vs_nvertex_fwd_gluon_thresh1->GetBinContent(ibin)));
+
+  }
+
+
+  drawEffVsPt(db, discrim, thresh1, "nvertex", 0., 2., h1_eff_vs_nvertex_centr_gluon_thresh1, h1_eff_vs_nvertex_centr_gluon_syst_thresh1, h1_eff_vs_nvertex_centr_quark_thresh1, h1_eff_vs_nvertex_centr_quark_syst_thresh1);
+  drawEffVsPt(db, discrim, thresh1, "nvertex", 2., 3., h1_eff_vs_nvertex_trans_gluon_thresh1, h1_eff_vs_nvertex_trans_gluon_syst_thresh1, h1_eff_vs_nvertex_trans_quark_thresh1, h1_eff_vs_nvertex_trans_quark_syst_thresh1);
+  drawEffVsPt(db, discrim, thresh1, "nvertex", 3., 4.7, h1_eff_vs_nvertex_fwd_gluon_thresh1, h1_eff_vs_nvertex_fwd_gluon_syst_thresh1, h1_eff_vs_nvertex_fwd_quark_thresh1, h1_eff_vs_nvertex_fwd_quark_syst_thresh1);
 
 
   outfile->cd();
@@ -1551,7 +1699,7 @@ void drawSinglePlot( const std::string& selection, DrawBase* db, const std::stri
 
 
 
-void drawEffVsPt( DrawBase* db, const std::string& discrim, float thresh1, float etaMin, float etaMax, TH1D* h1_eff_gluon_thresh1, TH1D* h1_eff_gluon_syst_thresh1, TH1D* h1_eff_quark_thresh1, TH1D* h1_eff_quark_syst_thresh1, const std::string& suffix ) {
+void drawEffVsPt( DrawBase* db, const std::string& discrim, float thresh1, const std::string xVarName, float etaMin, float etaMax, TH1D* h1_eff_gluon_thresh1, TH1D* h1_eff_gluon_syst_thresh1, TH1D* h1_eff_quark_thresh1, TH1D* h1_eff_quark_syst_thresh1, const std::string& suffix ) {
 
 
 
@@ -1568,9 +1716,8 @@ void drawEffVsPt( DrawBase* db, const std::string& discrim, float thresh1, float
 
 
   float xMax = h1_eff_gluon_thresh1->GetXaxis()->GetXmax();
-  bool isRho = xMax < 60.;
 
-  if( !isRho ) {
+  if( xVarName=="pt" ) {
 
     if( etaMax>4. )
       xMax = 125.;
@@ -1586,12 +1733,16 @@ void drawEffVsPt( DrawBase* db, const std::string& discrim, float thresh1, float
   std::string operator_discrim = (discrim=="qgMLPJet") ? "<" : ">";
 
 
-  float xMin = (isRho) ? 0. : 30.;
+  float xMin = 0.;
+  if( xVarName=="pt" ) xMin = 30.;
+  if( xVarName=="nvertex" ) xMin = 2.;
   //if( !isRho && etaMax > 4. ) xMin = 30.;
 
   TH2D* h2_axes = new TH2D("axes", "", 10, xMin, xMax, 10, 0., 1.);
-  if( isRho )
+  if( xVarName=="rho" )
     h2_axes->SetXTitle("#rho [GeV]");
+  else if( xVarName=="nvertex" ) 
+    h2_axes->SetXTitle("Number of Primary Vertexes");
   else {
     h2_axes->SetXTitle("Jet p_{T} [GeV]");
     h2_axes->GetXaxis()->SetMoreLogLabels();
@@ -1671,7 +1822,7 @@ void drawEffVsPt( DrawBase* db, const std::string& discrim, float thresh1, float
 
   TCanvas* c1 = new TCanvas("c1", "", 600, 600);
   c1->cd();
-  if( !isRho )
+  if( xVarName=="pt" )
     c1->SetLogx();
   h2_axes->Draw();
   //legend->Draw("same");
@@ -1690,15 +1841,16 @@ void drawEffVsPt( DrawBase* db, const std::string& discrim, float thresh1, float
 
   gPad->RedrawAxis();
   
-  std::string rhotext = (isRho) ? "vsRho_" : "";
+  std::string suffixVar = "";
+  if(xVarName!="pt") suffixVar = "_vs" + xVarName;
   
   char canvasName[500];
   if( etaMax > 4. ) {
-    sprintf( canvasName, "%s/syst_eff_%s%s_fwd%s.eps", db->get_outputdir().c_str(), rhotext.c_str(), discrim.c_str(), suffix.c_str() );
+    sprintf( canvasName, "%s/syst_eff%s%s_fwd%s.eps", db->get_outputdir().c_str(), suffixVar.c_str(), discrim.c_str(), suffix.c_str() );
   } else if( etaMax > 2. ) {
-    sprintf( canvasName, "%s/syst_eff_%s%s_trans%s.eps", db->get_outputdir().c_str(), rhotext.c_str(), discrim.c_str(), suffix.c_str() );
+    sprintf( canvasName, "%s/syst_eff%s%s_trans%s.eps", db->get_outputdir().c_str(), suffixVar.c_str(), discrim.c_str(), suffix.c_str() );
   } else {
-    sprintf( canvasName, "%s/syst_eff_%s%s_centr%s.eps", db->get_outputdir().c_str(), rhotext.c_str(), discrim.c_str(), suffix.c_str() );
+    sprintf( canvasName, "%s/syst_eff%s%s_centr%s.eps", db->get_outputdir().c_str(), suffixVar.c_str(), discrim.c_str(), suffix.c_str() );
   }
   
   c1->SaveAs(canvasName);

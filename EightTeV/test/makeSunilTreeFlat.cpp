@@ -846,7 +846,42 @@ int main( int argc, char* argv[] ) {
 
 float get_xSecWeight( const std::string& dataset ) {
 
-  return 1.;
+  float neventsGen;
+  float xsec;
+
+  if( dataset=="Zjets_Hpp_Pt15to20" ) {
+    neventsGen = 200000.;
+    xsec = 70.55;
+  } else if( dataset=="Zjets_Hpp_Pt20to30" ) {
+    neventsGen = 150154.;
+    xsec = 77.535;
+  } else if( dataset=="Zjets_Hpp_Pt30to50" ) {
+    neventsGen = 150000.;
+    xsec = 62.75;
+  } else if( dataset=="Zjets_Hpp_Pt50to80" ) {
+    neventsGen = 100160;
+    xsec = 28.74;
+  } else if( dataset=="Zjets_Hpp_Pt80to120" ) {
+    neventsGen = 96000;
+    xsec = 9.75;
+  } else if( dataset=="Zjets_Hpp_Pt120to170" ) {
+    neventsGen = 98560;
+    xsec = 2.81;
+  } else if( dataset=="Zjets_Hpp_Pt170to230" ) {
+    neventsGen = 100000;
+    xsec = 0.77;
+  } else if( dataset=="Zjets_Hpp_Pt230to300" ) {
+    neventsGen = 96640;
+    xsec = 0.21;
+  } else if( dataset=="Zjets_Hpp_Pt300" ) {
+    neventsGen = 90517;
+    xsec = 0.089;
+  } else { 
+    neventsGen=1.;
+    xsec=1.;
+  }
+
+  return xsec/neventsGen;
 
 }
 

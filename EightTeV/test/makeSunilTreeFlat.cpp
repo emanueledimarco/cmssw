@@ -439,6 +439,7 @@ int main( int argc, char* argv[] ) {
   //TH1F* hPtEta_wt = (TH1F*)filePtEtaWeights->Get("hist_WT");
 
   std::string rhoWeightFileName = "rhoWeights_" + dataset + ".root";
+  if( dataset_tstr.Contains("Zjets_Hpp") ) rhoWeightFileName = "rhoWeights_Zjets_Hpp.root";
   std::cout << "-> Opening rho weights file: " << rhoWeightFileName << std::endl;
   TFile* fileRhoWeights = TFile::Open(rhoWeightFileName.c_str());
   TH1F* hPU;

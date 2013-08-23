@@ -9,7 +9,9 @@
 #include "TLorentzVector.h"
 #include "QuarkGluonTagger/EightTeV/interface/QGLikelihoodCalculator.h"
 #include "QuarkGluonTagger/EightTeV/interface/QGMLPCalculator.h"
+#include <string>
 
+using namespace std;
 
 
 struct HistosSinglePt {
@@ -652,6 +654,7 @@ HistosSinglePt drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLi
   vh1_quark.push_back(h1_nPFCand_quark       ); vh1_gluon.push_back(h1_nPFCand_gluon       ); legendNames.push_back("Total Mult.");
   vh1_quark.push_back(h1_pull_QC_quark       ); vh1_gluon.push_back(h1_pull_QC_gluon       ); legendNames.push_back("Pull");
   vh1_quark.push_back(h1_R_quark             ); vh1_gluon.push_back(h1_R_gluon             ); legendNames.push_back("R");
+  vh1_quark.push_back(h1_qgl_newHisto_quark             ); vh1_gluon.push_back(h1_qgl_newHisto_gluon             ); legendNames.push_back("Quark-Gluon Likelihood");
 
   drawRoC_multi(db, ptMin, ptMax, "", vh1_quark, vh1_gluon, legendNames, "|#eta| < 2");
 
@@ -1303,9 +1306,21 @@ void drawRoC_multi( DrawBase* db, float ptMin, float ptMax, const std::string& f
       lineStyle+=2;
     }
     if( color==10 ) color++;
-    vgr_RoC[ihist]->SetLineColor(color);
-    vgr_RoC[ihist]->SetLineStyle(lineStyle);
-    vgr_RoC[ihist]->SetLineWidth(2);
+	if(legendNames[ihist].find("Likelihood") !=string::npos) 
+		{
+	    vgr_RoC[ihist]->SetMarkerSize(1.3);
+	    vgr_RoC[ihist]->SetMarkerStyle(20);
+	    vgr_RoC[ihist]->SetMarkerColor(kGray+3);
+	    vgr_RoC[ihist]->SetLineColor(kGray+3);
+	    vgr_RoC[ihist]->SetLineStyle(1);
+	    vgr_RoC[ihist]->SetLineWidth(3);
+		
+		}
+	else{
+	    vgr_RoC[ihist]->SetLineColor(color);
+	    vgr_RoC[ihist]->SetLineStyle(lineStyle);
+	    vgr_RoC[ihist]->SetLineWidth(2);
+	}
 
   } //for ihist
 
@@ -1332,7 +1347,9 @@ void drawRoC_multi( DrawBase* db, float ptMin, float ptMax, const std::string& f
   legend->SetFillColor(0);
   legend->SetTextSize(0.035);
   for( unsigned ihist=0; ihist<vh1_gluon.size(); ++ihist ) 
-    legend->AddEntry( vgr_RoC[ihist], legendNames[ihist].c_str(), "L");
+	if(legendNames[ihist].find("Likelihood") !=string::npos) 
+    	legend->AddEntry( vgr_RoC[ihist], legendNames[ihist].c_str(), "L");
+   	else legend->AddEntry( vgr_RoC[ihist], legendNames[ihist].c_str(), "L");
   legend->Draw("same");
 
   TPaveText* labelTop = db->get_labelTop();
@@ -1347,7 +1364,9 @@ void drawRoC_multi( DrawBase* db, float ptMin, float ptMax, const std::string& f
 
   
   for( unsigned ihist=0; ihist<vh1_gluon.size(); ++ihist ) 
+	if(legendNames[ihist].find("Likelihood") !=string::npos) 
     vgr_RoC[ihist]->Draw("L same");
+    else vgr_RoC[ihist]->Draw("L same");
 
   gPad->RedrawAxis();
 

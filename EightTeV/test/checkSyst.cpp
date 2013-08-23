@@ -142,6 +142,7 @@ int main( int argc, char* argv[] ) {
   //std::string systDatabaseName = "Syst_provaAll6580";
   //std::string systDatabaseName = "ZJetHbb_2013_07_23_res";
   std::string systDB_fullPath = "../data/" + systDatabaseName + ".txt";
+	std::cout<<"Syst file: " <<systDB_fullPath<<std::endl;
   
   QGSyst qgsyst;
   qgsyst.ReadDatabaseDoubleMin(systDB_fullPath);

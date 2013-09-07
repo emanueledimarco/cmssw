@@ -65,26 +65,39 @@ int main(int argc, char* argv[]) {
   TFile* file_mc;
 
   if( selectionType=="ZJets" ) {
-    file_data = TFile::Open("sunilFlat_ZJet_data2012ABCD_MuPD_12Jul.root");
-    file_mc = TFile::Open("sunilFlat_ZJet_Zjets_12Jul.root");
+    
+    file_data  = TFile::Open("sunilFlat_ZJet_data2012ABCD_MuPD_24Aug_skim_new.root");
+    if( use_herwig )
+      file_mc = TFile::Open("sunilFlat_ZJet_Zjets_HppXXX.root");
+    else
+      file_mc = TFile::Open("sunilFlat_ZJet_Zjets_MGPy6_24Aug_skim.root");
   } else {
     if( use_MB )
-      file_data = TFile::Open("sunilFlat_DiJet_data2012ABCD_MBPD_12Jul.root");
+      file_data = TFile::Open("sunilFlat_DiJet_data2012ABCD_MBPD_24Aug_new.root");
     else
-      file_data = TFile::Open("sunilFlat_DiJet_data2012ABCD_JetPD_12Jul.root");
-    std::string mcFileName = "sunilFlat_DiJet_flatQCD_P6_Dijets_12Jul";
+      file_data = TFile::Open("sunilFlat_DiJet_data2012ABCD_JetPD_24Aug.root");
+    std::string mcFileName = "sunilFlat_DiJet_flatQCD_P6_Dijets_24Aug";
     if( use_pthatweight ) {
       if( use_herwig )
-        mcFileName = "sunilFlat_DiJet_flatQCD_HPP_Dijets_12Aug_ptHatWeight";
+        mcFileName = "sunilFlat_DiJet_flatQCD_Hpp_Dijets_24Aug_ptHatWeight";
        else
-        mcFileName = "sunilFlat_DiJet_flatQCD_P6_Dijets_12Aug_ptHatWeight";
+        mcFileName = "sunilFlat_DiJet_flatQCD_Py6_Dijets_24Aug_ptHatWeight";
     }
     mcFileName += ".root";
     file_mc = TFile::Open(mcFileName.c_str());
   }
 
   DrawBase* db = new DrawBase("qgdatamc");
-  db->set_lumi(19500.);
+if(selectionType=="ZJets")
+  {
+  db->set_lumi(18300.);
+	std::cout<<"->Lumi is 18.3 FB"<<std::endl;
+  }
+if(selectionType=="DiJets")
+  {
+  db->set_lumi(0.0131);
+	std::cout<<"->Lumi is 13.1 NB"<<std::endl;
+  }
 
   std::string outputdir = "QGLDataMCPlots_" + selectionType;
   if( use_MB && selectionType=="DiJets" )
@@ -100,9 +113,9 @@ int main(int argc, char* argv[]) {
   db->add_dataFile(file_data, "data");
   db->add_mcFile(file_mc, "mc", "mc_process");
 
-//  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptJet[0]", "ptJet", "Jet p_{T}", "GeV", 0., 10000., 0., 10., 100, 20., 520., 1, true);
-//  //drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptJet[0]", "ptJet", "Jet p_{T}", "GeV", 0., 10000., 0., 2., 100, 20., 520., 1, true);
-//  //drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptJet[0]", "ptJet", "Jet p_{T}", "GeV", 0., 10000., 3., 4.7, 100, 20., 320., 1, true);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptJet[0]", "ptJet", "Jet p_{T}", "GeV", 0., 10000., 0., 10., 100, 20., 520., 1, true);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptJet[0]", "ptJet", "Jet p_{T}", "GeV", 0., 10000., 0., 2., 100, 20., 520., 1, true);
+  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "ptJet[0]", "ptJet", "Jet p_{T}", "GeV", 0., 10000., 3., 4.7, 100, 20., 320., 1, true);
 //
 //  drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "etaJet[0]", "etaJet", "Jet #eta", "", 0., 10000., 0., 10., 50., -5.5, 5.5);
 //  //drawHistoWithQuarkGluonComponents( selectionType, db, "tree_passedEvents", "", "etaJet[0]", "etaJet", "Jet #eta", "", 40., 10000., 0., 10., 50., -5.5, 5.5);

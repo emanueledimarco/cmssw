@@ -10,6 +10,11 @@
 #include "QuarkGluonTagger/EightTeV/interface/QGLikelihoodCalculator.h"
 #include "QuarkGluonTagger/EightTeV/interface/QGMLPCalculator.h"
 #include <string>
+#include <map>
+#include "TH1F.h"
+#include "TH2D.h"
+#include "TROOT.h"
+#include "TStyle.h"
 
 using namespace std;
 
@@ -20,7 +25,8 @@ struct HistosSinglePt {
   TH1D h1_qgl_newHisto_gluon;
   TH1D h1_qgl_newHisto_F_quark;
   TH1D h1_qgl_newHisto_F_gluon;
-
+	
+  TH2D h2_corrMatrix;
 };
 
 
@@ -49,7 +55,6 @@ void drawQuarkFraction_vs_pt( DrawBase* db, TTree* tree, TTree* tree_herwig, flo
 
 int main() {
 
-
   if( sunilTree )
     std::cout << "-> Using Sunil's tree." << std::endl;
 
@@ -58,7 +63,8 @@ int main() {
   if( sunilTree )
     tree->Add("/afs/cern.ch/work/s/sunil/public/forTom/analysis_flatQCD_P6_Dijets.root/Hbb/events");
   else
-    tree->Add("sunilFlat_DiJet_flatQCD_P6_Dijets_12Aug_ptHatWeight.root/tree_passedEvents");
+    tree->Add("sunilFlat_DiJet_flatQCD_Py6_Dijets_24Aug_ptHatWeight.root/tree_passedEvents");
+    //tree->Add("sunilFlat_DiJet_flatQCD_P6_Dijets_12Aug_ptHatWeight.root/tree_passedEvents");
     //tree->Add("sunilFlat_ZJet_Zjets_12Jul.root/tree_passedEvents");
     //tree->Add("/cmsrm/pc25_2/pandolf/MC/Summer12/QCD_Pt-15to3000_TuneZ2_Flat_8TeV_pythia6_Summer12_DR53X-PU_S10_START53_V7A-v1_finalQG_withCHS_JEC53X/QG_2ndLevelTree_QCD_Pt-15to3000_TuneZ2_Flat_8TeV_pythia6_Summer12_DR53X-PU_S10_START53_V7A-v1_finalQG_withCHS_JEC53X_*.root");
   
@@ -405,6 +411,33 @@ HistosSinglePt drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLi
   TH1D* h1_qgMLP_F_quark = new TH1D("qgMLP_F_quark", "", nbins, 0., 1.);
   TH1D* h1_qgMLP_F_charm = new TH1D("qgMLP_F_charm", "", nbins, 0., 1.);
   TH1D* h1_qgMLP_F_pu = new TH1D("qgMLP_F_pu", "", nbins, 0., 1.);
+	
+	map<string,TH2D*> correlation;
+	map<string,TH2D*> correlation_F;
+	correlation["qgl_ptD"]		=new TH2D("qgl_ptD","qgl_ptD",100,0,1.0001,100,0,1.0001);
+	correlation["qgl_axis1"]	=new TH2D("qgl_axis1","qgl_ptD",100,0,1.0001,100,0,10);
+	correlation["qgl_axis2"]	=new TH2D("qgl_axis2","qgl_ptD",100,0,1.0001,100,0,10);
+	correlation["qgl_nPFCand"]	=new TH2D("qgl_nPFCand","qgl_ptD",100,0,1.0001,100,0,100);
+	correlation["ptD_axis1"]	=new TH2D("ptD_axis1","qgl_ptD",100,0,1.0001,100,0,10.);
+	correlation["ptD_axis2"]	=new TH2D("ptD_axis2","qgl_ptD",100,0,1.0001,100,0,10.);
+	correlation["ptD_nPFCand"]	=new TH2D("ptD_nPFCand","qgl_ptD",100,0,1.0001,100,0,100);
+	correlation["axis1_axis2"]	=new TH2D("axis1_axis2","qgl_ptD",100,0,10.,100,0,10.);
+	correlation["axis1_nPFCand"]	=new TH2D("axis1_nPFCand","qgl_ptD",100,0,10.,100,0,100.);
+	correlation["axis2_nPFCand"]	=new TH2D("axis2_nPFCand","qgl_ptD",100,0,10.,100,0,100.);
+	
+	correlation_F["qgl_ptD"]	=new TH2D("qgl_ptD_F","qgl_ptD",100,0,1.0001,100,0,1.0001);
+	correlation_F["qgl_axis1"]=new TH2D("qgl_axis1_F","qgl_ptD",100,0,1.0001,100,0,10);
+	correlation_F["qgl_axis2"]=new TH2D("qgl_axis2_F","qgl_ptD",100,0,1.0001,100,0,10);
+	correlation_F["qgl_nPFCand"]=new TH2D("qgl_nPFCand_F","qgl_ptD",100,0,1.0001,100,0,100);
+	correlation_F["ptD_axis1"]=new TH2D("ptD_axis1_F","qgl_ptD",100,0,1.0001,100,0,10.);
+	correlation_F["ptD_axis2"]=new TH2D("ptD_axis2_F","qgl_ptD",100,0,1.0001,100,0,10.);
+	correlation_F["ptD_nPFCand"]=new TH2D("ptD_nPFCand_F","qgl_ptD",100,0,1.0001,100,0,100);
+	correlation_F["axis1_axis2"]=new TH2D("axis1_axis2_F","qgl_ptD",100,0,10.,100,0,10.);
+	correlation_F["axis1_nPFCand"]=new TH2D("axis1_nPFCand_F","qgl_ptD",100,0,10.,100,0,100.);
+	correlation_F["axis2_nPFCand"]=new TH2D("axis2_nPFCand_F","qgl_ptD",100,0,10.,100,0,100.);
+	
+	TH2D *corrMatrix=new TH2D("correlation","correlation",5,-0.5,4.5,5,-0.5,4.5);
+	TH2D *corrMatrix_F=new TH2D("correlation_F","correlation",5,-0.5,4.5,5,-0.5,4.5);
 
 
   int nentries = tree->GetEntries();
@@ -458,7 +491,6 @@ HistosSinglePt drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLi
 
 
 
-    //if( fabs(eta[0])<2. && h1_qgl_old_gluon->GetEntries()<10000 && h1_qgl_old_quark->GetEntries()<10000 ) { //save time
     if( fabs(eta[0])<2. ) {
 
       //float qgl_old = qglc_old->computeQGLikelihoodPU( pt[0], rho, nCharged[0], nNeutral[0], ptD[0]);
@@ -527,7 +559,17 @@ HistosSinglePt drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLi
         h1_qgMLP_pu->Fill( qglMLPJet[0] );
       }
 
-
+	correlation["qgl_ptD"]		->Fill(qgl_new,ptD_QC[0]);
+	correlation["qgl_axis1"]	->Fill(qgl_new,-log(axis1_QC[0]));
+	correlation["qgl_axis2"]	->Fill(qgl_new,-log(axis2_QC[0]));
+	correlation["qgl_nPFCand"]	->Fill(qgl_new,nCharged_QC[0]+nNeutral_ptCut[0]);
+	correlation["ptD_axis1"]	->Fill(ptD_QC[0],-log(axis1_QC[0]));
+	correlation["ptD_axis2"]	->Fill(ptD_QC[0],-log(axis2_QC[0]));
+	correlation["ptD_nPFCand"]	->Fill(ptD_QC[0],nCharged_QC[0]+nNeutral_ptCut[0]);
+	correlation["axis1_axis2"]	->Fill(-log(axis1_QC[0]),-log(axis2_QC[0]));
+	correlation["axis1_nPFCand"]	->Fill(-log(axis1_QC[0]),nCharged_QC[0]+nNeutral_ptCut[0]);
+	correlation["axis2_nPFCand"]	->Fill(-log(axis2_QC[0]),nCharged_QC[0]+nNeutral_ptCut[0]);
+	
     } else if( fabs(eta[0])<2.5 ) {
 
       //float qgl_old = qglc_old->computeQGLikelihoodPU( pt[0], rho, nCharged[0], nNeutral[0], ptD[0]);
@@ -626,6 +668,16 @@ HistosSinglePt drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLi
         h1_qgl_newHisto_F_pu->Fill( qgl_newHisto );
         h1_qgMLP_F_pu->Fill( qglMLPJet[0] );
       }
+	correlation_F["qgl_ptD"]	->Fill(qgl_new,ptD_QC[0]);
+	correlation_F["qgl_axis1"]	->Fill(qgl_new,-log(axis1_QC[0]));
+	correlation_F["qgl_axis2"]	->Fill(qgl_new,-log(axis2_QC[0]));
+	correlation_F["qgl_nPFCand"]	->Fill(qgl_new,nCharged_QC[0]+nNeutral_ptCut[0]);
+	correlation_F["ptD_axis1"]	->Fill(ptD_QC[0],-log(axis1_QC[0]));
+	correlation_F["ptD_axis2"]	->Fill(ptD_QC[0],-log(axis2_QC[0]));
+	correlation_F["ptD_nPFCand"]	->Fill(ptD_QC[0],nCharged_QC[0]+nNeutral_ptCut[0]);
+	correlation_F["axis1_axis2"]	->Fill(-log(axis1_QC[0]),-log(axis2_QC[0]));
+	correlation_F["axis1_nPFCand"]	->Fill(-log(axis1_QC[0]),nCharged_QC[0]+nNeutral_ptCut[0]);
+	correlation_F["axis2_nPFCand"]	->Fill(-log(axis2_QC[0]),nCharged_QC[0]+nNeutral_ptCut[0]);
 
     }
     
@@ -637,15 +689,134 @@ HistosSinglePt drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLi
 //   && h1_qgl_new_F_gluon->GetEntries()>10000) ) ) break;
 
 
-  }
+  } //loop
+	//0=qgl 1=ptD 2=axis1 3=axis2 4=nPFCand
+	gStyle->SetPalette(1);
+	corrMatrix->GetXaxis()->SetBinLabel(1,"QG-L");
+	corrMatrix->GetXaxis()->SetBinLabel(2,"p_{T}D");
+	corrMatrix->GetXaxis()->SetBinLabel(3,"#sigma_{1}");
+	corrMatrix->GetXaxis()->SetBinLabel(4,"#sigma_{2}");
+	corrMatrix->GetXaxis()->SetBinLabel(5,"Mult.");
+	//corrMatrix->GetXaxis()->SetTextAngle(60);
+	corrMatrix->GetYaxis()->SetBinLabel(1,"QG-L");
+	corrMatrix->GetYaxis()->SetBinLabel(2,"p_{T}D");
+	corrMatrix->GetYaxis()->SetBinLabel(3,"#sigma_{1}");
+	corrMatrix->GetYaxis()->SetBinLabel(4,"#sigma_{2}");
+	corrMatrix->GetYaxis()->SetBinLabel(5,"Mult.");
+	//corrMatrix->GetYaxis()->SetTextAngle(60);
+	
+	corrMatrix->SetBinContent(corrMatrix->FindBin(0,1), correlation["qgl_ptD"]->GetCorrelationFactor());
+	corrMatrix->SetBinContent(corrMatrix->FindBin(1,0), correlation["qgl_ptD"]->GetCorrelationFactor());
 
+	corrMatrix->SetBinContent(corrMatrix->FindBin(0,2), correlation["qgl_axis1"]->GetCorrelationFactor());
+	corrMatrix->SetBinContent(corrMatrix->FindBin(2,0), correlation["qgl_axis1"]->GetCorrelationFactor());
 
+	corrMatrix->SetBinContent(corrMatrix->FindBin(0,3), correlation["qgl_axis2"]->GetCorrelationFactor());
+	corrMatrix->SetBinContent(corrMatrix->FindBin(3,0), correlation["qgl_axis2"]->GetCorrelationFactor());
 
+	corrMatrix->SetBinContent(corrMatrix->FindBin(0,4), correlation["qgl_nPFCand"]->GetCorrelationFactor());
+	corrMatrix->SetBinContent(corrMatrix->FindBin(4,0), correlation["qgl_nPFCand"]->GetCorrelationFactor());
+
+	corrMatrix->SetBinContent(corrMatrix->FindBin(1,2), correlation["ptD_axis1"]->GetCorrelationFactor());
+	corrMatrix->SetBinContent(corrMatrix->FindBin(2,1), correlation["ptD_axis1"]->GetCorrelationFactor());
+
+	corrMatrix->SetBinContent(corrMatrix->FindBin(1,3), correlation["ptD_axis2"]->GetCorrelationFactor());
+	corrMatrix->SetBinContent(corrMatrix->FindBin(3,1), correlation["ptD_axis2"]->GetCorrelationFactor());
+
+	corrMatrix->SetBinContent(corrMatrix->FindBin(1,4), correlation["ptD_nPFCand"]->GetCorrelationFactor());
+	corrMatrix->SetBinContent(corrMatrix->FindBin(4,1), correlation["ptD_nPFCand"]->GetCorrelationFactor());
+
+	corrMatrix->SetBinContent(corrMatrix->FindBin(2,3), correlation["axis1_axis2"]->GetCorrelationFactor());
+	corrMatrix->SetBinContent(corrMatrix->FindBin(3,2), correlation["axis1_axis2"]->GetCorrelationFactor());
+
+	corrMatrix->SetBinContent(corrMatrix->FindBin(2,4), correlation["axis1_nPFCand"]->GetCorrelationFactor());
+	corrMatrix->SetBinContent(corrMatrix->FindBin(4,2), correlation["axis1_nPFCand"]->GetCorrelationFactor());
+	
+	corrMatrix->SetBinContent(corrMatrix->FindBin(3,4), correlation["axis2_nPFCand"]->GetCorrelationFactor());
+	corrMatrix->SetBinContent(corrMatrix->FindBin(4,3), correlation["axis2_nPFCand"]->GetCorrelationFactor());
+
+	//Poor man rounding solution	
+	for(int i=1;i<corrMatrix->GetNbinsX()+1;i++)
+	for(int j=1;j<corrMatrix->GetNbinsX()+1;j++)
+		{
+		float x=corrMatrix->GetBinContent(i,j);
+		x*=1000.;
+		x=int(x);
+		x/=1000.;
+		corrMatrix->SetBinContent(i,j,x);
+		}
+	
+	TCanvas *c=new TCanvas("c","c",800,800);
+	corrMatrix->Draw("COL TEXT");
+	c->SaveAs(Form("QGLMCPlots/Corr_%.0f_%.0f.pdf",ptMin,ptMax));
+	correlation["qgl_ptD"]->Draw("BOX");
+	c->SaveAs(Form("QGLMCPlots/DEBUG_QGL_PTD_%.0f_%.0f.pdf",ptMin,ptMax));
+	correlation["qgl_axis2"]->Draw("BOX");
+	c->SaveAs(Form("QGLMCPlots/DEBUG_QGL_AXIS2_%.0f_%.0f.pdf",ptMin,ptMax));
+
+	corrMatrix_F->GetXaxis()->SetBinLabel(1,"QG-L");
+	corrMatrix_F->GetXaxis()->SetBinLabel(2,"p_{T}D");
+	corrMatrix_F->GetXaxis()->SetBinLabel(3,"#sigma_{1}");
+	corrMatrix_F->GetXaxis()->SetBinLabel(4,"#sigma_{2}");
+	corrMatrix_F->GetXaxis()->SetBinLabel(5,"Mult.");
+	corrMatrix_F->GetYaxis()->SetBinLabel(1,"QG-L");
+	corrMatrix_F->GetYaxis()->SetBinLabel(2,"p_{T}D");
+	corrMatrix_F->GetYaxis()->SetBinLabel(3,"#sigma_{1}");
+	corrMatrix_F->GetYaxis()->SetBinLabel(4,"#sigma_{2}");
+	corrMatrix_F->GetYaxis()->SetBinLabel(5,"Mult.");
+	
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(0,1), correlation_F["qgl_ptD"]->GetCorrelationFactor());
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(1,0), correlation_F["qgl_ptD"]->GetCorrelationFactor());
+
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(0,2), correlation_F["qgl_axis1"]->GetCorrelationFactor());
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(2,0), correlation_F["qgl_axis1"]->GetCorrelationFactor());
+
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(0,3), correlation_F["qgl_axis2"]->GetCorrelationFactor());
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(3,0), correlation_F["qgl_axis2"]->GetCorrelationFactor());
+
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(0,4), correlation_F["qgl_nPFCand"]->GetCorrelationFactor());
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(4,0), correlation_F["qgl_nPFCand"]->GetCorrelationFactor());
+
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(1,2), correlation_F["ptD_axis1"]->GetCorrelationFactor());
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(2,1), correlation_F["ptD_axis1"]->GetCorrelationFactor());
+
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(1,3), correlation_F["ptD_axis2"]->GetCorrelationFactor());
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(3,1), correlation_F["ptD_axis2"]->GetCorrelationFactor());
+
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(1,4), correlation_F["ptD_nPFCand"]->GetCorrelationFactor());
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(4,1), correlation_F["ptD_nPFCand"]->GetCorrelationFactor());
+
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(2,3), correlation_F["axis1_axis2"]->GetCorrelationFactor());
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(3,2), correlation_F["axis1_axis2"]->GetCorrelationFactor());
+
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(2,4), correlation_F["axis1_nPFCand"]->GetCorrelationFactor());
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(4,2), correlation_F["axis1_nPFCand"]->GetCorrelationFactor());
+	
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(3,4), correlation_F["axis2_nPFCand"]->GetCorrelationFactor());
+	corrMatrix_F->SetBinContent(corrMatrix_F->FindBin(4,3), correlation_F["axis2_nPFCand"]->GetCorrelationFactor());
+
+	//Poor man rounding solution	
+	for(int i=1;i<corrMatrix_F->GetNbinsX()+1;i++)
+	for(int j=1;j<corrMatrix_F->GetNbinsX()+1;j++)
+		{
+		float x=corrMatrix_F->GetBinContent(i,j);
+		x*=1000.;
+		x=int(x);
+		x/=1000.;
+		corrMatrix_F->SetBinContent(i,j,x);
+		}
+	//TCanvas *c=new TCanvas("c","c",800,800);
+	corrMatrix_F->Draw("COL TEXT");
+	c->SaveAs(Form("QGLMCPlots/Corr_F_%.0f_%.0f.pdf",ptMin,ptMax));
+	correlation_F["qgl_ptD"]->Draw("BOX");
+	c->SaveAs(Form("QGLMCPlots/DEBUG_F_QGL_PTD_%.0f_%.0f.pdf",ptMin,ptMax));
+	correlation_F["qgl_axis2"]->Draw("BOX");
+	c->SaveAs(Form("QGLMCPlots/DEBUG_F_QGL_AXIS2_%.0f_%.0f.pdf",ptMin,ptMax));
   //create vectors for drawRoc_multi:
   std::vector<TH1D*> vh1_quark;
   std::vector<TH1D*> vh1_gluon;
   std::vector<std::string> legendNames;
-  vh1_quark.push_back(h1_ptD_QC_quark        ); vh1_gluon.push_back(h1_ptD_QC_gluon        ); legendNames.push_back("p_{T}D"        );
+  vh1_quark.push_back(h1_ptD_QC_quark        ); vh1_gluon.push_back(h1_ptD_QC_gluon        ); legendNames.push_back("#scale[0.9]{p_{T}D}"        );
   vh1_quark.push_back(h1_axis1_QC_quark      ); vh1_gluon.push_back(h1_axis1_QC_gluon      ); legendNames.push_back("#sigma_{1}"     );
   vh1_quark.push_back(h1_axis2_QC_quark      ); vh1_gluon.push_back(h1_axis2_QC_gluon      ); legendNames.push_back("#sigma_{2}"     );
   vh1_quark.push_back(h1_rmsCand_QC_quark    ); vh1_gluon.push_back(h1_rmsCand_QC_gluon    ); legendNames.push_back("#sigma"    );
@@ -661,13 +832,14 @@ HistosSinglePt drawSinglePtBin( DrawBase* db, QGLikelihoodCalculator* qglc, QGLi
   std::vector<TH1D*> vh1_F_quark;
   std::vector<TH1D*> vh1_F_gluon;
   std::vector<std::string> legendNames_F;
-  vh1_F_quark.push_back(h1_ptD_QC_F_quark        ); vh1_F_gluon.push_back(h1_ptD_QC_F_gluon        ); legendNames_F.push_back("p_{T}D"        );
+  vh1_F_quark.push_back(h1_ptD_QC_F_quark        ); vh1_F_gluon.push_back(h1_ptD_QC_F_gluon        ); legendNames_F.push_back("#scale[0.9]{p_{T}D}"        );
   vh1_F_quark.push_back(h1_axis1_QC_F_quark      ); vh1_F_gluon.push_back(h1_axis1_QC_F_gluon      ); legendNames_F.push_back("#sigma_{1}"     );
   vh1_F_quark.push_back(h1_axis2_QC_F_quark      ); vh1_F_gluon.push_back(h1_axis2_QC_F_gluon      ); legendNames_F.push_back("#sigma_{2}"     );
   vh1_F_quark.push_back(h1_rmsCand_QC_F_quark    ); vh1_F_gluon.push_back(h1_rmsCand_QC_F_gluon    ); legendNames_F.push_back("#sigma"    );
   vh1_F_quark.push_back(h1_nNeutral_ptCut_F_quark); vh1_F_gluon.push_back(h1_nNeutral_ptCut_F_gluon); legendNames_F.push_back("Multiplicity");
   vh1_F_quark.push_back(h1_pull_QC_F_quark       ); vh1_F_gluon.push_back(h1_pull_QC_F_gluon       ); legendNames_F.push_back("Pull");
   vh1_F_quark.push_back(h1_R_F_quark             ); vh1_F_gluon.push_back(h1_R_F_gluon             ); legendNames_F.push_back("R");
+  vh1_F_quark.push_back(h1_qgl_newHisto_F_quark  ); vh1_F_gluon.push_back(h1_qgl_newHisto_F_gluon  ); legendNames_F.push_back("Quark-Gluon Likelihood");
 
   drawRoC_multi(db, ptMin, ptMax, "_F", vh1_F_quark, vh1_F_gluon, legendNames_F, "3 < |#eta| < 4.7");
 
@@ -1312,7 +1484,7 @@ void drawRoC_multi( DrawBase* db, float ptMin, float ptMax, const std::string& f
 	    vgr_RoC[ihist]->SetMarkerStyle(20);
 	    vgr_RoC[ihist]->SetMarkerColor(kGray+3);
 	    vgr_RoC[ihist]->SetLineColor(kGray+3);
-	    vgr_RoC[ihist]->SetLineStyle(1);
+	    vgr_RoC[ihist]->SetLineStyle(2);
 	    vgr_RoC[ihist]->SetLineWidth(3);
 		
 		}
@@ -1343,7 +1515,8 @@ void drawRoC_multi( DrawBase* db, float ptMin, float ptMax, const std::string& f
 
   char legendTitle[300];
   sprintf( legendTitle, "%.0f < p_{T} < %.0f GeV", ptMin, ptMax );
-  TLegend* legend = new TLegend( 0.2, 0.19, 0.45, 0.62, legendTitle );
+  //TLegend* legend = new TLegend( 0.2, 0.19, 0.45, 0.62, legendTitle );
+  TLegend* legend = new TLegend( 0.2, 0.18, 0.45, 0.65, legendTitle );
   legend->SetFillColor(0);
   legend->SetTextSize(0.035);
   for( unsigned ihist=0; ihist<vh1_gluon.size(); ++ihist ) 

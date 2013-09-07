@@ -30,10 +30,10 @@ int main(int argc, char* argv[]) {
 
 
   std::string dataDataset;
-  if( selection=="Zjet" )
-    dataDataset = "data2012ABCD_MuPD_12Jul";
+  if( selection=="ZJet" )
+    dataDataset = "data2012ABCD_MuPD_24Aug_skim_new";
   else if( selection=="DiJet" )
-    dataDataset = "data2012ABCD_MBPD_12Jul"; //fuck the JetPD
+    dataDataset = "data2012ABCD_MBPD_24Aug_new"; //fuck the JetPD
 
 
 

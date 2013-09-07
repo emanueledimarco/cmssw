@@ -8,6 +8,10 @@
 
 #include "PUWeight.h"
 
+#include <vector>
+#include <map>
+#include <string>
+using namespace std;
 
 
 std::string treeType = "sunil"; //can be andrea/tom/sunil
@@ -110,6 +114,7 @@ int main( int argc, char* argv[] ) {
   float jetLead[4];
   int jetPdgId[20];
   int jetMCFlavor[20];
+  int jetFlavor[20];
   int nCharged_QC[20];
   int nCharged_ptCut[20];
   int nNeutral_ptCut[20];
@@ -205,6 +210,7 @@ int main( int argc, char* argv[] ) {
     sunilTree->SetBranchAddress("jetPull_QC",&jetPull_QC);
     sunilTree->SetBranchAddress("jetLead",&jetLead);
     sunilTree->SetBranchAddress("jetChgPart_QC", nCharged_QC);
+    sunilTree->SetBranchAddress("jetFlavor", jetFlavor);
     
     sunilTree->SetBranchAddress("jetNeutralPart_ptcut", nNeutral_ptCut);
     sunilTree->SetBranchAddress("partonId",&partonId);
@@ -456,7 +462,7 @@ int main( int argc, char* argv[] ) {
   //  hPt_wt = (TH1F*)filePtWeights->Get("ptAve_weights");
 
 
-
+  std::map<string,long> counter;
   std::cout << "-> Begin loop." << std::endl;
 
   for( unsigned int ientry=0; ientry<nentries; ++ientry ) {
@@ -464,7 +470,8 @@ int main( int argc, char* argv[] ) {
     sunilTree->GetEntry(ientry);
 
     if( ientry % 100000 == 0 ) std::cout << "entry: " << ientry << "/" << nentries << std::endl;
-
+	
+	counter["A_all"]++;
 
     bool isMC = (run < 10000);
 
@@ -482,6 +489,7 @@ int main( int argc, char* argv[] ) {
       }
     }
 
+	counter["BA_trigger"]++;
 
     if( treeType=="andrea" ) {
       
@@ -529,13 +537,16 @@ int main( int argc, char* argv[] ) {
       //if( jetPt[0] < 20.) continue; 
       //if( jetPt[1] < 20.) continue;
  
+	counter["BB_secondJet"]++;
 
       TLorentzVector jet1, jet2;
       jet1.SetPtEtaPhiE( jetPt[0], jetEta[0], jetPhi[0], jetEnergy[0]);
       jet2.SetPtEtaPhiE( jetPt[1], jetEta[1], jetPhi[1], jetEnergy[1]);
       if( fabs(jet1.DeltaPhi(jet2)) < 2.5 ) continue;
+	counter["BC_deltaPhi"]++;
 
       if( jetPt[2] > 0.3*(jetPt[0]+jetPt[1])/2. )continue;
+	counter["BD_3rdJet"]++;
 
       ptZ = 0.;
 
@@ -546,6 +557,7 @@ int main( int argc, char* argv[] ) {
 
       if( MuPt[0]<20. ) continue;
       if( MuPt[1]<20. ) continue;
+	counter["C_MuPt"]++;
 
       TLorentzVector mu1, mu2;
       mu1.SetPtEtaPhiE( MuPt[0], MuEta[0], MuPhi[0], MuEnergy[0] );
@@ -554,12 +566,15 @@ int main( int argc, char* argv[] ) {
       TLorentzVector Zmm = mu1 + mu2;
 
       if( Zmm.M()<70. || Zmm.M()>110. ) continue;
+	counter["D_invMass"]++;
       if( treeType=="andrea" && nJet<1 ) continue;
       if( jetPt[0]<20. ) continue; 
       TLorentzVector jet;
       jet.SetPtEtaPhiE( jetPt[0], jetEta[0], jetPhi[0], jetEnergy[0] );
       if( fabs(Zmm.DeltaPhi(jet)) < 2.5 ) continue;
+	counter["E_deltaPhi"]++;
       if( jetPt[1]>0.3*Zmm.Pt() ) continue;
+	counter["F_2ndJet"]++;
 
       ptZ = Zmm.Pt();
 
@@ -568,6 +583,7 @@ int main( int argc, char* argv[] ) {
     // common jet ID:
     if( fabs(jetEta[0]) < 2.5 && jetBeta[0] < ( 1.0 -  0.2 * TMath::Log( nvtx - 0.67))) continue; 
     if( jetBtag[0]>0.244 ) continue;
+	counter["G_betaStar"]++;
     if( selectionType=="DiJet" ) {
       if( fabs(jetEta[1]) < 2.5 && jetBeta[1] < ( 1.0 -  0.2 * TMath::Log( nvtx - 0.67))) continue; 
       if( jetBtag[1]>0.244 ) continue;
@@ -655,40 +671,44 @@ int main( int argc, char* argv[] ) {
       float deltaR_min_bottom = 999.;
       int foundPart_bottom = -1;
   
-  
-      for(int iPart=0;iPart<int(partonPt->size());iPart++) {
-  
-        if( partonSt->at(iPart) != 3 ) continue;
-        if( partonPt->at(iPart) < 1. ) continue;
-        if( !( fabs(partonId->at(iPart))<6 || fabs(partonId->at(iPart))>0 || partonId->at(iPart)==21) ) continue;
-        TLorentzVector thisPart;
-        thisPart.SetPtEtaPhiE( partonPt->at(iPart), partonEta->at(iPart), partonPhi->at(iPart), partonE->at(iPart) );
-        float deltaR_part = thisPart.DeltaR(thisJet);
-        if(deltaR_part< deltaR_min) {
-          deltaR_min = deltaR_part;
-          foundPart = iPart;
-        }
-        if( fabs(partonId->at(iPart))==4 && deltaR_part< deltaR_min_charm) {
-          deltaR_min_charm = deltaR_part;
-          foundPart_charm = iPart;
-        }
-        if( fabs(partonId->at(iPart))==5 && deltaR_part< deltaR_min_bottom) {
-          deltaR_min_bottom = deltaR_part;
-          foundPart_bottom = iPart;
-        }
-  
-      }
-  
-  
-      if( deltaR_min_charm<0.3 && foundPart_charm>=0 ) { // priority to charm
-        jetPdgId[0] = partonId->at(foundPart_charm);
-      } else if( deltaR_min_bottom<0.3 && foundPart_bottom>=0 ) { // then to bottom
-        jetPdgId[0] = partonId->at(foundPart_bottom);
-      } else if(deltaR_min < 0.3 && foundPart>=0) {
-        jetPdgId[0] = partonId->at(foundPart);
-      } else {
-        jetPdgId[0] = 0;
-      }
+ 	//matching 
+//	{
+//      for(int iPart=0;iPart<int(partonPt->size());iPart++) {
+//  
+//        if( partonSt->at(iPart) != 3 ) continue;
+//        if( partonPt->at(iPart) < 1. ) continue;
+//        if( !( fabs(partonId->at(iPart))<6 || fabs(partonId->at(iPart))>0 || partonId->at(iPart)==21) ) continue;
+//        TLorentzVector thisPart;
+//        thisPart.SetPtEtaPhiE( partonPt->at(iPart), partonEta->at(iPart), partonPhi->at(iPart), partonE->at(iPart) );
+//        float deltaR_part = thisPart.DeltaR(thisJet);
+//        if(deltaR_part< deltaR_min) {
+//          deltaR_min = deltaR_part;
+//          foundPart = iPart;
+//        }
+//        if( fabs(partonId->at(iPart))==4 && deltaR_part< deltaR_min_charm) {
+//          deltaR_min_charm = deltaR_part;
+//          foundPart_charm = iPart;
+//        }
+//        if( fabs(partonId->at(iPart))==5 && deltaR_part< deltaR_min_bottom) {
+//          deltaR_min_bottom = deltaR_part;
+//          foundPart_bottom = iPart;
+//        }
+//  
+//      }
+//  
+//  
+//      if( deltaR_min_charm<0.3 && foundPart_charm>=0 ) { // priority to charm
+//        jetPdgId[0] = partonId->at(foundPart_charm);
+//      } else if( deltaR_min_bottom<0.3 && foundPart_bottom>=0 ) { // then to bottom
+//        jetPdgId[0] = partonId->at(foundPart_bottom);
+//      } else if(deltaR_min < 0.3 && foundPart>=0) {
+//        jetPdgId[0] = partonId->at(foundPart);
+//      } else {
+//        jetPdgId[0] = 0;
+//      }
+//	}//end matching
+	
+	jetPdgId[0] = jetFlavor[0];
     }
 
 
@@ -746,49 +766,52 @@ int main( int argc, char* argv[] ) {
       if( treeType=="sunil" ) {
 
         // match to parton:
-        float deltaR_min = 999.;
-        int foundPart = -1;
-    
-        float deltaR_min_charm = 999.;
-        int foundPart_charm = -1;
-    
-        float deltaR_min_bottom = 999.;
-        int foundPart_bottom = -1;
-    
-    
-        for(int iPart=0;iPart<int(partonPt->size());iPart++) {
-    
-          if( partonSt->at(iPart) != 3 ) continue;
-          if( partonPt->at(iPart) < 1. ) continue;
-          if( !( fabs(partonId->at(iPart))<6 || fabs(partonId->at(iPart))>0 || partonId->at(iPart)==21) ) continue;
-          TLorentzVector thisPart;
-          thisPart.SetPtEtaPhiE( partonPt->at(iPart), partonEta->at(iPart), partonPhi->at(iPart), partonE->at(iPart) );
-          float deltaR_part = thisPart.DeltaR(secondJet);
-          if(deltaR_part< deltaR_min) {
-            deltaR_min = deltaR_part;
-            foundPart = iPart;
-          }
-          if( fabs(partonId->at(iPart))==4 && deltaR_part< deltaR_min_charm) {
-            deltaR_min_charm = deltaR_part;
-            foundPart_charm = iPart;
-          }
-          if( fabs(partonId->at(iPart))==5 && deltaR_part< deltaR_min_bottom) {
-            deltaR_min_bottom = deltaR_part;
-            foundPart_bottom = iPart;
-          }
-    
-        }
-    
-    
-        if( deltaR_min_charm<0.3 && foundPart_charm>=0 ) { // priority to charm
-          jetPdgId[1] = partonId->at(foundPart_charm);
-        } else if( deltaR_min_bottom<0.3 && foundPart_bottom>=0 ) { // then to bottom
-          jetPdgId[1] = partonId->at(foundPart_bottom);
-        } else if(deltaR_min < 0.3 && foundPart>=0) {
-          jetPdgId[1] = partonId->at(foundPart);
-        } else {
-          jetPdgId[1] = 0;
-        }
+//	{
+//        float deltaR_min = 999.;
+//        int foundPart = -1;
+//    
+//        float deltaR_min_charm = 999.;
+//        int foundPart_charm = -1;
+//    
+//        float deltaR_min_bottom = 999.;
+//        int foundPart_bottom = -1;
+//    
+//    
+//        for(int iPart=0;iPart<int(partonPt->size());iPart++) {
+//    
+//          if( partonSt->at(iPart) != 3 ) continue;
+//          if( partonPt->at(iPart) < 1. ) continue;
+//          if( !( fabs(partonId->at(iPart))<6 || fabs(partonId->at(iPart))>0 || partonId->at(iPart)==21) ) continue;
+//          TLorentzVector thisPart;
+//          thisPart.SetPtEtaPhiE( partonPt->at(iPart), partonEta->at(iPart), partonPhi->at(iPart), partonE->at(iPart) );
+//          float deltaR_part = thisPart.DeltaR(secondJet);
+//          if(deltaR_part< deltaR_min) {
+//            deltaR_min = deltaR_part;
+//            foundPart = iPart;
+//          }
+//          if( fabs(partonId->at(iPart))==4 && deltaR_part< deltaR_min_charm) {
+//            deltaR_min_charm = deltaR_part;
+//            foundPart_charm = iPart;
+//          }
+//          if( fabs(partonId->at(iPart))==5 && deltaR_part< deltaR_min_bottom) {
+//            deltaR_min_bottom = deltaR_part;
+//            foundPart_bottom = iPart;
+//          }
+//    
+//        }
+//    
+//    
+//        if( deltaR_min_charm<0.3 && foundPart_charm>=0 ) { // priority to charm
+//          jetPdgId[1] = partonId->at(foundPart_charm);
+//        } else if( deltaR_min_bottom<0.3 && foundPart_bottom>=0 ) { // then to bottom
+//          jetPdgId[1] = partonId->at(foundPart_bottom);
+//        } else if(deltaR_min < 0.3 && foundPart>=0) {
+//          jetPdgId[1] = partonId->at(foundPart);
+//        } else {
+//          jetPdgId[1] = 0;
+//        }
+//	}//end matching	
+	jetPdgId[1]=jetFlavor[1];
 
       } //if sunil
 
@@ -834,6 +857,17 @@ int main( int argc, char* argv[] ) {
   } // for entries
 
 
+std::cout<<"Efficiency "<<double(flatTree->GetEntries())/double(sunilTree->GetEntries())<<std::endl;
+	long P=0;
+	for(std::map<string,long>::iterator it=counter.begin();it!=counter.end();it++)
+		{
+		long N=it->second;
+		if(P!=0)
+			{
+			std::cout<<"--> Eff Cut "<<it->first<<" "<<double(N)/double(P)<<std::endl;
+			}
+		P=N;
+		}
   newFile->cd();
   flatTree->Write();
   newFile->Close();

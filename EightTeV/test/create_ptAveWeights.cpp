@@ -25,11 +25,11 @@ int main(int argc, char* argv[]) {
   std::string mcDataset;
   std::string dataDataset;
   if( dataset=="MB" ) {
-    mcDataset = "flatQCD_P6_Dijets_12Jul"; 
-    dataDataset = "data2012ABCD_MBPD_12Jul"; 
+    mcDataset = "flatQCD_P6_Dijets_24Aug"; 
+    dataDataset = "data2012ABCD_MBPD_24Aug"; 
   } else if( dataset=="JetPD" ) {
-    mcDataset = "flatQCD_P6_Dijets_12Jul"; 
-    dataDataset = "data2012ABCD_JetPD_12Jul"; 
+    mcDataset = "flatQCD_P6_Dijets_24Aug"; 
+    dataDataset = "data2012ABCD_JetPD_24Aug"; 
   }
 
 

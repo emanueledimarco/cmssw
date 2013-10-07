@@ -1,0 +1,16 @@
+module cleanedJets = HWWJetCleaning{
+  InputTag src      = iterativeCone5CaloJets   
+  InputTag GSFInputTag = pixelMatchGsfElectrons   
+  double maxDeltaR = 0.2
+  double maxHadronicOverEm = 0.2
+  double minEleOJetEratio = 0.9
+}
+
+module cleanedJetsRef = HWWJetCleaningRef{ 
+  InputTag src      = iterativeCone5CaloJets   
+  InputTag GSFInputTag = pixelMatchGsfElectrons   
+  double maxDeltaR = 0.2
+  double maxHadronicOverEm = 0.2
+  double minEleOJetEratio = 0.9
+}
+

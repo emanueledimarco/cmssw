@@ -1,0 +1,12 @@
+module selectedMuons = HWWMuonSelection {
+  InputTag src      = muons
+  double MuonEtaMax = 2.5
+  double MuonPtMin  = 5
+}
+
+module selectedMuonsRef = HWWMuonSelectionRef {
+  InputTag src      = muons
+  double MuonEtaMax = 2.5
+  double MuonPtMin  = 5
+}
+

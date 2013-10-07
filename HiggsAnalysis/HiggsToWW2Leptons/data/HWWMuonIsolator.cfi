@@ -1,0 +1,27 @@
+module isolatedMuons = HWWMuonIsolation { 
+  InputTag src  			  = muons
+  InputTag SelectedMuonRefCollectionLabel = selectedMuonsRef
+
+  //isolation parameters
+  InputTag     hcalIsoDepositLabel	  = muGlobalIsoDepositCalByAssociatorTowers:hcal
+  InputTag     ecalIsoDepositLabel	  = muGlobalIsoDepositCalByAssociatorTowers:ecal
+  InputTag  trackerIsoDepositLabel	  = muGlobalIsoDepositCtfTk
+
+  double trackIsolCut			  = 10
+  double caloIsolCut			  = 10
+  bool doRefCheck			  = true
+}
+	
+module isolatedMuonsRef = HWWMuonIsolationRef { 		
+  InputTag src  			  = muons
+  InputTag SelectedMuonRefCollectionLabel = selectedMuonsRef
+  			   
+  //isolation parameters
+  InputTag     hcalIsoDepositLabel	  = muGlobalIsoDepositCalByAssociatorTowers:hcal
+  InputTag     ecalIsoDepositLabel	  = muGlobalIsoDepositCalByAssociatorTowers:ecal
+  InputTag  trackerIsoDepositLabel	  = muGlobalIsoDepositCtfTk
+
+  double trackIsolCut			  = 10
+  double caloIsolCut			  = 10
+  bool doRefCheck			  = true
+}

@@ -1,0 +1,10 @@
+<use   name="RecoEcal/EgammaCoreTools"/>
+<use   name="TrackingTools/IPTools"/>
+<use   name="DataFormats/MuonReco"/>
+<use   name="DataFormats/ParticleFlowCandidate"/>
+<use   name="root"/>
+<use   name="roottmva"/>
+<export>
+  <lib   name="1"/>
+</export>
+

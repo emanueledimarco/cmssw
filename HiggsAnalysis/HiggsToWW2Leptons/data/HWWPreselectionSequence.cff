@@ -1,0 +1,21 @@
+include "HiggsAnalysis/HiggsToWW2Leptons/data/HWWMetCorrector.cfi"
+include "HiggsAnalysis/HiggsToWW2Leptons/data/HWWMuonIsolator.cfi"
+include "HiggsAnalysis/HiggsToWW2Leptons/data/HWWMuonSelector.cfi"
+include "HiggsAnalysis/HiggsToWW2Leptons/data/HWWElectronSequence.cff"
+include "HiggsAnalysis/HiggsToWW2Leptons/data/HWWElectronSelector.cfi"
+include "HiggsAnalysis/HiggsToWW2Leptons/data/HWWElectronIsolator.cfi"
+include "HiggsAnalysis/HiggsToWW2Leptons/data/HWWPreselectionMarker.cfi"
+
+sequence higgsToWW2LeptonsPreselectionSequence = {
+  muonCorrectedMET,
+  selectedMuons,  
+  selectedMuonsRef,	  
+  isolatedMuons,
+  isolatedMuonsRef,
+  HWWElectronSequence,
+  selectedElectrons,
+  selectedElectronsRef,
+  isolatedElectrons,
+  isolatedElectronsRef,
+  preselectionMarker
+}

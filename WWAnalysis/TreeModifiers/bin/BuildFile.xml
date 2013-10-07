@@ -1,0 +1,8 @@
+<use name="root"/>                                                               
+<use name="FWCore/FWLite"/>                                                               
+<use name="FWCore/PythonParameterSet"/>
+<use name="WWAnalysis/TreeModifiers"/>
+
+<environment>
+<bin file="addBranch.cpp"></bin>
+</environment>

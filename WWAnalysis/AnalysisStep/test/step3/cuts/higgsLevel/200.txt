@@ -1,0 +1,5 @@
+$m_{\ell\ell} < 90$: mll < 90
+$p_T^{max} > 40$: pt1 > 40
+$p_T^{min} > 25$: pt2 > 25
+$\Delta\phi < 100$: dphill < 3.14159265/180.*100.
+$m_T^H$:  120 < mth && mth < 200

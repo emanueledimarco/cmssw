@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [[ "$1" == "mc" ]]; then
+    rm plots/eleid_mc/*{png,txt,pdf};
+    for X in all hlt iso; do
+        root.exe -b -l -q TnP_Z_EleID_mc_some.$X.root TnP_Z_EleID_mc_some.$X.root 'plotEleID.cxx+(0,"eleid_mc")';
+    done;
+    exit;
+fi;
+if [[ "$1" == "test" ]]; then
+    rm plots/eleid_test/*{png,txt,pdf};
+    for X in all hlt iso; do
+        root.exe -b -l -q TnP_Z_EleID_data_all.$X.root TnP_Z_EleID_data_all.$X.root 'plotEleID.cxx+(0,"eleid_test")';
+    done;
+    exit;
+fi;
+
+#rm plots/eleid/*{png,txt,pdf}
+#for X in all iso hlt; do
+for X in id; do
+    root.exe -b -l -q TnP_Z_EleID_data_all.$X.root TnP_Z_EleID_mc_some.$X.root 'plotEleID.cxx+(1)';
+done;
+

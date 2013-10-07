@@ -1,0 +1,68 @@
+import FWCore.ParameterSet.Config as cms
+
+from WWAnalysis.AnalysisStep.electronIDs_cff import *
+
+
+from WWAnalysis.AnalysisStep.pileupReweighting_cfi import *
+betterElectronTupleProducer = cms.EDAnalyzer("BetterElectronTupleProducer", 
+    src = cms.untracked.InputTag("boostedElectrons"),
+    variables = cms.untracked.VPSet(
+        cms.PSet( tag = cms.untracked.string("noconv"),              quantity = cms.untracked.string('?'+ELE_NOCONV+'?1:0')),
+        cms.PSet( tag = cms.untracked.string("pasIP"),              quantity = cms.untracked.string('?'+ELE_IP+'?1:0')),
+        cms.PSet( tag = cms.untracked.string("lh95"),              quantity = cms.untracked.string('?'+ELE_ID_LH_95_2011+'?1:0')),
+        cms.PSet( tag = cms.untracked.string("lh90"),              quantity = cms.untracked.string('?'+ELE_ID_LH_90_2011+'?1:0')),
+        cms.PSet( tag = cms.untracked.string("cb95"),              quantity = cms.untracked.string('?'+ELE_ID_CB_95_2011+'?1:0')),
+        cms.PSet( tag = cms.untracked.string("cb90"),              quantity = cms.untracked.string('?'+ELE_ID_CB_90_2011+'?1:0')),
+        cms.PSet( tag = cms.untracked.string("pt"),                 quantity = cms.untracked.string("pt")),
+        cms.PSet( tag = cms.untracked.string("eta"),                quantity = cms.untracked.string("eta")),
+        cms.PSet( tag = cms.untracked.string("phi"),                quantity = cms.untracked.string("phi")),
+        cms.PSet( tag = cms.untracked.string("eb"),                 quantity = cms.untracked.string("isEB")),
+        cms.PSet( tag = cms.untracked.string("ee"),                 quantity = cms.untracked.string("isEE")),
+        cms.PSet( tag = cms.untracked.string("gap"),                quantity = cms.untracked.string("isEBEEGap")),
+        cms.PSet( tag = cms.untracked.string("dxyPV"),              quantity = cms.untracked.string("userFloat('dxyPV')")),
+        cms.PSet( tag = cms.untracked.string("dzPV"),               quantity = cms.untracked.string("userFloat('dzPV')")),
+        cms.PSet( tag = cms.untracked.string("dcot"),               quantity = cms.untracked.string("userFloat('convValueMapProd:dcot')")),
+        cms.PSet( tag = cms.untracked.string("dist"),               quantity = cms.untracked.string("userFloat('convValueMapProd:dist')")),
+#         cms.PSet( tag = cms.untracked.string("beta0003"),           quantity = cms.untracked.string("userFloat('beta0003')")),
+#         cms.PSet( tag = cms.untracked.string("beta0004"),           quantity = cms.untracked.string("userFloat('beta0004')")),
+#         cms.PSet( tag = cms.untracked.string("beta0703"),           quantity = cms.untracked.string("userFloat('beta0703')")),
+#         cms.PSet( tag = cms.untracked.string("beta0704"),           quantity = cms.untracked.string("userFloat('beta0704')")),
+#         cms.PSet( tag = cms.untracked.string("rho"),                quantity = cms.untracked.string("userFloat('rho')")),
+#         cms.PSet( tag = cms.untracked.string("sigma"),              quantity = cms.untracked.string("userFloat('sigma')")),
+        cms.PSet( tag = cms.untracked.string("mom"),                quantity = cms.untracked.string("?genParticleRef().isNonnull()?genParticleRef().get().mother(0).mother(0).pdgId():9999")),
+        cms.PSet( tag = cms.untracked.string("tk03"),               quantity = cms.untracked.string("dr03TkSumPt")),
+        cms.PSet( tag = cms.untracked.string("ecal03"),             quantity = cms.untracked.string("dr03EcalRecHitSumEt")),
+        cms.PSet( tag = cms.untracked.string("hcal03"),             quantity = cms.untracked.string("dr03HcalTowerSumEt")),
+        cms.PSet( tag = cms.untracked.string("tk04"),               quantity = cms.untracked.string("dr04TkSumPt")),
+        cms.PSet( tag = cms.untracked.string("ecal04"),             quantity = cms.untracked.string("dr04EcalRecHitSumEt")),
+        cms.PSet( tag = cms.untracked.string("hcal04"),             quantity = cms.untracked.string("dr04HcalTowerSumEt")),
+        cms.PSet( tag = cms.untracked.string("chDefault"),          quantity = cms.untracked.string("userIsolation('PfChargedHadronIso')")),
+        cms.PSet( tag = cms.untracked.string("neuDefault"),         quantity = cms.untracked.string("userIsolation('PfNeutralHadronIso')")),
+        cms.PSet( tag = cms.untracked.string("gamDefault"),         quantity = cms.untracked.string("userIsolation('PfGammaIso')")),
+#         cms.PSet( tag = cms.untracked.string("hcalFull"),           quantity = cms.untracked.string("userFloat('hcalFull')")),
+#         cms.PSet( tag = cms.untracked.string("hcalSmall"),          quantity = cms.untracked.string("userFloat('hcalSmall')")),
+#         cms.PSet( tag = cms.untracked.string("hOe"),                quantity = cms.untracked.string("hcalOverEcal")),
+#         cms.PSet( tag = cms.untracked.string("e"),                  quantity = cms.untracked.string("superCluster().energy")),
+#         cms.PSet( tag = cms.untracked.string("hFromSC"),            quantity = cms.untracked.string("superCluster().energy()*hcalOverEcal()")),
+#         cms.PSet( tag = cms.untracked.string("hFromEle"),           quantity = cms.untracked.string("energy()*hcalOverEcal()")),
+#         cms.PSet( tag = cms.untracked.string("raw"),                quantity = cms.untracked.string("superCluster().rawEnergy")),
+#         cms.PSet( tag = cms.untracked.string("hFromRaw"),           quantity = cms.untracked.string("superCluster().rawEnergy()*hcalOverEcal()")),
+    ), 
+#     weight = cms.untracked.double(1),
+    vtxWeights = cms.untracked.PSet(
+#         vtx05 = cms.untracked.vdouble( vtx05[:] ),
+#         vtx10 = cms.untracked.vdouble( vtx10[:] ),
+#         vtx15 = cms.untracked.vdouble( vtx15[:] ),
+#         vtx2010 = cms.untracked.vdouble( vtx2010[:] ),
+    ),
+    vtxLabel = cms.InputTag('goodPrimaryVertices'),
+    puLabel = cms.untracked.InputTag('addPileupInfo'),
+    candCounts = cms.untracked.PSet(
+#         nMu = cms.untracked.InputTag("goodMuons"),
+    ),
+    rhoTags = cms.untracked.PSet(
+        rho = cms.untracked.InputTag("kt6PFJetsForIso","rho"),
+        rhoNoPU = cms.untracked.InputTag("kt6PFJetsForIsoNoPU","rho"),
+    ),
+)  
+

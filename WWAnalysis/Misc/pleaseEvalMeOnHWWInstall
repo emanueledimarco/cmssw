@@ -1,0 +1,192 @@
+if [[ "$CMSSW_VERSION" == CMSSW_4_1_* ]];
+then
+    addpkg                                  RecoVertex/PrimaryVertexProducer            V01-04-05           ;
+    addpkg                                  DataFormats/TrackReco                       V09-09-04           ;
+    addpkg                                  RecoEgamma/ElectronIdentification           V00-03-30           ;
+    addpkg                                  DataFormats/PatCandidates                                       ;
+    addpkg                                  HiggsAnalysis/HiggsToWW2Leptons             For2011-October-21st-reload    ;
+    cvs co -rHWW_V1 -d HiggsAnalysis/HiggsToWW2Leptons/data/ElectronMVAWeights UserCode/MitPhysics/data/ElectronMVAWeights  ;
+    addpkg                                  RecoEgamma/EgammaTools                      V08-11-09           ;
+    cvs co -r V06-04-07-01                  TrackingTools/TrajectoryState                                   ;
+    patch -p 0 <                            WWAnalysis/Misc/Patches/dataFormats.patch                       ;
+    addpkg                                  RecoJets/Configuration                      V02-04-16           ;
+    addpkg                                  RecoJets/JetAlgorithms                      V04-01-00           ;
+    addpkg                                  RecoJets/JetProducers                       V05-05-03-00        ;
+    addpkg                                  PhysicsTools/Utilities                      branch_for_4_1_X_01 ;
+    cvs up -rR41Xv2                         WWAnalysis/AnalysisStep/interface/LatinoReWeighting.h           ;
+fi;
+
+
+
+if [[ "$CMSSW_VERSION" == CMSSW_4_2_* ]];
+then
+ addpkg                                  RecoEgamma/ElectronIdentification           V00-03-30           ;
+ cvs up -rV00-03-33 RecoEgamma/ElectronIdentification/python/cutsInCategoriesHZZElectronIdentificationV06_cfi.py    ;
+ addpkg                                  HiggsAnalysis/HiggsToWW2Leptons             For2011-October-21st-reload    ;
+ cvs co -rHWW_V1 -d HiggsAnalysis/HiggsToWW2Leptons/data/ElectronMVAWeights UserCode/MitPhysics/data/ElectronMVAWeights ;
+ cvs co -rV00-00-10 -d Muon/MuonAnalysisTools UserCode/sixie/Muon/MuonAnalysisTools                      ;
+ cvs co -rV00-00-30-BP42X -d EGamma/EGammaAnalysisTools UserCode/EGamma/EGammaAnalysisTools                    ;
+ cvs co -rShervin13062012_2012Prompt_and_May23ReReco_and_Summer12MC_smearing_V00 -d EgammaCalibratedGsfElectrons UserCode/EGamma/EgammaCalibratedGsfElectrons              ;
+ cvs co -r CMSSW_4_2_8 RecoEgamma/EgammaTools
+ cvs co -r CMSSW_5_2_4 RecoEgamma/EgammaTools/src/EcalClusterLocal.cc
+ cvs co -r CMSSW_5_2_4 RecoEgamma/EgammaTools/interface/EcalClusterLocal.h
+ cvs co -r V00-04-01 CondFormats/EgammaObjects
+ cvs co -r HZZ4L_HCP2012_42X -d RecoEcal/EgammaCoreTools/ UserCode/sixie/patches/RecoEcal/EgammaCoreTools/
+
+ addpkg                                  HiggsAnalysis/CombinedLimit                 V01-13-02           ;
+ addpkg                                  RecoJets/Configuration                      V02-04-16           ;
+ addpkg                                  RecoJets/JetAlgorithms                      V04-01-00           ;
+ addpkg                                  RecoJets/JetProducers                       V05-05-03           ;
+ addpkg                                  PhysicsTools/Utilities                      V08-03-09           ;
+ addpkg                                  GeneratorInterface/GenFilters               CMSSW_4_2_8_patch7  ;
+ cvs co -r V00-02-10 -d CMGTools/External UserCode/CMG/CMGTools/External                      ;
+ if [[ "$CMSSW_VERSION" == CMSSW_4_2_8* ]]; 
+ then
+    addpkg DataFormats/PatCandidates    ;
+    cvs update -r1.15 DataFormats/PatCandidates/src/TriggerObjectStandAlone.cc  ;
+ fi;
+ echo "Get UserData in pat::PFParticle";
+ addpkg PhysicsTools/PatAlgos ;
+ cvs update -r1.6 PhysicsTools/PatAlgos/plugins/PATPFParticleProducer.cc ;
+ cvs update -r1.8 PhysicsTools/PatAlgos/plugins/PATPFParticleProducer.h ;
+ cvs update -r1.6 PhysicsTools/PatAlgos/plugins/PATCleaner.cc ;
+
+ echo "Stuff for ghost muon cleaning" ;
+ addpkg DataFormats/MuonReco U09-00-00-01
+
+ cvs co -r V00-01-05 -d ZZMatrixElement UserCode/CJLST/ZZMatrixElement;			
+fi;
+
+
+
+if [[ "$CMSSW_VERSION" == CMSSW_4_4_* ]];
+then
+    addpkg                                  HiggsAnalysis/HiggsToWW2Leptons             For2011-October-21st-reload    ;
+    cvs co -rHWW_V1 -d HiggsAnalysis/HiggsToWW2Leptons/data/ElectronMVAWeights UserCode/MitPhysics/data/ElectronMVAWeights  ;
+    addpkg                                  HiggsAnalysis/CombinedLimit                 V01-13-02                ;
+    addpkg                                  PhysicsTools/Utilities                      V08-03-09           ;
+fi;
+
+
+
+if [[ "$CMSSW_VERSION" == CMSSW_5_2_5* ]];
+then
+    echo as of V08-09-21 PAT releases notes for https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuidePATReleaseNotes52X ;
+    echo $CMSSW_VERSION ;
+    addpkg                                  HiggsAnalysis/CombinedLimit                 HEAD      ;
+    addpkg                                  HiggsAnalysis/HiggsToWW2Leptons             For2011-October-21st-reload    ;
+    cvs co -r Shervin13062012_2012Prompt_and_May23ReReco_and_Summer12MC_smearing_V00 -d EgammaCalibratedGsfElectrons UserCode/EGamma/EgammaCalibratedGsfElectrons;
+    cvs co -r HWW_V1 -d HiggsAnalysis/HiggsToWW2Leptons/data/ElectronMVAWeights UserCode/MitPhysics/data/ElectronMVAWeights      ;
+    cvs co -r V00-00-10 -d Muon/MuonAnalysisTools UserCode/sixie/Muon/MuonAnalysisTools                      ;
+    cvs co -r V00-00-26 -d EGamma/EGammaAnalysisTools UserCode/EGamma/EGammaAnalysisTools                    ;
+    sed 's\EGamma/EGammaAnalysisTools/data/Electrons_BDT\WWAnalysis/AnalysisStep/data/ElectronMVAWeights/Electrons_BDT\g' EGamma/EGammaAnalysisTools/python/electronIdMVAProducer_cfi.py > kk.txt;
+    mv kk.txt EGamma/EGammaAnalysisTools/python/electronIdMVAProducer_cfi.py;
+
+    addpkg DataFormats/PatCandidates       V06-05-01 ;
+    addpkg PhysicsTools/PatAlgos           V08-09-21 ;
+    addpkg PhysicsTools/PatUtils           V03-09-23 ;
+    addpkg CommonTools/ParticleFlow        V00-03-15 ;
+    addpkg CommonTools/RecoUtils           V00-00-12 ;
+    addpkg JetMETCorrections/Type1MET      V04-06-09 ;
+    addpkg RecoBTag/SecondaryVertex        V01-08-00 ;
+    addpkg RecoVertex/AdaptiveVertexFinder V02-02-00 ;
+
+    cp WWAnalysis/Misc/Patches/CommonTools_RecoUtils_src_classes.h_patch          CommonTools/RecoUtils/src/classes.h   ;
+    cp WWAnalysis/Misc/Patches/CommonTools_RecoUtils_src_classes_def.xml_patch    CommonTools/RecoUtils/src/classes_def.xml   ;
+    echo the last two are needed to compensate CommonTools/RecoUtils for type0MET ;
+
+    cvs co -r V00-00-09 -d CMGTools/External UserCode/CMG/CMGTools/External                      ;
+    cvs co -r V00-00-01 -d DYMvaInCMSSW      UserCode/GCerati/DYMvaInCMSSW                       ;
+
+    cvs co -r V00-01   -d pharris/MVAMet    UserCode/pharris/MVAMet                             ;
+
+    rm -r WWAnalysis/AnalysisStep/data/datacards/finalCards/;
+    rm -r WWAnalysis/AnalysisStep/data/datacards/HZZ4L/;
+
+    rm pharris/MVAMet/src/PHMetAnalysisLinkDef.h;
+    rm pharris/MVAMet/src/GBRTree.cxx;
+    rm pharris/MVAMet/src/GBRForest.cxx;
+
+
+elif [[ "$CMSSW_VERSION" == CMSSW_5_2_* ]];
+then
+    echo as of V08-09-02 PAT releases notes for https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuidePATReleaseNotes52X ;
+    echo $CMSSW_VERSION ;
+    addpkg                                  HiggsAnalysis/CombinedLimit                 HEAD      ; 
+    addpkg                                  HiggsAnalysis/HiggsToWW2Leptons             For2011-October-21st-reload    ;
+    cvs co -r Shervin13062012_2012Prompt_and_May23ReReco_and_Summer12MC_smearing_V00 -d EgammaCalibratedGsfElectrons UserCode/EGamma/EgammaCalibratedGsfElectrons;
+    cvs co -r HWW_V1 -d HiggsAnalysis/HiggsToWW2Leptons/data/ElectronMVAWeights UserCode/MitPhysics/data/ElectronMVAWeights ;
+    cvs co -r V00-00-10 -d Muon/MuonAnalysisTools UserCode/sixie/Muon/MuonAnalysisTools                      ;
+    cvs co -r V00-00-26 -d EGamma/EGammaAnalysisTools UserCode/EGamma/EGammaAnalysisTools                    ;
+    echo "Get 2012 EA's to have plugins compiling" ;
+    cvs update -rV00-00-11 EGamma/EGammaAnalysisTools/interface/ElectronEffectiveArea.h ;
+    addpkg              DataFormats/PatCandidates               V06-05-01   ;
+    addpkg              PhysicsTools/PatAlgos                       V08-09-02   ;
+    addpkg              PhysicsTools/PatUtils                       V03-09-18-03    ;
+    addpkg              CommonTools/ParticleFlow                    V00-03-07-01    ;
+    addpkg              RecoParticleFlow/PFProducer                 V15-01-06   ;
+    cvs co -rV00-00-09 -d CMGTools/External UserCode/CMG/CMGTools/External          ;
+    echo "Get UserData in pat::PFParticle";
+    cvs update -r1.6 PhysicsTools/PatAlgos/plugins/PATPFParticleProducer.cc ;
+    cvs update -r1.8 PhysicsTools/PatAlgos/plugins/PATPFParticleProducer.h ;
+    cvs update -r1.6 PhysicsTools/PatAlgos/plugins/PATCleaner.cc ;
+    cvs update -r1.58 PhysicsTools/PatAlgos/plugins/PATElectronProducer.cc ;
+
+elif [[ "$CMSSW_VERSION" == CMSSW_5_3_* ]];
+then
+    echo $CMSSW_VERSION ;
+    addpkg                                  HiggsAnalysis/HiggsToWW2Leptons             For2011-October-21st-reload    ;
+    cvs co -r Shervin13062012_2012Prompt_and_May23ReReco_and_Summer12MC_smearing_V00 -d EgammaCalibratedGsfElectrons UserCode/EGamma/EgammaCalibratedGsfElectrons;
+    cvs co -r HWW_V1 -d HiggsAnalysis/HiggsToWW2Leptons/data/ElectronMVAWeights UserCode/MitPhysics/data/ElectronMVAWeights      ;
+    cvs co -r V00-00-10 -d Muon/MuonAnalysisTools UserCode/sixie/Muon/MuonAnalysisTools                      ;
+    cvs co -r V00-00-29 -d EGamma/EGammaAnalysisTools UserCode/EGamma/EGammaAnalysisTools                    ;
+    sed 's\EGamma/EGammaAnalysisTools/data/Electrons_BDT\WWAnalysis/AnalysisStep/data/ElectronMVAWeights/Electrons_BDT\g' EGamma/EGammaAnalysisTools/python/electronIdMVAProducer_cfi.py > kk.txt;
+    mv kk.txt EGamma/EGammaAnalysisTools/python/electronIdMVAProducer_cfi.py;
+    cvs co -r V00-00-09 -d CMGTools/External UserCode/CMG/CMGTools/External                      ;
+    cvs co -r V00-00-01 -d DYMvaInCMSSW      UserCode/GCerati/DYMvaInCMSSW                       ;
+    cvs co -r HEAD      -d DYMvaInCMSSW/GetDYMVA/data/      UserCode/GCerati/DYMvaInCMSSW/GetDYMVA/data/TMVA_0j_metshift_BDTG.weights.xml     ;
+    cvs co -r HEAD      -d DYMvaInCMSSW/GetDYMVA/data/      UserCode/GCerati/DYMvaInCMSSW/GetDYMVA/data/TMVA_1j_metshift_BDTG.weights.xml     ;
+    cvs co -r V00-01   -d pharris/MVAMet    UserCode/pharris/MVAMet                             ;
+
+    rm -r WWAnalysis/AnalysisStep/data/datacards/finalCards/;
+    rm -r WWAnalysis/AnalysisStep/data/datacards/HZZ4L/;
+
+    rm pharris/MVAMet/src/PHMetAnalysisLinkDef.h;
+    rm pharris/MVAMet/src/GBRTree.cxx;
+    rm pharris/MVAMet/src/GBRForest.cxx;
+
+    echo as of V08-09-23 PAT releases notes for https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuidePATReleaseNotes52X ;
+    addpkg CommonTools/ParticleFlow   V00-03-16  ;
+    addpkg CommonTools/RecoAlgos  V00-03-23      ;
+    addpkg CommonTools/RecoUtils   V00-00-12     ;
+    addpkg DataFormats/ParticleFlowCandidate   V15-03-02 ;
+    addpkg DataFormats/PatCandidates V06-05-06-03        ;
+    addpkg PhysicsTools/PatAlgos     V08-09-43   ;
+    addpkg DataFormats/TrackReco   V10-02-02     ;
+    addpkg DataFormats/VertexReco   V02-00-04    ;
+    addpkg PhysicsTools/PatAlgos   V08-09-23     ;
+    addpkg PhysicsTools/PatUtils   V03-09-23     ;
+    
+    cp WWAnalysis/Misc/Patches/CommonTools_RecoUtils_src_classes.h_patch          CommonTools/RecoUtils/src/classes.h   ;
+    cp WWAnalysis/Misc/Patches/CommonTools_RecoUtils_src_classes_def.xml_patch    CommonTools/RecoUtils/src/classes_def.xml   ;
+    echo the last two are needed to compensate CommonTools/RecoUtils for type0MET ;
+    
+    echo the tag addpkg RecoParticleFlow/PFProducer V15-01-06-01 is integrated into CMSSW_5_2_5. This tag does NOT include the updated vetoes for photon isolation, as this update would have broken backwards compatibility with 52X releases. For a tag which is equivalent to V15-01-06-01 and which includes the photon isolation vetoes please update to tag addpkg RecoParticleFlow/PFProducer V15-01-08 and to include the latest EMG POG recommendtion which takes into account the implementation the possibility of vetoing electrons wrongly identified as photons when MissHit>1 and to properly deal with EB/EE addpkg RecoParticleFlow/PFProducer V15-01-11
+
+    addpkg RecoParticleFlow/PFProducer      V15-02-06;
+
+
+    echo "newer version of the files that add extra functionalities"
+    cvs update -r1.6 PhysicsTools/PatAlgos/plugins/PATPFParticleProducer.cc ;
+    cvs update -r1.8 PhysicsTools/PatAlgos/plugins/PATPFParticleProducer.h ;
+    cvs update -r1.6 PhysicsTools/PatAlgos/plugins/PATCleaner.cc ;
+
+    echo "adding stuff for ghost muon cleaning"
+    addpkg DataFormats/MuonReco U09-04-03-00-01 ;
+    addpkg MuonAnalysis/MuonAssociators V02-03-00 ;
+
+
+fi;
+
+addpkg					 RecoLuminosity/LumiDB			     V04-01-05;
+

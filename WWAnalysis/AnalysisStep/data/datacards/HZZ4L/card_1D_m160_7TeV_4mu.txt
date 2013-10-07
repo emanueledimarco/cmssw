@@ -1,0 +1,30 @@
+imax 1
+jmax *
+kmax *
+------------
+shapes * * card_1D_m160_7TeV_4mu_workspace.root w:$PROCESS
+------------
+bin         a1
+observation 1
+------------
+bin     a1           a1            a1           a1            a1            a1             a1             a1
+process ggH           qqH            WH            ZH             ttH            bkg_qqzz        bkg_ggzz        bkg_zjets
+process -5            -4             -3            -2             -1             1               2               3
+rate    1 1  1 1  1  1.64743  0.0493419  0.0836263
+------------
+lumi_7TeV                 lnN        1.022   1.022   1.022    1.022   1.022    1.022    1.022    -
+pdf_gg                    lnN        1.064/0.928 -       -        -       -        -        1.08083 -
+pdf_qqbar                 lnN         -      1.001/0.998 1.005/0.993  1.02/0.983 1.028/0.909  1.03991 -        -
+pdf_hzz4l_accept          lnN        1.02    1.02    1.02     1.02    1.02     -        -        -
+QCDscale_ggH              lnN        1.064/0.928 -       -        -       -        -        -        -
+QCDscale_qqH              lnN        -       1.001/0.998 -        -       -        -        -        -
+QCDscale_WH               lnN        -       -       1.005/0.993  -       -        -        -        -
+QCDscale_ZH               lnN        -       -       -        1.02/0.983 -        -        -        -
+QCDscale_ttH              lnN        -       -       -        -       1.028/0.909  -        -        -
+QCDscale_ggVV             lnN        -       -       -        -       -        -        1.26361 -
+QCDscale_VV               lnN        -       -       -        -       1.03282 -        -        -
+BRhiggs_ZZ4l              lnN        1.02    1.02    1.02     1.02    1.02     -        -        -
+CMS_eff_m                 lnN        1.015   1.015   1.015    1.015   1.015    1.015    1.015    -
+CMS_hzz4mu_Zjets          lnN        -       -       -        -       -        -        -        0.5/1.6
+sig_4mu_mean_err_7TeV     param      0        0.005                     
+sig_4mu_sigma_err_7TeV    param      0        0.3                       

@@ -1,0 +1,10 @@
+# Input Sample: latino_000_WWJets2LMad.root
+# 
+# systematic        mm      ee      em      me
+# 
+p_scale_j                               1.037   1.023   1.028   1.017   
+p_scale_m                               1.014   0.000   1.002   1.004   
+p_scale_e                               0.000   1.031   1.009   1.002   
+eff_l                                   1.006   1.015   1.006   1.015   
+met                                     0.988   0.989   0.995   0.996   
+p_res_e                                 1.000   1.000   1.000   1.000   

@@ -1,0 +1,54 @@
+? HiggsAnalysis/HiggsToWW2Leptons/python/__init__.py
+Index: HiggsAnalysis/HiggsToWW2Leptons/plugins/HWWKFactorProducer.cc
+===================================================================
+RCS file: /cvs/CMSSW/CMSSW/HiggsAnalysis/HiggsToWW2Leptons/plugins/HWWKFactorProducer.cc,v
+retrieving revision 1.7
+diff -u -r1.7 HWWKFactorProducer.cc
+--- HiggsAnalysis/HiggsToWW2Leptons/plugins/HWWKFactorProducer.cc	4 Apr 2011 09:22:27 -0000	1.7
++++ HiggsAnalysis/HiggsToWW2Leptons/plugins/HWWKFactorProducer.cc	16 May 2011 21:03:59 -0000
+@@ -58,7 +58,7 @@
+   debug_ = iConfig.getUntrackedParameter<bool>("Debug",0);
+   edm::FileInPath path_inputFilename(inputFilename_.c_str());
+   pt_histo_ = new  HWWKfactorList("KFactorList", path_inputFilename.fullPath().c_str() );
+-
++  genParticles_ = iConfig.getUntrackedParameter<edm::InputTag>("genParticles", edm::InputTag("genParticles"));
+ }
+ 
+ 
+@@ -76,15 +76,17 @@
+   *pweight=1.;
+ 
+   Handle<reco::GenParticleCollection> genParticles;
+-  iEvent.getByLabel("genParticles", genParticles);
++  iEvent.getByLabel(genParticles_, genParticles);
+ 
+    // use event info product
+   Handle<GenEventInfoProduct> hEvtInfo;
+-  iEvent.getByLabel("generator", hEvtInfo);
++  if (processID_ != 0) {
++      iEvent.getByLabel("generator", hEvtInfo);
++      if (debug_)std::cout << " Process Id " << hEvtInfo->signalProcessID()   << std::endl; 
++  }
+ 
+-  if (debug_)std::cout << " Process Id " << hEvtInfo->signalProcessID()   << std::endl; 
+   // Gluon Fusion found
+-  if ( processID_ == hEvtInfo->signalProcessID() ){
++  if ( processID_ == 0 || processID_ == hEvtInfo->signalProcessID() ){
+     // look for Higgs Boson and determine its pt
+     reco::GenParticleCollection::const_iterator higgs;
+     for(reco::GenParticleCollection::const_iterator mcIter=genParticles->begin(); mcIter != genParticles->end(); mcIter++){
+Index: HiggsAnalysis/HiggsToWW2Leptons/plugins/HWWKFactorProducer.h
+===================================================================
+RCS file: /cvs/CMSSW/CMSSW/HiggsAnalysis/HiggsToWW2Leptons/plugins/HWWKFactorProducer.h,v
+retrieving revision 1.6
+diff -u -r1.6 HWWKFactorProducer.h
+--- HiggsAnalysis/HiggsToWW2Leptons/plugins/HWWKFactorProducer.h	4 Apr 2011 09:22:27 -0000	1.6
++++ HiggsAnalysis/HiggsToWW2Leptons/plugins/HWWKFactorProducer.h	16 May 2011 21:03:59 -0000
+@@ -41,6 +41,7 @@
+   unsigned int  processID_;
+   HWWKfactorList* pt_histo_;
+   bool debug_;
++  edm::InputTag genParticles_;
+ };
+ 
+ #endif

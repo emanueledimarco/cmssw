@@ -1,0 +1,129 @@
+#!/usr/bin/env bash
+
+usage()
+{
+if [ $# -gt 0 ] ; then a="Error: $*"; fi
+cat << EOF
+$a
+usage: $0 options action [dir list]
+
+mwl Wrapper for CRAB
+
+OPTIONS:
+   -h      Show this message
+   -o      Add an option to each execution of crab (e.g. crab kill -o all 0*, can use multiple times)
+   -p      Run the jobs in parrallel (no output will be shown)
+   -v      Verbose
+   -t      Do not execute anything ... testing only
+   -S      Super summary!
+
+EOF
+}
+
+states="Created Undefined Submitting Submitted NotSubmitted Waiting Ready Scheduled Running Done Unknown Cleared Retrieved CannotSubmit Killing Killed Aborted Cancelled"
+
+set -- `getopt "ho:ptvSG" "$@"`
+
+OPTIONS=
+PARALLEL=
+TEST=
+VERBOSE=
+SUMMARY=
+GOOD=
+while [ "$1" != "--" ] ; do
+  case "$1" in
+    -h) usage; exit 1;;
+    -o) OPTIONS="$OPTIONS $2"; shift;;
+    -p) PARALLEL="1";;
+    -S) SUMMARY="1";;
+    -G) GOOD="1";;
+    -t) TEST="1";;
+    -v) VERBOSE=1;;
+  esac
+  shift
+done
+shift
+
+if [ $# -lt 1 -a -z "$SUMMARY" -a -z "$GOOD" ] ; then
+    usage "I would appreciate something to do ... ask tar what they think."
+    exit 3
+fi
+
+type -P crab            &>/dev/null || { usage "I require crab but it's not installed." ; exit 4; }
+type -P voms-proxy-init &>/dev/null || { usage "I require voms-proxy-init but it's not installed." ; exit 4; }
+type -P voms-proxy-info &>/dev/null || { usage "I require voms-proxy-info but it's not installed." ; exit 4; }
+
+voms-proxy-info -exists -valid 11:00 > /dev/null 2>&1 || { usage "No valid certificate. Run voms-proxy-init -voms=cms -valid 400:00 first"; exit 5;}
+
+if [ -n "$GOOD" ] ; then
+    areGood=
+    for x in $*; do 
+        [ -z "`grep 'Jobs with Wrapper Exit Code : 0' $x/status.out | c 2`" ] && continue
+        [ -z "`grep 'Total Jobs' $x/status.out | c 2`" ] && continue
+        if [ `grep 'Jobs with Wrapper Exit Code : 0' $x/status.out | c 2` -eq `grep 'Total Jobs' $x/status.out | c 2` ] ; then
+            areGood="$areGood $x"
+        fi
+    done
+    echo $areGood
+    exit 0
+fi
+
+if [ -n "$SUMMARY" ] ; then
+    for x in $states; do echo "===== $x ====="; grep "$x" `for y in $*; do echo $y/status.out; done` | awk -F'status.out:' 'NF==2 && substr($2,0,1) ~ "[0-9]" {printf("%-30s %s\n",$1,$2)}' | grep -v " Cleared       0          0"; echo ; done
+    exit 0
+fi
+
+# Now the first option is which crab command to run:
+command=$1
+shift
+OUTFILE=$command.out 
+
+# the the rest of the commands should be folders to check
+loopDirs=$*
+[ -z "$loopDirs" ] && loopDirs="."
+
+stillToProcess=
+if [ -n "$PARALLEL" -a "$command" != "report" -a "$command" != "publish" ] ; then
+    for dir in $loopDirs ; do 
+        if [ -f $dir/status.out ] ; then
+            if [ `for x in $states; do grep "$x" $dir/status.out | grep -v " Cleared       0          0"; done | awk -F/ '{print $1}' | sort -n -u | wc -w` -gt 0 ] ; then
+                stillToProcess="$stillToProcess $dir"
+            fi 
+        else 
+            stillToProcess="$stillToProcess $dir"
+        fi    
+    done
+else
+    stillToProcess=$loopDirs
+fi
+
+
+[ -z "$stillToProcess" ] && stillToProcess="."
+for dir in $stillToProcess; do
+    cd $dir
+    [ "$command" != "create" ] && { ls crab_0_* > /dev/null 2>&1 || { echo "No working directory found ... proceeding to next folder." ; continue; } }
+    if [ -z "$PARALLEL" ] ; then
+        [ -n "$VERBOSE" ] && echo "crab -$command $OPTIONS 2>&1 | tee $OUTFILE"
+        [ -z "$TEST"    ] && crab -$command $OPTIONS 2>&1 | tee $OUTFILE
+    else
+        [ -n "$VERBOSE" ] && echo "crab -$command $OPTIONS > $OUTFILE 2>&1 &"
+        [ -n "$VERBOSE" ] && echo "ps | grep ' sh ' | grep -v grep | wc -l"
+        [ -z "$TEST"    ] && echo "Starting $command in $dir"
+        [ -z "$TEST"    ] && crab -$command $OPTIONS > $OUTFILE 2>&1 &
+        [ -z "$TEST"    ] && pids="$pids $!"
+        [ -z "$TEST"    ] && { while [[ `ps | grep " sh" | grep -v grep | wc -l` -ge 8 ]] ; do sleep 10s; done }
+    fi
+    cd - > /dev/null 2>&1
+done
+
+
+[ -n "$VERBOSE" ] && echo $pids
+[ -n "$PARALLEL" -a -z "$TEST" ] && { printf "All Jobs have started ... waiting for them to finish ... "; wait $pids; printf "and DONE!\n"; }
+
+
+
+# #!/bin/bash
+# echo `cat toPublish` | while read x ; do for y in $x; do echo $y `grep 'can run on'        $y/create.out  2> /dev/null | c 7 || echo `             \
+#                                                           `grep 'Total Events read' $y/report.out  2> /dev/null | c 4 || echo `                     \
+#                                                           `grep 'Number of Events'  $y/publish.out 2> /dev/null | c 4 || echo `                     \
+#                                                           `grep 'total events'      $y/publish.out 2> /dev/null | c 6 || echo `; done ; echo ;done ;

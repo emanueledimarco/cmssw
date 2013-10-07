@@ -1,0 +1,31 @@
+imax 1
+jmax *
+kmax *
+------------
+shapes * * card_1D_m134_7TeV_2e2mu_workspace.root w:$PROCESS
+------------
+bin         a3
+observation 4
+------------
+bin     a3           a3            a3           a3            a3            a3             a3             a3
+process ggH           qqH            WH            ZH             ttH            bkg_qqzz        bkg_ggzz        bkg_zjets
+process -5            -4             -3            -2             -1             1               2               3
+rate    1 1  1 1  1  2.42248  0.034548  0.695928
+------------
+lumi_7TeV                 lnN        1.022   1.022   1.022    1.022   1.022    1.022    1.022    -
+pdf_gg                    lnN        1.069/0.924 -       -        -       -        -        1.07349 -
+pdf_qqbar                 lnN         -      1.004/0.999 1.006/0.995  1.017/0.986 1.031/0.908  1.03569 -        -
+pdf_hzz4l_accept          lnN        1.02    1.02    1.02     1.02    1.02     -        -        -
+QCDscale_ggH              lnN        1.069/0.924 -       -        -       -        -        -        -
+QCDscale_qqH              lnN        -       1.004/0.999 -        -       -        -        -        -
+QCDscale_WH               lnN        -       -       1.006/0.995  -       -        -        -        -
+QCDscale_ZH               lnN        -       -       -        1.017/0.986 -        -        -        -
+QCDscale_ttH              lnN        -       -       -        -       1.031/0.908  -        -        -
+QCDscale_ggVV             lnN        -       -       -        -       -        -        1.24857 -
+QCDscale_VV               lnN        -       -       -        -       1.02961 -        -        -
+BRhiggs_ZZ4l              lnN        1.02    1.02    1.02     1.02    1.02     -        -        -
+CMS_eff_m                 lnN        1.015   1.015   1.015    1.015    1.015   1.015    1.015    -
+CMS_eff_e                 lnN        1.01    1.01    1.01     1.01     1.01    1.01     1.01     -
+CMS_hzz2e2mu_Zjets        lnN        -       -       -        -        -       -        -        0.5/1.6
+sig_2e2mu_mean_err_7TeV   param      0        0.005                      
+sig_2e2mu_sigma_err_7TeV  param      0        0.3                        

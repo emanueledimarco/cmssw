@@ -1,0 +1,23 @@
+H160_2W_2lnu_gluonfusion
+SingleTop_s
+SingleTop_tW
+SingleTop_t
+WW_2l
+WZ
+ZZ
+Wmunu
+Wenu
+Wtaunu
+gg_WW_2l2nu
+#
+#
+#to be submitted using the noRun option:
+#Zgamma_2l
+#TTbar_2l
+#
+#
+##Wgamma
+##Zgamma
+#
+#
+#WW_signal

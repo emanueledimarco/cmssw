@@ -1,0 +1,31 @@
+imax 1
+jmax *
+kmax *
+------------
+shapes * * card_2D_m132_7TeV_4mu_workspace.root w:$PROCESS
+------------
+bin         a1
+observation 4
+------------
+bin     a1           a1            a1           a1            a1            a1             a1             a1
+process ggH           qqH            WH            ZH             ttH            bkg_qqzz        bkg_ggzz        bkg_zjets
+process -5            -4             -3            -2             -1             1               2               3
+rate    1 1  1 1  1  1.85686  0.0302911  0.254185
+------------
+lumi_7TeV                 lnN        1.022   1.022   1.022    1.022   1.022    1.022    1.022    -
+pdf_gg                    lnN        1.07/0.923 -       -        -       -        -        1.0729 -
+pdf_qqbar                 lnN         -      1.004/0.998 1.005/0.994  1.016/0.986 1.032/0.907  1.03535 -        -
+pdf_hzz4l_accept          lnN        1.02    1.02    1.02     1.02    1.02     -        -        -
+QCDscale_ggH              lnN        1.07/0.923 -       -        -       -        -        -        -
+QCDscale_qqH              lnN        -       1.004/0.998 -        -       -        -        -        -
+QCDscale_WH               lnN        -       -       1.005/0.994  -       -        -        -        -
+QCDscale_ZH               lnN        -       -       -        1.016/0.986 -        -        -        -
+QCDscale_ttH              lnN        -       -       -        -       1.032/0.907  -        -        -
+QCDscale_ggVV             lnN        -       -       -        -       -        -        1.24736 -
+QCDscale_VV               lnN        -       -       -        -       1.02935 -        -        -
+BRhiggs_ZZ4l              lnN        1.02    1.02    1.02     1.02    1.02     -        -        -
+CMS_eff_m                 lnN        1.015   1.015   1.015    1.015   1.015    1.015    1.015    -
+CMS_hzz4mu_Zjets          lnN        -       -       -        -       -        -        -        0.5/1.6
+sig_4mu_mean_err_7TeV     param      0        0.005                     
+sig_4mu_sigma_err_7TeV    param      0        0.3                       
+CMS_zz4l_bkgMELA          param      0       1       [-3,3]             

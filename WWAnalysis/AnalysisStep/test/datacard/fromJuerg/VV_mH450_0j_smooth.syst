@@ -1,0 +1,10 @@
+# Input Sample: latino_7074_VVJetsMad.root
+# 
+# systematic        mm      ee      em      me
+# 
+p_scale_j                               0.953   0.953   0.953   0.953   
+met                                     0.980   0.980   0.989   0.989   
+eff_l                                   1.002   1.008   1.002   1.008   
+p_res_e                                 1.000   0.972   0.984   1.022   
+p_scale_e                               1.000   1.060   1.060   1.010   
+p_scale_m                               1.040   1.000   1.030   1.040   

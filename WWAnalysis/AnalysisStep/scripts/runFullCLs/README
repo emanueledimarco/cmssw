@@ -1,0 +1,89 @@
+step 0)
+Read the official documentation by Giovanni on the CLs method:
+https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideHiggsAnalysisCombinedLimit#HybridNew_algorithm
+
+and in particular the part on how to run it with CRAB:
+
+see "Creating the grid: automated way, using CRAB" 
+
+
+step 1) 
+prepare the release area:
+I used CMSSW_4_2_8 and the HEAD of HiggsAnalysis/CombinedLimit
+
+and set up the grid and crab environment (proxy-init and etc.)
+
+
+step 2)
+check out my script with:
+
+cvs co -d runFullCLs UserCode/Mangano/WWAnalysis/AnalysisStep/scripts/runFullCLs
+
+cd runFullCLs
+
+
+step 3)
+make a 'datacards' directory and copy there all the datacards you want to run on
+
+mkdir datacards
+cp ... datacards/
+
+
+run my script (at your risk!)
+
+- prepareJobs.sh takes several arguments and does the real job. 
+
+- loop.sh just call prepareJobs several times in case you want to handle different configuration at the same time
+
+
+step 4)
+edit loop.sh and set the 'configurations' variable to contain the configurations you want to run on. For example, just the full combination one:
+
+configurations="comb_0j1j2j"
+
+prepare the crab setup using:
+'source loop.sh init'
+
+This command will call internally 'makeGridUsingCrab.py' (see Giovanni's documentation) and will need limitSummary_* files containing observed/expected limits estimated with the asymptotic method or any other guess. These values are used to define the grid that will be used by the "full CLs machinery".
+
+
+step 5)
+create and submit the crab jobs:
+'source loop.sh submit'
+
+if some jobs are not submitted (for example because your grid password was asked and the jobs was in the background), re-submit the missing task by hand or using
+
+'source loop.sh onlySubmit'
+
+
+step 6)
+check the status of the jobs, retrieve the outputs and check the status with:
+
+'source loop.sh status'
+'source loop.sh statusGet'
+'source loop.sh print'
+
+step 7)
+when all the jobs are done, merge the outputs:
+
+'source loop.sh merge'
+
+step 8)
+run the final step that will retrieve the actual limits and the error bands from the trees:
+
+'source loop.sh limits'
+
+
+step 9)
+Make the final tables with the limits for all the masses
+
+'source loop.sh tables'
+
+
+step 10)
+And the final plots:
+
+'source loop.sh plots'
+
+
+

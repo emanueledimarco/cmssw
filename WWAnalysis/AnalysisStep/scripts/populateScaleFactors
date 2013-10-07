@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+
+inputFile=$1
+outFile=temp.py
+
+function printerLoop {
+    sample=$1
+    shift
+    echo "$sample = {"                                                                >> $outFile
+    while [ $# -gt 0 ] ; do 
+        echo "    '$1': [`grep "^$1 " $inputFile | awk 'BEGIN{a="'"'"'"} NF==2{ print a$2a } NF==3{ print a$2a","$3 }'`]," >> $outFile
+        shift
+    done
+    echo "}"                                                                          >> $outFile
+    echo                                                                              >> $outFile
+}
+
+data="`for x in 10 12 14 15 16; do for y in 0 1 2 3 4; do echo $x$y; done; done`"
+
+ww="`for x in $(seq 0 1); do echo 00$x; done`"
+wwSys="`for x in $(seq 2 4); do echo 00$x; done`"
+ggWW="001"
+
+ttbar="019"
+top="`for x in $(seq 1 6) 9; do echo 01$x; done`"
+tW="`for x in $(seq 1 6); do echo 01$x; done`"
+tWSys="`for x in $(seq 7 8); do echo 01$x; done`"
+
+dy="`for x in $(seq 0 5); do echo 03$x; done`"
+zGam="038 039 040 041"
+dyMad="037"
+
+wz="074"
+zz="071"
+diBoson="074 071"
+diBosonSys="072 073 071 075"
+
+wJet="080"
+wGam="082 083 084"
+vGam="081"
+
+hSamples="1 2 3 4 5 6 7"
+lowMassHiggs="7110 8110 9110 7115 8115 9115"
+h115="7115 8115 9115"
+h110="7110 8110 9110"
+
+masses="$(seq 120 10 200) $(seq 250 50 600)"
+
+echo "import FWCore.ParameterSet.Config as cms" > $outFile
+echo "from glob import glob" >> $outFile
+echo >> $outFile
+
+printerLoop shitSamples 012 032 038 041 074 4150
+printerLoop dataSamples  $data
+printerLoop allBackgroundSamples $ww $top $dy $diBoson $wJet $wGam 
+
+printerLoop allOtherBackgrounds $wwSys $tWSys $zGam $dyMad $diBosonSys $vGam 
+printerLoop allSignalSamples `for x in $masses; do for y in $hSamples; do echo $y$x; done; done` $lowMassHiggs
+
+printerLoop wwSamples $ww
+printerLoop wwSysSamples $wwSys
+printerLoop ggWWSample $ggWW
+
+printerLoop ttbarSamples  $ttbar
+printerLoop topSamples $top
+printerLoop tWSamples $tW
+printerLoop tWSysSamples $tWSys
+
+printerLoop dySamples   $dy
+printerLoop zGamSamples  $zGam
+printerLoop dyMadSamples    $dyMad
+
+printerLoop wzSamples $wz
+printerLoop zzSamples $zz
+printerLoop diBosonSamples $diBoson
+printerLoop diBosonSysSamples $diBosonSys
+
+printerLoop wJetSamples    $wJet
+printerLoop wGamSamples  $wGam
+printerLoop vGamSamples  $vGam
+
+printerLoop h1Samples `for x in $masses; do echo 1$x; done`
+printerLoop h2Samples `for x in $masses; do echo 2$x; done`
+printerLoop h3Samples `for x in $masses; do echo 3$x; done`
+printerLoop h4Samples `for x in $masses; do echo 4$x; done`
+printerLoop h5Samples `for x in $masses; do echo 5$x; done`
+printerLoop h6Samples `for x in $masses; do echo 6$x; done`
+printerLoop h7Samples `for x in 110 115 $masses; do echo 7$x; done`
+printerLoop h8Samples `for x in 110 115; do echo 8$x; done`
+printerLoop h9Samples `for x in 110 115; do echo 9$x; done`
+for x in $masses; do 
+    printerLoop h${x}Samples `for y in $hSamples; do echo $y$x; done`
+done
+printerLoop h115Samples $h115
+printerLoop h110Samples $h110
+

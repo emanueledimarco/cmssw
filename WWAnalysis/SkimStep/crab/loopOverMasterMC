@@ -1,0 +1,6 @@
+010	TTJetsMad	/TTJets_TuneZ2star_8TeV-madgraph-tauola/Summer12-PU_S7_START52_V5-v1/AODSIM	        S7	START52_V9
+011	TtWFullDR	/T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/Summer12-PU_S7_START52_V9-v1/AODSIM	S7	START52_V9
+012	TbartWFullDR	/Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/Summer12-PU_S7_START52_V9-v1/AODSIM	S7	START52_V9
+014	TbartFull	/Tbar_t-channel_TuneZ2star_8TeV-powheg-tauola/Summer12-PU_S7_START52_V9-v1/AODSIM	S7	START52_V9
+
+037	DY50toLLMad	/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/Summer12-PU_S7_START52_V5-v2/AODSIM	S7	START52_V9

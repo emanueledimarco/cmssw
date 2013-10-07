@@ -1,0 +1,5 @@
+jet eta: max(abs(jeteta1),abs(jeteta2)) < 4.5
+no central jets: njetvbf == 0
+central leptons: abs(eta1 - (jeteta1+jeteta2)/2)/detajj < 0.5 && abs(eta2 - (jeteta1+jeteta2)/2)/detajj < 0.5
+\Delta\eta(j,j): detajj > 3.5
+$m_{jj} > 450$: mjj > 450

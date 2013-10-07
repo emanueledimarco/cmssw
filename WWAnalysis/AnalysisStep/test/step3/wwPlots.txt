@@ -1,0 +1,8 @@
+ptmin:pt2:20,0,100:p_{T}^{min} [GeV]:Entries
+ptmax:pt1:30,0,150:p_{T}^{max} [GeV]:Entries
+mll:mll:40,0,200:m_{ll} [GeV]:Entries
+mt:mth:25,0,250:m_{T}^{H} [GeV]:Entries
+gammaMR:2*gammaMRStar/%d:25,0,4:2#gamma M_{R}^{*}/m_{H}:Entries
+mtw1:mtw1:25,0,250:m_{T}(W,l1) [GeV]:Entries
+dphill:dphill:25,0,3.1415928:#Delta#phi_{ll}:Entries
+mpmet:mpmet:25,0,150:min(pf#slash{E}_{T},ch#slash{E}_{T}):Entries

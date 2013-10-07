@@ -1,0 +1,10 @@
+# Input Sample: latino_001_GluGluToWWTo4L.root
+# 
+# systematic        mm      ee      em      me
+# 
+p_scale_j                               0.969   0.969   0.969   0.969   
+met                                     0.990   0.990   0.985   0.985   
+eff_l                                   1.003   1.011   1.003   1.011   
+p_res_e                                 1.000   0.973   0.984   0.984   
+p_scale_e                               1.000   1.060   1.060   1.010   
+p_scale_m                               1.040   1.000   1.030   1.040   

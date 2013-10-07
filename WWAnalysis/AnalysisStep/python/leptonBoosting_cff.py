@@ -1,0 +1,87 @@
+import FWCore.ParameterSet.Config as cms
+
+boostedMuons = cms.EDProducer("PatMuonBooster",
+  muonTag = cms.InputTag("cleanPatMuonsTriggerMatch"), 
+  trackTag = cms.InputTag("generalTracks"),       
+  vertexTag = cms.InputTag("goodPrimaryVertices"),
+  deposits = cms.VPSet()
+)
+
+boostedElectrons = cms.EDProducer("PatElectronBooster",
+    electronTag = cms.InputTag("cleanPatElectronsTriggerMatch"),
+    trackTag = cms.InputTag("generalTracks"),       
+    vertexTag = cms.InputTag("goodPrimaryVertices"),
+    caloTowersTag = cms.InputTag("towerMaker"),
+    electronIDSources = cms.PSet(),
+    deposits = cms.VPSet(),
+)
+
+fakePreBoostedElectrons = cms.EDProducer("PatElectronUserFloatAdder",
+        src = cms.InputTag("cleanPatElectronsTriggerMatch"),
+        variables = cms.PSet( 
+            beta0003      = cms.string("0"),
+            beta0004      = cms.string("0"),
+            beta0703      = cms.string("0"),
+            beta0704      = cms.string("0"),
+            sigmaIphiIphi = cms.string("0"),
+            bdt = cms.string("1000"),
+            rawEnergy = cms.string("0"),
+            seedClusterEnergy = cms.string("0"),
+            seedClusterEta = cms.string("0"),
+            seedClusterPhi = cms.string("0"),
+
+            energy = cms.string("0"),
+            esEnergy = cms.string("0"),
+            phiWidth = cms.string("0"),
+            etaWidth = cms.string("0"),
+            eta = cms.string("0"),
+            theta = cms.string("0"),
+            phi = cms.string("0"),
+
+             eMax = cms.string("0"),
+             e3x3 = cms.string("0"),
+             e5x5 = cms.string("0"),
+             e2x2 = cms.string("0"),
+             e2nd = cms.string("0"),
+             e1x5 = cms.string("0"),
+             e2x5Max = cms.string("0"),
+             e2x5Left = cms.string("0"),
+             e2x5Right = cms.string("0"),
+             e2x5Top = cms.string("0"),
+             e2x5Bottom = cms.string("0"),
+             eLeft = cms.string("0"),
+             eRight = cms.string("0"),
+             eTop = cms.string("0"),
+             eBottom = cms.string("0"),
+             e4SwissCross = cms.string("0"),
+
+             covIEtaIEta = cms.string("0"),
+             covIEtaIPhi = cms.string("0"),
+             covIPhiIPhi = cms.string("0"),
+
+             sMaj = cms.string("0"),
+             sMin = cms.string("0"),
+             alpha = cms.string("0"),
+
+             time = cms.string("0"),
+             chi2 = cms.string("0"),
+             recoFlag = cms.string("0"),
+             seedEnergy = cms.string("0"),
+             seedieta = cms.string("0"),
+             seediphi = cms.string("0"),
+             etacryseed = cms.string("0"),
+             phicryseed = cms.string("0"),
+             hOverE = cms.string("0"),
+             ctfChi2 = cms.string("0"),
+             eSeedPF = cms.string("0"),
+             eSCPF = cms.string("0"),
+             eESPF = cms.string("0"),
+             eES = cms.string("0"),
+             tip = cms.string("0"),
+             tipErr = cms.string("0"),
+             ip = cms.string("0"),
+             ipErr = cms.string("0"),
+             dxyPV = cms.string("0"),
+             dzPV = cms.string("0")
+       )
+    )

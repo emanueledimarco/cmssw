@@ -1,0 +1,10 @@
+# Input Sample: latino_1450_ggToH450toWWto2L2Nu.root
+# 
+# systematic        mm      ee      em      me
+# 
+p_scale_j                               0.965   0.965   0.958   0.964   
+p_scale_m                               1.013   0.000   0.996   1.011   
+p_scale_e                               0.000   1.021   1.009   0.993   
+eff_l                                   1.002   1.008   1.002   1.008   
+met                                     0.995   0.995   0.993   1.002   
+p_res_e                                 0.998   0.998   0.998   0.998   

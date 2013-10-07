@@ -1,0 +1,144 @@
+#include "WWAnalysis/AnalysisStep/interface/BetterTupleProducer.h"
+
+#include "DataFormats/Candidate/interface/Candidate.h"
+
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+
+
+template <class T> BetterTupleProducer<T>::BetterTupleProducer(const edm::ParameterSet& cfg) : 
+        skimTag_      (cfg.getUntrackedParameter<edm::InputTag>                  ("src")), 
+        plotsInfo_    (cfg.getUntrackedParameter<std::vector<edm::ParameterSet> >("variables")) {
+
+    //Get TFileService 
+    fs_ = edm::Service<TFileService>().operator->();
+    //Create tree w/ unique name
+    tree_ = fs_->make<TTree>(
+        cfg.getParameter<std::string>("@module_label").c_str(),
+        cfg.getParameter<std::string>("@module_label").c_str()
+    );
+
+    //add a per sample weight if desired
+    if( cfg.existsAs<double>("weight",false) ) {
+        weight_ = cfg.getUntrackedParameter<double>("weight");
+        tree_->Branch("weight",&weight_,"weight/F");
+    }
+
+    //if vtxLabel exists, add nVtx reco'd to the tree
+    if( cfg.existsAs<edm::InputTag>("vtxLabel",false) ) {
+        vtxTag_ = cfg.getUntrackedParameter<edm::InputTag>("vtxLabel");
+        tree_->Branch("nVtx",&nVtx_,"nVtx/I");
+    }
+
+    //if there is shit in the Candidate Counts, get em ready
+    if( cfg.existsAs<edm::ParameterSet>("candCounts",false) ) {
+        edm::ParameterSet tempPset = cfg.getUntrackedParameter<edm::ParameterSet >("candCounts");
+        const std::vector<std::string> &countNames = tempPset.getParameterNamesForType<edm::InputTag>(false);
+        nCounts_.resize(countNames.size());
+        for(size_t i=0;i<countNames.size();++i) {
+            countTags_.push_back( tempPset.getUntrackedParameter<edm::InputTag>(countNames[i]) );
+            tree_->Branch( countNames[i].c_str(), &nCounts_[i], (countNames[i]+"/I").c_str() );
+        }
+    }
+
+    //if there is shit in the Rho Variables, get em ready
+    if( cfg.existsAs<edm::ParameterSet>("rhoTags",false) ) {
+        edm::ParameterSet tempPset = cfg.getUntrackedParameter<edm::ParameterSet >("rhoTags");
+        const std::vector<std::string> &rhoNames = tempPset.getParameterNamesForType<edm::InputTag>(false);
+        nRhos_.resize(rhoNames.size());
+        for(size_t i=0;i<rhoNames.size();++i) {
+            rhoTags_.push_back( tempPset.getUntrackedParameter<edm::InputTag>(rhoNames[i]) );
+            tree_->Branch( rhoNames[i].c_str(), &nRhos_[i], (rhoNames[i]+"/F").c_str() );
+        }
+    }
+
+
+    //if puLabel exists, add number of sim vertices
+    if( cfg.existsAs<edm::InputTag>("puLabel",false) ) {
+        puTag_  = cfg.getUntrackedParameter<edm::InputTag>("puLabel");
+        tree_->Branch("nPU",&nPU_,"nPU/I");
+
+        //if puLabel exists and vtxWeights exists, add per events scales by nPU
+        vtxWeights_.clear();
+        specificVtxWeight_.clear();
+        if( cfg.existsAs<edm::ParameterSet>("vtxWeights",false) ) {
+            vtxWeightInfo_ = cfg.getUntrackedParameter<edm::ParameterSet >("vtxWeights");
+            const std::vector<std::string> &weightNames = vtxWeightInfo_.getParameterNamesForType<std::vector<double> >(false);
+            specificVtxWeight_.resize(weightNames.size());
+
+            for(size_t j=0;j<weightNames.size();++j) {
+                vtxWeights_.push_back( vtxWeightInfo_.getUntrackedParameter<std::vector<double> >(weightNames[j]) );
+                tree_->Branch( weightNames[j].c_str(), &specificVtxWeight_[j], (weightNames[j]+"/F").c_str() );
+            }
+        }
+    }
+
+    objFuncs_.clear();
+    placeHolder_.clear();
+    placeHolder_.resize(plotsInfo_.size());
+    for(size_t j=0;j<plotsInfo_.size();++j) {
+        objFuncs_.push_back( StringObjectFunction< T >(
+                             plotsInfo_[j].getUntrackedParameter<std::string>("quantity")));
+        tree_->Branch( plotsInfo_[j].getUntrackedParameter<std::string>("tag").c_str() , 
+                       &placeHolder_[j], 
+                       (plotsInfo_[j].getUntrackedParameter<std::string>("tag")+"/F").c_str() );
+    }
+
+
+}
+
+template <class T> void BetterTupleProducer<T>::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+
+    edm::Handle<std::vector< T > > skimH;
+    iEvent.getByLabel(skimTag_,skimH);
+    
+    edm::Handle<edm::View<reco::Candidate> > countH;
+    for(size_t i=0;i<countTags_.size();++i) {
+        iEvent.getByLabel(countTags_[i],countH);
+        nCounts_[i] = countH->size();
+    }
+
+    edm::Handle<double> rhoH;
+    for(size_t i=0;i<rhoTags_.size();++i) {
+        iEvent.getByLabel(rhoTags_[i],rhoH);
+        nRhos_[i] = *rhoH;
+    }
+
+    if( !(vtxTag_ == edm::InputTag()) ) {
+        edm::Handle<reco::VertexCollection > vtxH;
+        iEvent.getByLabel(vtxTag_,vtxH);
+        nVtx_ = vtxH->size();
+    }
+    
+    if( !(puTag_ == edm::InputTag()) ) {
+        edm::Handle<std::vector<PileupSummaryInfo> > puH;
+        iEvent.getByLabel(puTag_,puH);
+        for(size_t i=0;i<puH->size();++i) {
+            if( puH->at(i).getBunchCrossing()==0 ) {
+                nPU_ = puH->at(i).getPU_NumInteractions();
+            }
+        }
+    }
+    
+    //Loop Over Each Plot Type
+    for(size_t i=0;i<skimH->size();++i) {
+        for(size_t j=0;j<plotsInfo_.size();++j) {
+            placeHolder_[j] = objFuncs_[j](skimH->at(i));
+        }            
+        for(size_t j=0;j<vtxWeights_.size();++j) {
+            specificVtxWeight_[j] = vtxWeights_[j][std::min(nPU_,(int)(vtxWeights_[j].size()-1))];
+        }
+        tree_->Fill();
+    }
+
+}
+
+template <class T> void BetterTupleProducer<T>::beginJob() { 
+
+}
+
+template <class T> BetterTupleProducer<T>::~BetterTupleProducer() { } 
+template <class T> void BetterTupleProducer<T>::endJob() { }
+

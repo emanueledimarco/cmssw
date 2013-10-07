@@ -1,0 +1,21 @@
+
+<use   name="DataFormats/FWLite"/>
+<use   name="FWCore/FWLite"/>
+<use   name="FWCore/PythonParameterSet"/>
+<use   name="CommonTools/Utils"/>
+<use   name="PhysicsTools/SelectorUtils"/>
+<use   name="PhysicsTools/FWLite"/>
+<use   name="PhysicsTools/UtilAlgos"/>
+
+<use name="WWAnalysis/DataFormats"/>
+<use name="WWAnalysis/AnalysisStep"/>
+
+<environment>
+  <bin   file="yieldProducer.cc"></bin>
+  <bin   file="newYieldProducer.cc"></bin>
+  <bin   file="finalYieldProducer.cc"></bin>
+  <bin   file="ipStudy1D.cc"></bin>
+  <bin   file="ipStudy1Dm.cc"></bin>
+  <bin   file="evtProcessor.cc"></bin>
+  <bin   file="createEventHists.cc"></bin>
+</environment>

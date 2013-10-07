@@ -1,0 +1,10 @@
+# Input Sample: latino_4180_vbfToH180toWWto2L2Nu.root
+# 
+# systematic        mm      ee      em      me
+# 
+p_scale_j                               0.960   0.960   0.960   0.960   
+met                                     0.990   0.990   0.980   0.980   
+eff_l                                   1.005   1.013   1.005   1.013   
+p_res_e                                 1.000   0.974   0.983   0.983   
+p_scale_e                               1.000   1.030   1.030   1.030   
+p_scale_m                               1.020   1.000   1.010   1.020   

@@ -1,0 +1,16 @@
+ptmin:pt2:50,0,200:p_{T}^{min} [GeV]:Entries
+ptmax:pt1:50,0,200:p_{T}^{max} [GeV]:Entries
+mll:pt1:50,0,300:m_{ll} [GeV]:Entries
+mt:mth:50,0,300:p_{T}^{max} [GeV]:Entries
+gammaMR:2*gammaMRStar/RMMEMASS:50,0,5:2#gamma M_{R}^{*}/m_{H}:Entries
+bestiso:bestiso:50,-0.10,0.20:Best Isolation:Entries
+worstiso:worstiso:50,-0.10,0.20:Worst Isolation:Entries
+dphillmmet:dphillmmet:50,0,3.1415928:#Delta#phi(ll,#slash{E}_{T})
+met:met:50,0,150:#slash{E}_{T} [GeV]:Entries
+mmet:mmet:50,0,150:min#slash{E}_{T} [GeV]:Entries
+pmmet:pmmet:50,0,150:pmin#slash{E}_{T} [GeV]:Entries
+mtw1:mtw1:50,0,300:m_{T}(W,l1) [GeV]:Entries
+mtw2:mtw2:50,0,300:m_{T}(W,l2) [GeV]:Entries
+ptll:ptll:50,0,150:p_{T}^{ll} [GeV]:Entries
+nvtx:nvtx:16,-0.5,15.5:N_{vtx}:Entries
+dphill:dphill:50,0,3.1415928:#Delta#phi_{ll}:Entries

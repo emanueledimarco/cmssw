@@ -1,0 +1,30 @@
+imax 1
+jmax *
+kmax *
+------------
+shapes * * card_1D_m153_8TeV_4mu_workspace.root w:$PROCESS
+------------
+bin         a1
+observation 2
+------------
+bin     a1           a1            a1           a1            a1            a1             a1             a1
+process ggH           qqH            WH            ZH             ttH            bkg_qqzz        bkg_ggzz        bkg_zjets
+process -5            -4             -3            -2             -1             1               2               3
+rate    1 1  1 1  1  1.97541  0.0211579  0.264638
+------------
+lumi_8TeV                 lnN        1.05    1.05    1.05     1.05    1.05     1.05     1.05     -
+pdf_gg                    lnN        1.065/0.927 -       -        -       -        -        1.07892 -
+pdf_qqbar                 lnN         -      1.003/0.999 1.005/0.992  1.02/0.984 1.028/0.909  1.03882 -        -
+pdf_hzz4l_accept          lnN        1.02    1.02    1.02     1.02    1.02     -        -        -
+QCDscale_ggH              lnN        1.065/0.927 -       -        -       -        -        -        -
+QCDscale_qqH              lnN        -       1.003/0.999 -        -       -        -        -        -
+QCDscale_WH               lnN        -       -       1.005/0.992  -       -        -        -        -
+QCDscale_ZH               lnN        -       -       -        1.02/0.984 -        -        -        -
+QCDscale_ttH              lnN        -       -       -        -       1.028/0.909  -        -        -
+QCDscale_ggVV             lnN        -       -       -        -       -        -        1.25966 -
+QCDscale_VV               lnN        -       -       -        -       1.03199 -        -        -
+BRhiggs_ZZ4l              lnN        1.02    1.02    1.02     1.02    1.02     -        -        -
+CMS_eff_m                 lnN        1.015   1.015   1.015    1.015   1.015    1.015    1.015    -
+CMS_hzz4mu_Zjets          lnN        -       -       -        -       -        -        -        0.5/1.6
+sig_4mu_mean_err_8TeV     param      0        0.005                     
+sig_4mu_sigma_err_8TeV    param      0        0.3                       

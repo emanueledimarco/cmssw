@@ -3,7 +3,8 @@
 if [[ "$CMSSW_VERSION" == CMSSW_5_3_* ]];
 then
 
-    git clone -n -b gitstart-1 -o my-cmssw git@github.com:emanueledimarco/cmssw.git $CMSSW_BASE/src
+    rm README
+    git clone -n -b vecbos-git-01 -o my-cmssw git@github.com:emanueledimarco/cmssw.git $CMSSW_BASE/src
     git config core.sparsecheckout true
 
     echo HiggsAnalysis/HiggsToWW2e > .git/info/sparse-checkout

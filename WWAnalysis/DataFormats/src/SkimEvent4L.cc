@@ -3,7 +3,7 @@
 #include "CommonTools/Utils/interface/StringObjectFunction.h"
 #include "CommonTools/Utils/interface/StringCutObjectSelector.h"
 #include "DataFormats/Math/interface/deltaR.h"
-#include "EGamma/EGammaAnalysisTools/interface/ElectronEffectiveArea.h"
+#include "EgammaAnalysis/ElectronTools/interface/ElectronEffectiveArea.h"
 
 #include <TLorentzVector.h>
 #include <TVector3.h>

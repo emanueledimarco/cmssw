@@ -11,13 +11,6 @@
 
 /*
   Does post-reco fixes to ECAL photon energy and estimates resolution.
-  This can run outside of the usual CMS software framework but requires 
-  access to a file 'EcalGaps.dat' which must be in the same directory as 
-  that used to run.
-
-  To run within CMSSW use PhotonFixCMS.h (which can access the geometry 
-  directly - go to "RecoEcal/EgammaCoreTools/plugins/PhotonFixCMS.h"
-  for details.
 
   Before instantiating any objects of PhotonFix, the constants must be
   initialised in the first event using
@@ -30,11 +23,8 @@
   aid with testing the performance of these corrections in data).
 
   Make objects using
-    PhotonFix a(energy,eta,phi,r9);
-  where energy is the photon energy, eta and phi are the ECAL
-  cluster positions (NB from the Supercluster object, _not_ the
-  Photon object, as the latter gives eta and phi directions,
-  not positions), and r9 is the R9 value of the SC.
+    PhotonFixCMS a(p);
+  where p is a reco::Photon reference 
 
   Get the corrected energy using
     a.fixedEnergy();
@@ -46,19 +36,35 @@
 #include <iostream>
 #include <string>
 
+#ifndef LOCAL_FITTING_PROCEDURE
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "DataFormats/EgammaCandidates/interface/Photon.h"
+#endif
+
 class PhotonFix {
  public:
+  PhotonFix(double e, double eta, double phi, double r9, double aC, double aS, double aM, double bC, double bS, double bM);
+
+#ifndef LOCAL_FITTING_PROCEDURE
+  PhotonFix(const reco::Photon &p);
+  PhotonFix(double eta, double phi);  
   PhotonFix(double e, double eta, double phi, double r9);
 
   // Must be called before instantiating any PhotonFix objects
-  static bool initialise(const std::string &s="Nominal");
-  static bool initialised() ;
+  bool initialiseParameters(const edm::ParameterSet &iConfig);
+  static bool initialiseGeometry(const edm::EventSetup &iSetup);
 
-  // Used by above; do not call directly
-  static bool initialiseParameters(const std::string &s);
-  static bool initialiseGeometry(const std::string &s);
-
-  void setup();
+  void setClusterParameters(double e, double eta, double phi, double r9)
+  {
+    _e=e;
+    _eta=eta; 
+    _phi=phi;
+    _r9=r9;
+    setup(true);
+  }
+#endif
+  // Find distance of photon from cracks between crystals and module boundaries 
+  void setup(bool doGeom);
   
   // Corrected energy and sigma
   double fixedEnergy() const;
@@ -90,6 +96,14 @@ class PhotonFix {
   double yS() const;
   double yM() const;
 
+  // Return values for Paul's fit
+  double aC() const;
+  double aS() const;
+  double aM() const;
+  double bC() const;
+  double bS() const;
+  double bM() const;
+
   // Return arrays containing positions of ecal gaps
   static void barrelCGap(unsigned i, unsigned j, unsigned k, double c);
   static void barrelSGap(unsigned i, unsigned j, unsigned k, double c);
@@ -102,17 +116,17 @@ class PhotonFix {
   void print() const;
 
   // Input and output the fit parameters
-  static void setParameters(unsigned be, unsigned hl, const double *p);
-  static void getParameters(unsigned be, unsigned hl, double *p);
-
-  static void dumpParameters(std::ostream &o);
-  static void printParameters(std::ostream &o);
+  void setParameters(unsigned be, unsigned hl, const double *p);
+  void getParameters(unsigned be, unsigned hl, double *p);
 
   // Utility functions
-  static double GetaPhi(double f0, double f1);
-  static double asinh(double s);  
+  void dumpConfigParameters(std::ostream &o);
+  void readConfigParameters(std::istream &i);
+  void dumpParameters(std::ostream &o);
+  void printParameters(std::ostream &o);
   static void dumpGaps(std::ostream &o);
-  
+  static double asinh(double s);  
+ 
  private:
 
   // Utility functions
@@ -131,32 +145,33 @@ class PhotonFix {
   static const double _onePi;
   static const double _twoPi;
   
-  // Initialisation flag
-  static bool _initialised;
+  // Initialisation flags
+  bool _initialisedParams;
+  static bool _initialisedGeom;
   
   // Parameters for fixes
-  static double _meanScale[2][2][4];
-  static double _meanAT[2][2][4];
-  static double _meanAC[2][2][4];
-  static double _meanAS[2][2][4];
-  static double _meanAM[2][2][4];
-  static double _meanBT[2][2][4];
-  static double _meanBC[2][2][4];
-  static double _meanBS[2][2][4];
-  static double _meanBM[2][2][4];
-  static double _meanR9[2][2][4];
+  double _meanScale[2][2][4];
+  double _meanAT[2][2][4];
+  double _meanAC[2][2][4];
+  double _meanAS[2][2][4];
+  double _meanAM[2][2][4];
+  double _meanBT[2][2][4];
+  double _meanBC[2][2][4];
+  double _meanBS[2][2][4];
+  double _meanBM[2][2][4];
+  double _meanR9[2][2][4];
   
   // Parameters for resolution
-  static double _sigmaScale[2][2][4];
-  static double _sigmaAT[2][2][4];
-  static double _sigmaAC[2][2][4];
-  static double _sigmaAS[2][2][4];
-  static double _sigmaAM[2][2][4];
-  static double _sigmaBT[2][2][4];
-  static double _sigmaBC[2][2][4];
-  static double _sigmaBS[2][2][4];
-  static double _sigmaBM[2][2][4];
-  static double _sigmaR9[2][2][4];
+  double _sigmaScale[2][2][4];
+  double _sigmaAT[2][2][4];
+  double _sigmaAC[2][2][4];
+  double _sigmaAS[2][2][4];
+  double _sigmaAM[2][2][4];
+  double _sigmaBT[2][2][4];
+  double _sigmaBC[2][2][4];
+  double _sigmaBS[2][2][4];
+  double _sigmaBM[2][2][4];
+  double _sigmaR9[2][2][4];
   
   // EB gap positions
   static double _barrelCGap[169][360][2];

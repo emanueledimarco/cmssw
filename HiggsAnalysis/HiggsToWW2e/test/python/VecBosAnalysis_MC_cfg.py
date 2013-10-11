@@ -138,7 +138,7 @@ if(is42X):
 elif(is52X):
     inputfile = cms.untracked.vstring('file:/cmsrm/pc21_2/emanuele/data/AOD_WWSummer12.root')
 else:
-    inputfile = cms.untracked.vstring('/store/mc/Summer12_DR53X/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/AODSIM/PU_S10_START53_V7A-v1/0000/FEFF0D8E-91D2-E111-9BEA-001E673976ED.root')
+    inputfile = cms.untracked.vstring('/store/mc/Summer12_DR53X/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/GEN-SIM-RECO/HLT8E33_PU_S10_START53_V7I-v1/30000/FCC5A42A-1A7A-E211-B82D-0025901D4B08.root')
 
 process.source = cms.Source("PoolSource",
                             noEventSort = cms.untracked.bool(True),

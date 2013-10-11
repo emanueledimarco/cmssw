@@ -10,12 +10,12 @@ muonCombinedPFIsoMapProducer = WWAnalysis.Tools.muonPFIsoMapProd_cfi.muonPFIsoMa
 muonCombinedPFIsoMapProducer.vtxLabel = 'offlinePrimaryVertices' # if the event has the first vertex bad, will be discarded offline.
 
 # this is the PF candidate isolation with pfnopu input and custom vetoes
-from MyAnalysis.IsolationTools.electronPFIsolations_cff import *
-from MyAnalysis.IsolationTools.muonPFIsolations_cff import *
-from MyAnalysis.IsolationTools.electronDirectionalPFIsolations_cff import *
-from MyAnalysis.IsolationTools.muonDirectionalPFIsolations_cff import *
-from MyAnalysis.IsolationTools.electronPFPUIsolations_cff import *
-from MyAnalysis.IsolationTools.muonPFPUIsolations_cff import *
+from WWAnalysis.Tools.electronPFIsolations_cff import *
+from WWAnalysis.Tools.muonPFIsolations_cff import *
+from WWAnalysis.Tools.electronDirectionalPFIsolations_cff import *
+from WWAnalysis.Tools.muonDirectionalPFIsolations_cff import *
+from WWAnalysis.Tools.electronPFPUIsolations_cff import *
+from WWAnalysis.Tools.muonPFPUIsolations_cff import *
 
 from CommonTools.ParticleFlow.pfNoPileUp_cff import *
 pfPileUp.PFCandidates = "particleFlow"

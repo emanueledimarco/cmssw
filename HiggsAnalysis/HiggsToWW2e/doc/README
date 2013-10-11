@@ -1,75 +1,47 @@
-scram p -n vecbos_5_3_12 CMSSW CMSSW_5_3_12
-cd vecbos_5_3_12/src/
-cmsenv
+#! /bin/sh
 
-git clone -n -b gitstart-1 -o my-cmssw git@github.com:emanueledimarco/cmssw.git $CMSSW_BASE/src
-git config core.sparsecheckout true
+if [[ "$CMSSW_VERSION" == CMSSW_5_3_* ]];
+then
 
-echo HiggsAnalysis/HiggsToWW2e > .git/info/sparse-checkout
-echo HiggsAnalysis/HiggsToWW2Leptons >> .git/info/sparse-checkout
-echo HiggsAnalysis/HiggsToGammaGamma >> .git/info/sparse-checkout
-echo MyAnalysis/IsolationTools >> .git/info/sparse-checkout
-echo MyAnalysis/METFlags >> .git/info/sparse-checkout
-echo RecoBTag/ImpactParameter >> .git/info/sparse-checkout
-echo PhysicsTools/EcalAnomalousEventFilter >> .git/info/sparse-checkout
-echo WWAnalysis/DataFormats >> .git/info/sparse-checkout
-echo WWAnalysis/Tools >> .git/info/sparse-checkout
-echo WWAnalysis/Filters >> .git/info/sparse-checkout
-echo WWAnalysis/TreeModifiers >> .git/info/sparse-checkout
-echo Muon/MuonAnalysisTools >> .git/info/sparse-checkout
-echo ElectroWeakAnalysis/Utilities >> .git/info/sparse-checkout
-echo JetMETAnalysis/ecalDeadCellTools >> .git/info/sparse-checkout
-echo JetMETCorrections/Objects >> .git/info/sparse-checkout
-echo JetMETCorrections/Modules >> .git/info/sparse-checkout
-echo JetMETCorrections/Type1MET >> .git/info/sparse-checkout
-echo DataFormats/METReco >> .git/info/sparse-checkout
-echo CommonTools/RecoAlgos >> .git/info/sparse-checkout
-echo RecoMET/METAnalyzers >> .git/info/sparse-checkout
-echo RecoMET/METFilters >> .git/info/sparse-checkout
-echo DataFormats/TrackerCommon >> .git/info/sparse-checkout
-echo DPGAnalysis/SiStripTools >> .git/info/sparse-checkout
-echo DPGAnalysis/Skims >> .git/info/sparse-checkout
-echo RecoLocalTracker/SubCollectionProducers >> .git/info/sparse-checkout
-echo ElectroWeakAnalysis/Utilities >> .git/info/sparse-checkout
-echo CMGTools/External >> .git/info/sparse-checkout
-echo RecoTauTag/Configuration >> .git/info/sparse-checkout
-echo CondFormats/EgammaObjects >> .git/info/sparse-checkout
-echo DataFormats/PatCandidates >> .git/info/sparse-checkout
-echo RecoEgamma/EgammaTools >> .git/info/sparse-checkout
-echo RecoTauTag/RecoTau >> .git/info/sparse-checkout
-echo EgammaAnalysis/ElectronTools >> .git/info/sparse-checkout
-echo Muon/MuonAnalysisTools >> .git/info/sparse-checkout
+    git clone -n -b gitstart-1 -o my-cmssw git@github.com:emanueledimarco/cmssw.git $CMSSW_BASE/src
+    git config core.sparsecheckout true
 
-git pull my-cmssw vecbos-git-01
-git checkout
+    echo HiggsAnalysis/HiggsToWW2e > .git/info/sparse-checkout
+    echo HiggsAnalysis/HiggsToWW2Leptons >> .git/info/sparse-checkout
+    echo HiggsAnalysis/HiggsToGammaGamma >> .git/info/sparse-checkout
+    echo MyAnalysis/IsolationTools >> .git/info/sparse-checkout
+    echo MyAnalysis/METFlags >> .git/info/sparse-checkout
+    echo RecoBTag/ImpactParameter >> .git/info/sparse-checkout
+    echo PhysicsTools/EcalAnomalousEventFilter >> .git/info/sparse-checkout
+    echo WWAnalysis/DataFormats >> .git/info/sparse-checkout
+    echo WWAnalysis/Tools >> .git/info/sparse-checkout
+    echo WWAnalysis/Filters >> .git/info/sparse-checkout
+    echo WWAnalysis/TreeModifiers >> .git/info/sparse-checkout
+    echo Muon/MuonAnalysisTools >> .git/info/sparse-checkout
+    echo ElectroWeakAnalysis/Utilities >> .git/info/sparse-checkout
+    echo JetMETAnalysis/ecalDeadCellTools >> .git/info/sparse-checkout
+    echo JetMETCorrections/Objects >> .git/info/sparse-checkout
+    echo JetMETCorrections/Modules >> .git/info/sparse-checkout
+    echo JetMETCorrections/Type1MET >> .git/info/sparse-checkout
+    echo DataFormats/METReco >> .git/info/sparse-checkout
+    echo CommonTools/RecoAlgos >> .git/info/sparse-checkout
+    echo RecoMET/METAnalyzers >> .git/info/sparse-checkout
+    echo RecoMET/METFilters >> .git/info/sparse-checkout
+    echo DataFormats/TrackerCommon >> .git/info/sparse-checkout
+    echo DPGAnalysis/SiStripTools >> .git/info/sparse-checkout
+    echo DPGAnalysis/Skims >> .git/info/sparse-checkout
+    echo RecoLocalTracker/SubCollectionProducers >> .git/info/sparse-checkout
+    echo ElectroWeakAnalysis/Utilities >> .git/info/sparse-checkout
+    echo CMGTools/External >> .git/info/sparse-checkout
+    echo RecoTauTag/Configuration >> .git/info/sparse-checkout
+    echo CondFormats/EgammaObjects >> .git/info/sparse-checkout
+    echo DataFormats/PatCandidates >> .git/info/sparse-checkout
+    echo RecoEgamma/EgammaTools >> .git/info/sparse-checkout
+    echo RecoTauTag/RecoTau >> .git/info/sparse-checkout
+    echo EgammaAnalysis/ElectronTools >> .git/info/sparse-checkout
+    echo Muon/MuonAnalysisTools >> .git/info/sparse-checkout
+    
+    git pull my-cmssw vecbos-git-01
+    git checkout
 
-cat download.url | xargs wget
-echo V110523_BE -d Sandbox UserCode/csander/Sandbox
-echo HiggsAnalysis/HiggsToGammaGamma UserCode/meridian/EnergyCorrections_HggAnalysis/
-cvs up -r 1.4 JetMETCorrections/Modules/plugins/JetCorrectorOnTheFly.cc
-cvs up -r 1.6 JetMETCorrections/Modules/interface/JetCorrectionProducer.h
-
-
-
-
-
-=====================================
-git remote add -f HiggsAnalysis-HiggsToWW2e https://github.com/vecbos/HiggsAnalysis-HiggsToWW2e.git
-git merge -s ours --no-commit HiggsAnalysis-HiggsToWW2e/master
-git read-tree --prefix=HiggsAnalysis/HiggsToWW2e -u HiggsAnalysis-HiggsToWW2e/master
-git commit -m 'Merge usercode in CMSSW'
-
-git remote add -f HiggsAnalysis-HiggsToWW2Leptons https://github.com/vecbos/HiggsAnalysis-HiggsToWW2Leptons.git
-git merge -s ours --no-commit HiggsAnalysis-HiggsToWW2Leptons/master
-git read-tree --prefix=HiggsAnalysis/HiggsToWW2Leptons -u HiggsAnalysis-HiggsToWW2Leptons/master
-git commit -m 'Merge usercode in CMSSW'
-
-git remote add -f MyAnalysis-IsolationTools https://github.com/vecbos/MyAnalysis-IsolationTools.git
-git merge -s ours --no-commit MyAnalysis-IsolationTools/master
-git read-tree --prefix=MyAnalysis/IsolationTools -u MyAnalysis-IsolationTools/master
-git commit -m 'Merge usercode in CMSSW'
-
-git remote add -f  MyAnalysis-METFlags https://github.com/vecbos/ MyAnalysis-METFlags.git
-git merge -s ours --no-commit  MyAnalysis-METFlags/master
-git read-tree --prefix= MyAnalysis/METFlags -u  MyAnalysis-METFlags/master
-git commit -m 'Merge usercode in CMSSW'
+fi;

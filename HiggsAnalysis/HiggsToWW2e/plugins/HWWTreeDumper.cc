@@ -802,11 +802,11 @@ void HWWTreeDumper::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     // treeRecoFill1bis.writeCollectionToTree(corrmetCollection_, iEvent, iSetup, prefix, suffix, false);
 
     // Track-Corrected MET
-    CmsMetFiller treeRecoFill2(tree_, true);
-    suffix = "TCMet";
-    treeRecoFill2.isData(false); // the met flags are per event, dumped for caloMET
-    treeRecoFill2.saveCand(saveCand_);
-    treeRecoFill2.writeCollectionToTree(TCmetCollection_, iEvent, iSetup, prefix, suffix, false);
+    // CmsMetFiller treeRecoFill2(tree_, true);
+    // suffix = "TCMet";
+    // treeRecoFill2.isData(false); // the met flags are per event, dumped for caloMET
+    // treeRecoFill2.saveCand(saveCand_);
+    // treeRecoFill2.writeCollectionToTree(TCmetCollection_, iEvent, iSetup, prefix, suffix, false);
 
     // particle flow met
     // [0] = uncorrected PF met

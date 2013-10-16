@@ -41,7 +41,8 @@ then
     echo RecoTauTag/RecoTau >> .git/info/sparse-checkout
     echo EgammaAnalysis/ElectronTools >> .git/info/sparse-checkout
     echo Muon/MuonAnalysisTools >> .git/info/sparse-checkout
-    
+    echo QuarkGluonTagger/EightTeV >> .git/info/sparse-checkout
+
     git pull my-cmssw vecbos-git-01
     git checkout
 

@@ -131,7 +131,9 @@ process.options = cms.untracked.PSet(
       fileMode =  cms.untracked.string('NOMERGE')
       )
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(500) )
+
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
 if(is42X):
     inputfile = cms.untracked.vstring('file:/cmsrm/pc24_2/emanuele/data/DYeeSummer11.root')
@@ -169,11 +171,12 @@ process.RandomNumberGeneratorService = cms.Service("RandomNumberGeneratorService
     engineName = cms.untracked.string('TRandom3')
     )
                                                    )
-
+process.load("HiggsAnalysis.HiggsToWW2e.collectionsFilterSequence_cff")
 process.postjets = cms.Sequence( process.eIdSequence
                                  * process.FastjetForIsolation
                                  * process.eCalibSequence
                                  * process.pfPileUp
+                                 * process.collectionsFilterSequence
                                  * process.treeDumper )
 
 # In order to use the good primary vertices everywhere (It would be nicer to set the proper inputTags in the first place)

@@ -45,20 +45,13 @@ struct CmsMuonFillerData : public CmsCandidateFillerData {
   vector<int> *muonId, *type, *numberOfMatches;
   vector<bool> *pfmuonId;
   vector<float> *pfCombinedIso;
-  vector<float> *pfCandChargedIso01, *pfCandNeutralIso01, *pfCandPhotonIso01,
-    *pfCandChargedIso02, *pfCandNeutralIso02, *pfCandPhotonIso02,
-    *pfCandChargedIso03, *pfCandNeutralIso03, *pfCandPhotonIso03,
+  vector<float> *pfCandChargedIso03, *pfCandNeutralIso03, *pfCandPhotonIso03,
     *pfCandChargedIso04, *pfCandNeutralIso04, *pfCandPhotonIso04,
-    *pfCandChargedIso05, *pfCandNeutralIso05, *pfCandPhotonIso05,
-    *pfCandChargedIso06, *pfCandNeutralIso06, *pfCandPhotonIso06,
-    *pfCandChargedIso07, *pfCandNeutralIso07, *pfCandPhotonIso07,
     *pfCandChargedDirIso04, *pfCandNeutralDirIso04, *pfCandPhotonDirIso04,
     *pfIsolationSumPUPtR03, *pfIsolationSumPUPtR04,
     *mvaiso,
     *pfCandChargedPUIso03, *pfCandChargedPUIso04;
   vector<float> *kink;
-
-  vector<float> *EcalExpDepo, *HcalExpDepo, *HoExpDepo, *emS9, *hadS9, *hoS9, *CaloComp;
 
 public:
   void initialise();

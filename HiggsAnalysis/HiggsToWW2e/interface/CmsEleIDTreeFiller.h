@@ -46,27 +46,21 @@
 
 struct CmsEleIDTreeFillerData : public CmsCandidateFillerData {
 
-  vector<int>   *classification, *standardClassification;
+  vector<int>   *classification;
   vector<float> *fbrem;
-  vector<int>   *nbrems, *ambiguousGsfTracksSize;
+  vector<int>   *nbrems;
   vector<float> *hOverE, *eSuperClusterOverP, *eSeedOverPout, *eEleClusterOverPout;
   vector<float> *deltaEtaAtVtx, *deltaEtaAtCalo, *deltaPhiAtVtx, *deltaPhiAtCalo, *deltaEtaEleClusterTrackAtCalo, *deltaPhiEleClusterTrackAtCalo;
   vector<float> *dr03TkSumPt, *dr03EcalRecHitSumEt, *dr03HcalTowerSumEt;
   vector<float> *dr04TkSumPt, *dr04EcalRecHitSumEt, *dr04HcalTowerSumEt;
-  vector<float> *scBasedEcalSum03, *scBasedEcalSum04;
   vector<float> *dr03HcalTowerSumEtFullCone, *dr04HcalTowerSumEtFullCone;
   vector<float> *pfCombinedIso, 
-    *pfCandChargedIso01, *pfCandNeutralIso01, *pfCandPhotonIso01,
-    *pfCandChargedIso02, *pfCandNeutralIso02, *pfCandPhotonIso02,
     *pfCandChargedIso03, *pfCandNeutralIso03, *pfCandPhotonIso03,
     *pfCandChargedIso04, *pfCandNeutralIso04, *pfCandPhotonIso04,
-    *pfCandChargedIso05, *pfCandNeutralIso05, *pfCandPhotonIso05,
-    *pfCandChargedIso06, *pfCandNeutralIso06, *pfCandPhotonIso06,
-    *pfCandChargedIso07, *pfCandNeutralIso07, *pfCandPhotonIso07,
     *pfCandChargedDirIso04, *pfCandNeutralDirIso04, *pfCandPhotonDirIso04,
     *pfCandChargedPUIso03, *pfCandChargedPUIso04;
 
-  vector<float> *eleLik, *pflowMVA, *mvaidtrig, *mvaidisotrig, *mvaidnontrig;
+  vector<float> *pflowMVA, *mvaidtrig, *mvaidisotrig, *mvaidnontrig;
 
 public:
   void initialise();
@@ -123,8 +117,6 @@ class CmsEleIDTreeFiller : public CmsCandidateFiller {
 		    const EcalRecHitCollection *EERecHits);
   void treeEleInfo(const std::string &colPrefix, const std::string &colSuffix);
 
-  int stdEleIdClassify(const reco::GsfElectron* electron);
-
   int maxTracks_;
   std::string *trkIndexName_;
   bool standalone_;
@@ -133,7 +125,6 @@ class CmsEleIDTreeFiller : public CmsCandidateFiller {
   edm::InputTag EcalEndcapRecHits_;
   
   edm::InputTag electronIdCutsLabel_;
-  edm::InputTag electronIdLikelihoodLabel_;
   edm::InputTag tkIsolationProducer_;
   edm::InputTag towerIsolationProducer_;
 
@@ -149,7 +140,6 @@ class CmsEleIDTreeFiller : public CmsCandidateFiller {
 
   typedef edm::ValueMap<float> eleIdMap;
   typedef std::vector< edm::Handle<eleIdMap> > eleIdContainer;
-  eleIdContainer *eleIdResults_;
 
   typedef edm::ValueMap<float> isoFromPFCandsMap;
   typedef std::vector< edm::Handle<isoFromPFCandsMap> > isoContainer;

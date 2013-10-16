@@ -97,10 +97,6 @@ CmsPhotonFiller::~CmsPhotonFiller() {
   delete privateData_->hasPixelSeed;
   delete privateData_->hasMatchedConversion;
 
-  delete privateData_->dr01chPFIso;
-  delete privateData_->dr01nhPFIso;
-  delete privateData_->dr01phPFIso;  
-
   delete privateData_->dr02chPFIso;
   delete privateData_->dr02nhPFIso;
   delete privateData_->dr02phPFIso;  
@@ -112,14 +108,6 @@ CmsPhotonFiller::~CmsPhotonFiller() {
   delete privateData_->dr04chPFIso;
   delete privateData_->dr04nhPFIso;
   delete privateData_->dr04phPFIso;  
-
-  delete privateData_->dr05chPFIso;
-  delete privateData_->dr05nhPFIso;
-  delete privateData_->dr05phPFIso;  
-
-  delete privateData_->dr06chPFIso;
-  delete privateData_->dr06nhPFIso;
-  delete privateData_->dr06phPFIso;  
 
   delete privateData_->ncand;
   delete privateData_;
@@ -406,26 +394,17 @@ void CmsPhotonFiller::writeEcalInfo(const PhotonRef photonRef,
 	}
 
       } // end pfCand loop
-      privateData_->dr01chPFIso->push_back(chargedIsos[0]);
       privateData_->dr02chPFIso->push_back(chargedIsos[1]);
       privateData_->dr03chPFIso->push_back(chargedIsos[2]);
       privateData_->dr04chPFIso->push_back(chargedIsos[3]);
-      privateData_->dr05chPFIso->push_back(chargedIsos[4]);
-      privateData_->dr06chPFIso->push_back(chargedIsos[5]);
 
     } // end vertex loop
-    privateData_->dr01nhPFIso->push_back(neutralIsos[0]);
-    privateData_->dr01phPFIso->push_back(photonIsos[0]);
     privateData_->dr02nhPFIso->push_back(neutralIsos[1]);
     privateData_->dr02phPFIso->push_back(photonIsos[1]);
     privateData_->dr03nhPFIso->push_back(neutralIsos[2]);
     privateData_->dr03phPFIso->push_back(photonIsos[2]);
     privateData_->dr04nhPFIso->push_back(neutralIsos[3]);
     privateData_->dr04phPFIso->push_back(photonIsos[3]);
-    privateData_->dr05nhPFIso->push_back(neutralIsos[4]);
-    privateData_->dr05phPFIso->push_back(photonIsos[4]);
-    privateData_->dr06nhPFIso->push_back(neutralIsos[5]);
-    privateData_->dr06phPFIso->push_back(photonIsos[5]);
 
   } else {
     privateData_->fiducialFlags->push_back(-1);
@@ -449,9 +428,6 @@ void CmsPhotonFiller::writeEcalInfo(const PhotonRef photonRef,
     privateData_->hasPixelSeed->push_back(0);
     privateData_->hasMatchedConversion->push_back(false);
 
-    privateData_->dr01nhPFIso->push_back(-999.);
-    privateData_->dr01phPFIso->push_back(-999.);
-
     privateData_->dr02nhPFIso->push_back(-999.);
     privateData_->dr02phPFIso->push_back(-999.);
 
@@ -461,19 +437,10 @@ void CmsPhotonFiller::writeEcalInfo(const PhotonRef photonRef,
     privateData_->dr04nhPFIso->push_back(-999.);
     privateData_->dr04phPFIso->push_back(-999.);
 
-    privateData_->dr05nhPFIso->push_back(-999.);
-    privateData_->dr05phPFIso->push_back(-999.);
-
-    privateData_->dr06nhPFIso->push_back(-999.);
-    privateData_->dr06phPFIso->push_back(-999.);
-
     for(unsigned int i=0;i<PVs->size();i++){
-      privateData_->dr01chPFIso->push_back(-999.);
       privateData_->dr02chPFIso->push_back(-999.);
       privateData_->dr03chPFIso->push_back(-999.);
       privateData_->dr04chPFIso->push_back(-999.);
-      privateData_->dr05chPFIso->push_back(-999.);
-      privateData_->dr06chPFIso->push_back(-999.);
     }
   }
 
@@ -501,8 +468,6 @@ void CmsPhotonFiller::treeEcalInfo(const std::string &colPrefix, const std::stri
   cmstree->column((colPrefix+"photonIso"+colSuffix).c_str(), *privateData_->photonIso, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"hasPixelSeed"+colSuffix).c_str(), *privateData_->hasPixelSeed, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"hasMatchedConversion"+colSuffix).c_str(),  *privateData_->hasMatchedConversion, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"dr01NeutralHadronPFIso"+colSuffix).c_str(),  *privateData_->dr01nhPFIso, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"dr01PhotonPFIso"+colSuffix).c_str(),  *privateData_->dr01phPFIso, nCandString.c_str(), 0, "Reco");
 
   cmstree->column((colPrefix+"dr02NeutralHadronPFIso"+colSuffix).c_str(),  *privateData_->dr02nhPFIso, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"dr02PhotonPFIso"+colSuffix).c_str(),  *privateData_->dr02phPFIso, nCandString.c_str(), 0, "Reco");
@@ -513,19 +478,10 @@ void CmsPhotonFiller::treeEcalInfo(const std::string &colPrefix, const std::stri
   cmstree->column((colPrefix+"dr04NeutralHadronPFIso"+colSuffix).c_str(),  *privateData_->dr04nhPFIso, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"dr04PhotonPFIso"+colSuffix).c_str(),  *privateData_->dr04phPFIso, nCandString.c_str(), 0, "Reco");
 
-  cmstree->column((colPrefix+"dr05NeutralHadronPFIso"+colSuffix).c_str(),  *privateData_->dr05nhPFIso, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"dr05PhotonPFIso"+colSuffix).c_str(),  *privateData_->dr05phPFIso, nCandString.c_str(), 0, "Reco");
-
-  cmstree->column((colPrefix+"dr06NeutralHadronPFIso"+colSuffix).c_str(),  *privateData_->dr06nhPFIso, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"dr06PhotonPFIso"+colSuffix).c_str(),  *privateData_->dr06phPFIso, nCandString.c_str(), 0, "Reco");
-
   std::string nCandPVString = colPrefix+(*trkIndexName_)+"PerPV"+colSuffix; 
-  cmstree->column((colPrefix+"dr01ChargedHadronPFIso"+colSuffix).c_str(),  *privateData_->dr01chPFIso, nCandPVString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"dr02ChargedHadronPFIso"+colSuffix).c_str(),  *privateData_->dr02chPFIso, nCandPVString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"dr03ChargedHadronPFIso"+colSuffix).c_str(),  *privateData_->dr03chPFIso, nCandPVString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"dr04ChargedHadronPFIso"+colSuffix).c_str(),  *privateData_->dr04chPFIso, nCandPVString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"dr05ChargedHadronPFIso"+colSuffix).c_str(),  *privateData_->dr05chPFIso, nCandPVString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"dr06ChargedHadronPFIso"+colSuffix).c_str(),  *privateData_->dr06chPFIso, nCandPVString.c_str(), 0, "Reco");
   
 }
 
@@ -558,10 +514,6 @@ void CmsPhotonFillerData::initialise() {
   hasPixelSeed             = new vector<int>;
   hasMatchedConversion     = new vector<bool>;
   
-  dr01chPFIso              = new vector<float>;
-  dr01nhPFIso              = new vector<float>;
-  dr01phPFIso              = new vector<float>;
-
   dr02chPFIso              = new vector<float>;
   dr02nhPFIso              = new vector<float>;
   dr02phPFIso              = new vector<float>;
@@ -573,14 +525,6 @@ void CmsPhotonFillerData::initialise() {
   dr04chPFIso              = new vector<float>;
   dr04nhPFIso              = new vector<float>;
   dr04phPFIso              = new vector<float>;
-
-  dr05chPFIso              = new vector<float>;
-  dr05nhPFIso              = new vector<float>;
-  dr05phPFIso              = new vector<float>;
-
-  dr06chPFIso              = new vector<float>;
-  dr06nhPFIso              = new vector<float>;
-  dr06phPFIso              = new vector<float>;
 
 }
 
@@ -609,10 +553,6 @@ void CmsPhotonFillerData::clearTrkVectors() {
   hasPixelSeed             ->clear();
   hasMatchedConversion     ->clear();
 
-  dr01chPFIso              ->clear();
-  dr01nhPFIso              ->clear();
-  dr01phPFIso              ->clear();
-
   dr02chPFIso              ->clear();
   dr02nhPFIso              ->clear();
   dr02phPFIso              ->clear();
@@ -624,13 +564,5 @@ void CmsPhotonFillerData::clearTrkVectors() {
   dr04chPFIso              ->clear();
   dr04nhPFIso              ->clear();
   dr04phPFIso              ->clear();
-
-  dr05chPFIso              ->clear();
-  dr05nhPFIso              ->clear();
-  dr05phPFIso              ->clear();
-
-  dr06chPFIso              ->clear();
-  dr06nhPFIso              ->clear();
-  dr06phPFIso              ->clear();
 
 }

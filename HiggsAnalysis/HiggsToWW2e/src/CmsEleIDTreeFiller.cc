@@ -53,10 +53,8 @@ CmsEleIDTreeFiller::CmsEleIDTreeFiller(CmsTree *cmsTree, int maxTracks, bool noO
 CmsEleIDTreeFiller::~CmsEleIDTreeFiller() {
   // delete here the vector ptr's
   delete privateData_->classification;
-  delete privateData_->standardClassification;
   delete privateData_->fbrem;
   delete privateData_->nbrems;
-  delete privateData_->ambiguousGsfTracksSize;
   delete privateData_->hOverE;
   delete privateData_->eSuperClusterOverP;
   delete privateData_->eSeedOverPout;
@@ -73,37 +71,19 @@ CmsEleIDTreeFiller::~CmsEleIDTreeFiller() {
   delete privateData_->dr04TkSumPt;
   delete privateData_->dr04EcalRecHitSumEt;
   delete privateData_->dr04HcalTowerSumEt;
-  delete privateData_->scBasedEcalSum03;
-  delete privateData_->scBasedEcalSum04;
   delete privateData_->dr03HcalTowerSumEtFullCone;
   delete privateData_->dr04HcalTowerSumEtFullCone;
-  delete privateData_->eleLik;
   delete privateData_->pflowMVA;
   delete privateData_->mvaidtrig;
   delete privateData_->mvaidisotrig;
   delete privateData_->mvaidnontrig;
   delete privateData_->pfCombinedIso;
-  delete privateData_->pfCandChargedIso01;
-  delete privateData_->pfCandNeutralIso01;
-  delete privateData_->pfCandPhotonIso01;
-  delete privateData_->pfCandChargedIso02;
-  delete privateData_->pfCandNeutralIso02;
-  delete privateData_->pfCandPhotonIso02;
   delete privateData_->pfCandChargedIso03;
   delete privateData_->pfCandNeutralIso03;
   delete privateData_->pfCandPhotonIso03;
   delete privateData_->pfCandChargedIso04;
   delete privateData_->pfCandNeutralIso04;
   delete privateData_->pfCandPhotonIso04;
-  delete privateData_->pfCandChargedIso05;
-  delete privateData_->pfCandNeutralIso05;
-  delete privateData_->pfCandPhotonIso05;
-  delete privateData_->pfCandChargedIso06;
-  delete privateData_->pfCandNeutralIso06;
-  delete privateData_->pfCandPhotonIso06;
-  delete privateData_->pfCandChargedIso07;
-  delete privateData_->pfCandNeutralIso07;
-  delete privateData_->pfCandPhotonIso07;
   delete privateData_->pfCandChargedDirIso04;
   delete privateData_->pfCandNeutralDirIso04;
   delete privateData_->pfCandPhotonDirIso04;
@@ -147,10 +127,6 @@ void CmsEleIDTreeFiller::writeCollectionToTree(edm::InputTag collectionTag,
     const EcalRecHitCollection *EERecHits = EcalEndcapRecHits.product();
 
     
-    eleIdResults_ = new eleIdContainer(1);
-
-    iEvent.getByLabel( "egammaIDLikelihood", (*eleIdResults_)[0] );
-
     eIsoFromPFCandsValueMap_ = new isoContainer(27);
     if(savePFlowIsolation_) {
       iEvent.getByLabel( "electronCombinedPFIsoMapProducer", (*eIsoFromPFCandsValueMap_)[0] ); 
@@ -226,7 +202,6 @@ void CmsEleIDTreeFiller::writeCollectionToTree(edm::InputTag collectionTag,
 
     }
 
-    delete eleIdResults_;
     delete eIsoFromPFCandsValueMap_;
 
   }
@@ -260,10 +235,8 @@ void CmsEleIDTreeFiller::writeEleInfo(const GsfElectronRef electronRef,
   
   // eleID
   privateData_->classification->push_back(electronRef->classification());
-  privateData_->standardClassification->push_back(stdEleIdClassify(&(*electronRef)));
   privateData_->fbrem->push_back(electronRef->fbrem());
   privateData_->nbrems->push_back(electronRef->numberOfBrems());
-  privateData_->ambiguousGsfTracksSize->push_back(electronRef->ambiguousGsfTracksSize());
   privateData_->hOverE->push_back(electronRef->hadronicOverEm());
   privateData_->eSuperClusterOverP->push_back(electronRef->eSuperClusterOverP());
   privateData_->eSeedOverPout->push_back(electronRef->eSeedClusterOverPout());
@@ -275,10 +248,6 @@ void CmsEleIDTreeFiller::writeEleInfo(const GsfElectronRef electronRef,
   privateData_->deltaEtaEleClusterTrackAtCalo->push_back(electronRef->deltaEtaEleClusterTrackAtCalo());
   privateData_->deltaPhiEleClusterTrackAtCalo->push_back(electronRef->deltaPhiEleClusterTrackAtCalo());
 
-  // results of standard electron ID sequences
-  const eleIdMap & eleIdLikelihoodVal = *( (*eleIdResults_)[0] );
-
-  privateData_->eleLik->push_back( eleIdLikelihoodVal[electronRef] );  
   privateData_->pflowMVA->push_back( electronRef->mva() );
 
   EcalClusterLazyTools lazyTools( iEvent, iSetup, EcalBarrelRecHits_, EcalEndcapRecHits_ );
@@ -327,20 +296,6 @@ void CmsEleIDTreeFiller::writeEleInfo(const GsfElectronRef electronRef,
   privateData_->dr04EcalRecHitSumEt->push_back( electronRef->dr04EcalRecHitSumEt() );
   privateData_->dr04HcalTowerSumEt->push_back( electronRef->dr04HcalTowerSumEt() );
 
-  // ecal isolation with SC rechits removal
-  SuperClusterHitsEcalIsolation scBasedIsolation(EBRecHits,EERecHits);
-  reco::SuperClusterRef sc = electronRef->get<reco::SuperClusterRef>();
-
-  scBasedIsolation.setExtRadius(0.3);
-  scBasedIsolation.excludeHalo(false);
-  float scBasedEcalSum03 = scBasedIsolation.getSum(iEvent,iSetup,&(*sc));
-  privateData_->scBasedEcalSum03->push_back(scBasedEcalSum03);
-  
-  scBasedIsolation.setExtRadius(0.4);
-  scBasedIsolation.excludeHalo(false);
-  float scBasedEcalSum04 = scBasedIsolation.getSum(iEvent,iSetup,&(*sc));
-  privateData_->scBasedEcalSum04->push_back(scBasedEcalSum04);
-
   if(calotowersProducer_.label().size()!=0) {
     float hcalDepth1TowerSumEt03 = hadDepth1Isolation03_->getTowerEtSum(&(*electronRef));
     float hcalDepth2TowerSumEt03 = hadDepth2Isolation03_->getTowerEtSum(&(*electronRef));
@@ -352,27 +307,27 @@ void CmsEleIDTreeFiller::writeEleInfo(const GsfElectronRef electronRef,
 
   if(savePFlowIsolation_) {
     const isoFromPFCandsMap & electronsPfCombinedIsoVal = *( (*eIsoFromPFCandsValueMap_)[0] );
-    const isoFromPFCandsMap & electronsPfCandChHad01IsoVal = *( (*eIsoFromPFCandsValueMap_)[1] );
-    const isoFromPFCandsMap & electronsPfCandNHad01IsoVal = *( (*eIsoFromPFCandsValueMap_)[2] );
-    const isoFromPFCandsMap & electronsPfCandPhoton01IsoVal = *( (*eIsoFromPFCandsValueMap_)[3] );
-    const isoFromPFCandsMap & electronsPfCandChHad02IsoVal = *( (*eIsoFromPFCandsValueMap_)[4] );
-    const isoFromPFCandsMap & electronsPfCandNHad02IsoVal = *( (*eIsoFromPFCandsValueMap_)[5] );
-    const isoFromPFCandsMap & electronsPfCandPhoton02IsoVal = *( (*eIsoFromPFCandsValueMap_)[6] );
+//     const isoFromPFCandsMap & electronsPfCandChHad01IsoVal = *( (*eIsoFromPFCandsValueMap_)[1] );
+//     const isoFromPFCandsMap & electronsPfCandNHad01IsoVal = *( (*eIsoFromPFCandsValueMap_)[2] );
+//     const isoFromPFCandsMap & electronsPfCandPhoton01IsoVal = *( (*eIsoFromPFCandsValueMap_)[3] );
+//     const isoFromPFCandsMap & electronsPfCandChHad02IsoVal = *( (*eIsoFromPFCandsValueMap_)[4] );
+//     const isoFromPFCandsMap & electronsPfCandNHad02IsoVal = *( (*eIsoFromPFCandsValueMap_)[5] );
+//     const isoFromPFCandsMap & electronsPfCandPhoton02IsoVal = *( (*eIsoFromPFCandsValueMap_)[6] );
     const isoFromPFCandsMap & electronsPfCandChHad03IsoVal = *( (*eIsoFromPFCandsValueMap_)[7] );
     const isoFromPFCandsMap & electronsPfCandNHad03IsoVal = *( (*eIsoFromPFCandsValueMap_)[8] );
     const isoFromPFCandsMap & electronsPfCandPhoton03IsoVal = *( (*eIsoFromPFCandsValueMap_)[9] );
     const isoFromPFCandsMap & electronsPfCandChHad04IsoVal = *( (*eIsoFromPFCandsValueMap_)[10] );
     const isoFromPFCandsMap & electronsPfCandNHad04IsoVal = *( (*eIsoFromPFCandsValueMap_)[11] );
     const isoFromPFCandsMap & electronsPfCandPhoton04IsoVal = *( (*eIsoFromPFCandsValueMap_)[12] );
-    const isoFromPFCandsMap & electronsPfCandChHad05IsoVal = *( (*eIsoFromPFCandsValueMap_)[13] );
-    const isoFromPFCandsMap & electronsPfCandNHad05IsoVal = *( (*eIsoFromPFCandsValueMap_)[14] );
-    const isoFromPFCandsMap & electronsPfCandPhoton05IsoVal = *( (*eIsoFromPFCandsValueMap_)[15] );
-    const isoFromPFCandsMap & electronsPfCandChHad06IsoVal = *( (*eIsoFromPFCandsValueMap_)[16] );
-    const isoFromPFCandsMap & electronsPfCandNHad06IsoVal = *( (*eIsoFromPFCandsValueMap_)[17] );
-    const isoFromPFCandsMap & electronsPfCandPhoton06IsoVal = *( (*eIsoFromPFCandsValueMap_)[18] );
-    const isoFromPFCandsMap & electronsPfCandChHad07IsoVal = *( (*eIsoFromPFCandsValueMap_)[19] );
-    const isoFromPFCandsMap & electronsPfCandNHad07IsoVal = *( (*eIsoFromPFCandsValueMap_)[20] );
-    const isoFromPFCandsMap & electronsPfCandPhoton07IsoVal = *( (*eIsoFromPFCandsValueMap_)[21] );
+//     const isoFromPFCandsMap & electronsPfCandChHad05IsoVal = *( (*eIsoFromPFCandsValueMap_)[13] );
+//     const isoFromPFCandsMap & electronsPfCandNHad05IsoVal = *( (*eIsoFromPFCandsValueMap_)[14] );
+//     const isoFromPFCandsMap & electronsPfCandPhoton05IsoVal = *( (*eIsoFromPFCandsValueMap_)[15] );
+//     const isoFromPFCandsMap & electronsPfCandChHad06IsoVal = *( (*eIsoFromPFCandsValueMap_)[16] );
+//     const isoFromPFCandsMap & electronsPfCandNHad06IsoVal = *( (*eIsoFromPFCandsValueMap_)[17] );
+//     const isoFromPFCandsMap & electronsPfCandPhoton06IsoVal = *( (*eIsoFromPFCandsValueMap_)[18] );
+//     const isoFromPFCandsMap & electronsPfCandChHad07IsoVal = *( (*eIsoFromPFCandsValueMap_)[19] );
+//     const isoFromPFCandsMap & electronsPfCandNHad07IsoVal = *( (*eIsoFromPFCandsValueMap_)[20] );
+//     const isoFromPFCandsMap & electronsPfCandPhoton07IsoVal = *( (*eIsoFromPFCandsValueMap_)[21] );
     const isoFromPFCandsMap & electronsPfCandChHad04DirIsoVal = *( (*eIsoFromPFCandsValueMap_)[22] );
     const isoFromPFCandsMap & electronsPfCandNHad04DirIsoVal = *( (*eIsoFromPFCandsValueMap_)[23] );
     const isoFromPFCandsMap & electronsPfCandPhoton04DirIsoVal = *( (*eIsoFromPFCandsValueMap_)[24] );
@@ -380,27 +335,12 @@ void CmsEleIDTreeFiller::writeEleInfo(const GsfElectronRef electronRef,
     const isoFromPFCandsMap & electronsPfCandChHad04PUIsoVal = *( (*eIsoFromPFCandsValueMap_)[26] );
 
     privateData_->pfCombinedIso->push_back( electronsPfCombinedIsoVal[electronRef] );
-    privateData_->pfCandChargedIso01->push_back( electronsPfCandChHad01IsoVal[electronRef] );
-    privateData_->pfCandNeutralIso01->push_back( electronsPfCandNHad01IsoVal[electronRef] );
-    privateData_->pfCandPhotonIso01->push_back( electronsPfCandPhoton01IsoVal[electronRef] );
-    privateData_->pfCandChargedIso02->push_back( electronsPfCandChHad02IsoVal[electronRef] );
-    privateData_->pfCandNeutralIso02->push_back( electronsPfCandNHad02IsoVal[electronRef] );
-    privateData_->pfCandPhotonIso02->push_back( electronsPfCandPhoton02IsoVal[electronRef] );
     privateData_->pfCandChargedIso03->push_back( electronsPfCandChHad03IsoVal[electronRef] );
     privateData_->pfCandNeutralIso03->push_back( electronsPfCandNHad03IsoVal[electronRef] );
     privateData_->pfCandPhotonIso03->push_back( electronsPfCandPhoton03IsoVal[electronRef] );
     privateData_->pfCandChargedIso04->push_back( electronsPfCandChHad04IsoVal[electronRef] );
     privateData_->pfCandNeutralIso04->push_back( electronsPfCandNHad04IsoVal[electronRef] );
     privateData_->pfCandPhotonIso04->push_back( electronsPfCandPhoton04IsoVal[electronRef] );
-    privateData_->pfCandChargedIso05->push_back( electronsPfCandChHad05IsoVal[electronRef] );
-    privateData_->pfCandNeutralIso05->push_back( electronsPfCandNHad05IsoVal[electronRef] );
-    privateData_->pfCandPhotonIso05->push_back( electronsPfCandPhoton05IsoVal[electronRef] );
-    privateData_->pfCandChargedIso06->push_back( electronsPfCandChHad06IsoVal[electronRef] );
-    privateData_->pfCandNeutralIso06->push_back( electronsPfCandNHad06IsoVal[electronRef] );
-    privateData_->pfCandPhotonIso06->push_back( electronsPfCandPhoton06IsoVal[electronRef] );
-    privateData_->pfCandChargedIso07->push_back( electronsPfCandChHad07IsoVal[electronRef] );
-    privateData_->pfCandNeutralIso07->push_back( electronsPfCandNHad07IsoVal[electronRef] );
-    privateData_->pfCandPhotonIso07->push_back( electronsPfCandPhoton07IsoVal[electronRef] );
     privateData_->pfCandChargedDirIso04->push_back( electronsPfCandChHad04DirIsoVal[electronRef] );
     privateData_->pfCandNeutralDirIso04->push_back( electronsPfCandNHad04DirIsoVal[electronRef] );
     privateData_->pfCandPhotonDirIso04->push_back( electronsPfCandPhoton04DirIsoVal[electronRef] );
@@ -416,10 +356,8 @@ void CmsEleIDTreeFiller::writeEleInfo(const GsfElectronRef electronRef,
 void CmsEleIDTreeFiller::treeEleInfo(const std::string &colPrefix, const std::string &colSuffix) {
   std::string nCandString = colPrefix+(*trkIndexName_)+colSuffix;
   cmstree->column((colPrefix+"classification"+colSuffix).c_str(), *privateData_->classification, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"standardClassification"+colSuffix).c_str(), *privateData_->standardClassification, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"fbrem"+colSuffix).c_str(), *privateData_->fbrem, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"nbrems"+colSuffix).c_str(), *privateData_->nbrems, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"ambiguousGsfTracksSize"+colSuffix).c_str(), *privateData_->ambiguousGsfTracksSize, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"hOverE"+colSuffix).c_str(), *privateData_->hOverE, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"eSuperClusterOverP"+colSuffix).c_str(), *privateData_->eSuperClusterOverP, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"eSeedOverPout"+colSuffix).c_str(), *privateData_->eSeedOverPout, nCandString.c_str(), 0, "Reco");
@@ -436,40 +374,22 @@ void CmsEleIDTreeFiller::treeEleInfo(const std::string &colPrefix, const std::st
   cmstree->column((colPrefix+"dr04TkSumPt"+colSuffix).c_str(), *privateData_->dr04TkSumPt, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"dr04EcalRecHitSumEt"+colSuffix).c_str(), *privateData_->dr04EcalRecHitSumEt, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"dr04HcalTowerSumEt"+colSuffix).c_str(), *privateData_->dr04HcalTowerSumEt, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"scBasedEcalSum03"+colSuffix).c_str(), *privateData_->scBasedEcalSum03, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"scBasedEcalSum04"+colSuffix).c_str(), *privateData_->scBasedEcalSum04, nCandString.c_str(), 0, "Reco");
   if(calotowersProducer_.label().size()!=0) {
     cmstree->column((colPrefix+"dr03HcalTowerSumEtFullCone"+colSuffix).c_str(), *privateData_->dr03HcalTowerSumEtFullCone, nCandString.c_str(), 0, "Reco");
     cmstree->column((colPrefix+"dr04HcalTowerSumEtFullCone"+colSuffix).c_str(), *privateData_->dr04HcalTowerSumEtFullCone, nCandString.c_str(), 0, "Reco");
   }
-  cmstree->column((colPrefix+"eleIdLikelihood"+colSuffix).c_str(), *privateData_->eleLik, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"pflowMVA"+colSuffix).c_str(), *privateData_->pflowMVA, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"mvaidnontrig"+colSuffix).c_str(), *privateData_->mvaidnontrig, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"mvaidtrig"+colSuffix).c_str(), *privateData_->mvaidtrig, nCandString.c_str(), 0, "Reco");
   if(savePFlowIsolation_) {
     cmstree->column((colPrefix+"mvaidisotrig"+colSuffix).c_str(), *privateData_->mvaidisotrig, nCandString.c_str(), 0, "Reco");
     cmstree->column((colPrefix+"pfCombinedIso"+colSuffix).c_str(),  *privateData_->pfCombinedIso, nCandString.c_str(), 0, "Reco");
-    cmstree->column((colPrefix+"pfCandChargedIso01"+colSuffix).c_str(),  *privateData_->pfCandChargedIso01, nCandString.c_str(), 0, "Reco");
-    cmstree->column((colPrefix+"pfCandNeutralIso01"+colSuffix).c_str(),  *privateData_->pfCandNeutralIso01, nCandString.c_str(), 0, "Reco");
-    cmstree->column((colPrefix+"pfCandPhotonIso01"+colSuffix).c_str(),  *privateData_->pfCandPhotonIso01, nCandString.c_str(), 0, "Reco");
-    cmstree->column((colPrefix+"pfCandChargedIso02"+colSuffix).c_str(),  *privateData_->pfCandChargedIso02, nCandString.c_str(), 0, "Reco");
-    cmstree->column((colPrefix+"pfCandNeutralIso02"+colSuffix).c_str(),  *privateData_->pfCandNeutralIso02, nCandString.c_str(), 0, "Reco");
-    cmstree->column((colPrefix+"pfCandPhotonIso02"+colSuffix).c_str(),  *privateData_->pfCandPhotonIso02, nCandString.c_str(), 0, "Reco");
     cmstree->column((colPrefix+"pfCandChargedIso03"+colSuffix).c_str(),  *privateData_->pfCandChargedIso03, nCandString.c_str(), 0, "Reco");
     cmstree->column((colPrefix+"pfCandNeutralIso03"+colSuffix).c_str(),  *privateData_->pfCandNeutralIso03, nCandString.c_str(), 0, "Reco");
     cmstree->column((colPrefix+"pfCandPhotonIso03"+colSuffix).c_str(),  *privateData_->pfCandPhotonIso03, nCandString.c_str(), 0, "Reco");
     cmstree->column((colPrefix+"pfCandChargedIso04"+colSuffix).c_str(),  *privateData_->pfCandChargedIso04, nCandString.c_str(), 0, "Reco");
     cmstree->column((colPrefix+"pfCandNeutralIso04"+colSuffix).c_str(),  *privateData_->pfCandNeutralIso04, nCandString.c_str(), 0, "Reco");
     cmstree->column((colPrefix+"pfCandPhotonIso04"+colSuffix).c_str(),  *privateData_->pfCandPhotonIso04, nCandString.c_str(), 0, "Reco");
-    cmstree->column((colPrefix+"pfCandChargedIso05"+colSuffix).c_str(),  *privateData_->pfCandChargedIso05, nCandString.c_str(), 0, "Reco");
-    cmstree->column((colPrefix+"pfCandNeutralIso05"+colSuffix).c_str(),  *privateData_->pfCandNeutralIso05, nCandString.c_str(), 0, "Reco");
-    cmstree->column((colPrefix+"pfCandPhotonIso05"+colSuffix).c_str(),  *privateData_->pfCandPhotonIso05, nCandString.c_str(), 0, "Reco");
-    cmstree->column((colPrefix+"pfCandChargedIso06"+colSuffix).c_str(),  *privateData_->pfCandChargedIso06, nCandString.c_str(), 0, "Reco");
-    cmstree->column((colPrefix+"pfCandNeutralIso06"+colSuffix).c_str(),  *privateData_->pfCandNeutralIso06, nCandString.c_str(), 0, "Reco");
-    cmstree->column((colPrefix+"pfCandPhotonIso06"+colSuffix).c_str(),  *privateData_->pfCandPhotonIso06, nCandString.c_str(), 0, "Reco");
-    cmstree->column((colPrefix+"pfCandChargedIso07"+colSuffix).c_str(),  *privateData_->pfCandChargedIso07, nCandString.c_str(), 0, "Reco");
-    cmstree->column((colPrefix+"pfCandNeutralIso07"+colSuffix).c_str(),  *privateData_->pfCandNeutralIso07, nCandString.c_str(), 0, "Reco");
-    cmstree->column((colPrefix+"pfCandPhotonIso07"+colSuffix).c_str(),  *privateData_->pfCandPhotonIso07, nCandString.c_str(), 0, "Reco");
     cmstree->column((colPrefix+"pfCandChargedDirIso04"+colSuffix).c_str(),  *privateData_->pfCandChargedDirIso04, nCandString.c_str(), 0, "Reco");
     cmstree->column((colPrefix+"pfCandNeutralDirIso04"+colSuffix).c_str(),  *privateData_->pfCandNeutralDirIso04, nCandString.c_str(), 0, "Reco");
     cmstree->column((colPrefix+"pfCandPhotonDirIso04"+colSuffix).c_str(),  *privateData_->pfCandPhotonDirIso04, nCandString.c_str(), 0, "Reco");
@@ -484,10 +404,8 @@ void CmsEleIDTreeFiller::treeEleInfo(const std::string &colPrefix, const std::st
 void CmsEleIDTreeFillerData::initialise() {
   initialiseCandidate();
   classification           = new vector<int>;
-  standardClassification   = new vector<int>;
   fbrem                    = new vector<float>;
   nbrems                   = new vector<int>;
-  ambiguousGsfTracksSize   = new vector<int>;
   hOverE                   = new vector<float>;
   eSuperClusterOverP       = new vector<float>;
   eSeedOverPout            = new vector<float>;
@@ -504,37 +422,19 @@ void CmsEleIDTreeFillerData::initialise() {
   dr04TkSumPt              = new vector<float>;
   dr04EcalRecHitSumEt      = new vector<float>;
   dr04HcalTowerSumEt       = new vector<float>;
-  scBasedEcalSum03         = new vector<float>;
-  scBasedEcalSum04         = new vector<float>;
   dr03HcalTowerSumEtFullCone = new vector<float>;
   dr04HcalTowerSumEtFullCone = new vector<float>;
-  eleLik                   = new vector<float>;
   pflowMVA                 = new vector<float>;
   mvaidnontrig             = new vector<float>;
   mvaidtrig                = new vector<float>;
   mvaidisotrig             = new vector<float>;
   pfCombinedIso            = new vector<float>;
-  pfCandChargedIso01       = new vector<float>;
-  pfCandNeutralIso01       = new vector<float>;
-  pfCandPhotonIso01        = new vector<float>;
-  pfCandChargedIso02       = new vector<float>;
-  pfCandNeutralIso02       = new vector<float>;
-  pfCandPhotonIso02        = new vector<float>;
   pfCandChargedIso03       = new vector<float>;
   pfCandNeutralIso03       = new vector<float>;
   pfCandPhotonIso03        = new vector<float>;
   pfCandChargedIso04       = new vector<float>;
   pfCandNeutralIso04       = new vector<float>;
   pfCandPhotonIso04        = new vector<float>;
-  pfCandChargedIso05       = new vector<float>;
-  pfCandNeutralIso05       = new vector<float>;
-  pfCandPhotonIso05        = new vector<float>;
-  pfCandChargedIso06       = new vector<float>;
-  pfCandNeutralIso06       = new vector<float>;
-  pfCandPhotonIso06        = new vector<float>;
-  pfCandChargedIso07       = new vector<float>;
-  pfCandNeutralIso07       = new vector<float>;
-  pfCandPhotonIso07        = new vector<float>;
   pfCandChargedDirIso04    = new vector<float>;
   pfCandNeutralDirIso04    = new vector<float>;
   pfCandPhotonDirIso04     = new vector<float>;
@@ -545,10 +445,8 @@ void CmsEleIDTreeFillerData::initialise() {
 void CmsEleIDTreeFillerData::clearTrkVectors() {
   clearTrkVectorsCandidate();
   classification           ->clear();
-  standardClassification   ->clear();
   fbrem                    ->clear();
   nbrems                   ->clear();
-  ambiguousGsfTracksSize   ->clear();
   hOverE                   ->clear();
   eSuperClusterOverP       ->clear();
   eSeedOverPout            ->clear();
@@ -565,37 +463,19 @@ void CmsEleIDTreeFillerData::clearTrkVectors() {
   dr04TkSumPt              ->clear();
   dr04EcalRecHitSumEt      ->clear();
   dr04HcalTowerSumEt       ->clear();
-  scBasedEcalSum03         ->clear();
-  scBasedEcalSum04         ->clear();
   dr03HcalTowerSumEtFullCone -> clear();
   dr04HcalTowerSumEtFullCone -> clear();
-  eleLik                   ->clear();
   pflowMVA                 ->clear();
   mvaidnontrig -> clear();
   mvaidtrig    -> clear();
   mvaidisotrig -> clear();
   pfCombinedIso    ->clear();
-  pfCandChargedIso01 ->clear();
-  pfCandNeutralIso01 ->clear();
-  pfCandPhotonIso01  ->clear();
-  pfCandChargedIso02 ->clear();
-  pfCandNeutralIso02 ->clear();
-  pfCandPhotonIso02  ->clear();
   pfCandChargedIso03 ->clear();
   pfCandNeutralIso03 ->clear();
   pfCandPhotonIso03  ->clear();
   pfCandChargedIso04 ->clear();
   pfCandNeutralIso04 ->clear();
   pfCandPhotonIso04  ->clear();
-  pfCandChargedIso05 ->clear();
-  pfCandNeutralIso05 ->clear();
-  pfCandPhotonIso05  ->clear();
-  pfCandChargedIso06 ->clear();
-  pfCandNeutralIso06 ->clear();
-  pfCandPhotonIso06  ->clear();
-  pfCandChargedIso07 ->clear();
-  pfCandNeutralIso07 ->clear();
-  pfCandPhotonIso07  ->clear();
   pfCandChargedDirIso04 ->clear();
   pfCandNeutralDirIso04 ->clear();
   pfCandPhotonDirIso04  ->clear();
@@ -603,21 +483,3 @@ void CmsEleIDTreeFillerData::clearTrkVectors() {
   pfCandChargedPUIso04  ->clear();
 }
 
-int CmsEleIDTreeFiller::stdEleIdClassify(const GsfElectron* electron) {
-  
-  double eta = electron->p4().Eta();
-  double eOverP = electron->eSuperClusterOverP();
-  double pin  = electron->trackMomentumAtVtx().R(); 
-  double pout = electron->trackMomentumOut().R(); 
-  double fBrem = (pin-pout)/pin;
-  
-  int cat;
-  if((fabs(eta)<1.479 && fBrem<0.06) || (fabs(eta)>1.479 && fBrem<0.1)) 
-    cat=1;
-  else if (eOverP < 1.2 && eOverP > 0.8) 
-    cat=0;
-  else 
-    cat=2;
-  
-  return cat;
-}

@@ -111,15 +111,9 @@ CmsSuperClusterFiller::~CmsSuperClusterFiller()
   delete privateData_->covIEtaIEta;
   delete privateData_->covIEtaIPhi;
   delete privateData_->covIPhiIPhi;
-  delete privateData_->sMaj;
-  delete privateData_->sMin;
-  delete privateData_->alpha;
   delete privateData_->e1x5;
   delete privateData_->e2x5Max;
   delete privateData_->e4SwissCross;
-  delete privateData_->time;
-  delete privateData_->chi2;
-  delete privateData_->recoFlag;
   delete privateData_->esEffsIxIx;
   delete privateData_->esEffsIyIy;
   delete privateData_->esL1Energy;
@@ -332,20 +326,10 @@ void CmsSuperClusterFiller::writeSCInfo(const SuperCluster *cand,
       privateData_->covIEtaIPhi->push_back(covIEtaIPhi);
       privateData_->covIPhiIPhi->push_back(covIPhiIPhi);
 
-      // seed second moments wrt principal axes:
-      Cluster2ndMoments moments = EcalClusterTools::cluster2ndMoments(*theSeed, *rechits );
-      privateData_->sMaj->push_back(moments.sMaj);
-      privateData_->sMin->push_back(moments.sMin);
-      // angle between sMaj and phi direction:
-      privateData_->alpha->push_back(moments.alpha);
-
       std::pair<DetId, float> maxRH = EcalClusterTools::getMaximum( *theSeed, &(*rechits) );
       DetId seedCrystalId = maxRH.first;
       EcalRecHitCollection::const_iterator seedRH = rechits->find(seedCrystalId);
       
-      privateData_->time->push_back((float)seedRH->time());
-      privateData_->chi2->push_back((float)seedRH->chi2());
-      privateData_->recoFlag->push_back((int)seedRH->recoFlag());
       privateData_->seedEnergy->push_back((float)maxRH.second);
 
       if(EcalSubdetector(seedCrystalId.subdetId()) == EcalBarrel) {
@@ -637,15 +621,9 @@ void CmsSuperClusterFiller::writeSCInfo(const SuperCluster *cand,
     privateData_->covIEtaIEta->push_back(-1.);
     privateData_->covIEtaIPhi->push_back(-1.);
     privateData_->covIPhiIPhi->push_back(-1.);
-    privateData_->sMaj->push_back(-1.);
-    privateData_->sMin->push_back(-1.);
-    privateData_->alpha->push_back(-1.);
     privateData_->e1x5->push_back(-1);
     privateData_->e2x5Max->push_back(-1);
     privateData_->e4SwissCross->push_back(-1);
-    privateData_->time->push_back(-999.);
-    privateData_->chi2->push_back(-999.);
-    privateData_->recoFlag->push_back(-1);
     privateData_->seedEnergy->push_back(-1.);
     privateData_->photonFix_phoE->push_back(-1);
     privateData_->photonFix_phoSigma->push_back(-1);
@@ -700,13 +678,7 @@ void CmsSuperClusterFiller::treeSCInfo(const std::string colPrefix, const std::s
   cmstree->column((colPrefix+"covIEtaIEta"+colSuffix).c_str(), *privateData_->covIEtaIEta, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"covIEtaIPhi"+colSuffix).c_str(), *privateData_->covIEtaIPhi, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"covIPhiIPhi"+colSuffix).c_str(), *privateData_->covIPhiIPhi, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"sMaj"+colSuffix).c_str(), *privateData_->sMaj, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"sMin"+colSuffix).c_str(), *privateData_->sMin, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"alpha"+colSuffix).c_str(), *privateData_->alpha, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"hOverE"+colSuffix).c_str(), *privateData_->hOverE, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"recoFlag"+colSuffix).c_str(), *privateData_->recoFlag, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"time"+colSuffix).c_str(), *privateData_->time, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"chi2"+colSuffix).c_str(), *privateData_->chi2, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"seedEnergy"+colSuffix).c_str(), *privateData_->seedEnergy, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"seedX"+colSuffix).c_str(), *privateData_->seedX, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"seedY"+colSuffix).c_str(), *privateData_->seedY, nCandString.c_str(), 0, "Reco");
@@ -789,12 +761,6 @@ void CmsSuperClusterFillerData::initialiseCandidate()
   covIEtaIEta = new vector<float>;
   covIEtaIPhi = new vector<float>;
   covIPhiIPhi = new vector<float>;
-  sMaj = new vector<float>;
-  sMin = new vector<float>;
-  alpha = new vector<float>;
-  recoFlag = new vector<int>;
-  time = new vector<float>;
-  chi2 = new vector<float>;
   seedEnergy = new vector<float>;
   seedX = new vector<float>;
   seedY = new vector<float>;
@@ -869,12 +835,6 @@ void CmsSuperClusterFillerData::clear()
   covIEtaIEta->clear();
   covIEtaIPhi->clear();
   covIPhiIPhi->clear();
-  sMaj->clear();
-  sMin->clear();
-  alpha->clear();
-  recoFlag->clear();
-  time->clear();
-  chi2->clear();
   seedEnergy->clear();
   seedX->clear();
   seedY->clear();

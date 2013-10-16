@@ -132,36 +132,13 @@ CmsMuonFiller::~CmsMuonFiller() {
   delete privateData_->  nJets05;
   delete privateData_->  kink;
 
-  delete privateData_->EcalExpDepo;
-  delete privateData_->HcalExpDepo;
-  delete privateData_->HoExpDepo;
-  delete privateData_->emS9;
-  delete privateData_->hadS9;
-  delete privateData_->hoS9;
-  delete privateData_->CaloComp;
-
   delete privateData_->pfCombinedIso;
-  delete privateData_->pfCandChargedIso01;
-  delete privateData_->pfCandNeutralIso01;
-  delete privateData_->pfCandPhotonIso01;
-  delete privateData_->pfCandChargedIso02;
-  delete privateData_->pfCandNeutralIso02;
-  delete privateData_->pfCandPhotonIso02;
   delete privateData_->pfCandChargedIso03;
   delete privateData_->pfCandNeutralIso03;
   delete privateData_->pfCandPhotonIso03;
   delete privateData_->pfCandChargedIso04;
   delete privateData_->pfCandNeutralIso04;
   delete privateData_->pfCandPhotonIso04;
-  delete privateData_->pfCandChargedIso05;
-  delete privateData_->pfCandNeutralIso05;
-  delete privateData_->pfCandPhotonIso05;
-  delete privateData_->pfCandChargedIso06;
-  delete privateData_->pfCandNeutralIso06;
-  delete privateData_->pfCandPhotonIso06;
-  delete privateData_->pfCandChargedIso07;
-  delete privateData_->pfCandNeutralIso07;
-  delete privateData_->pfCandPhotonIso07;
   delete privateData_->pfCandChargedDirIso04;
   delete privateData_->pfCandNeutralDirIso04;
   delete privateData_->pfCandPhotonDirIso04;
@@ -400,27 +377,27 @@ void CmsMuonFiller::writeMuonInfo(const Candidate *cand, const edm::Event& iEven
 
     // PF isolation
     const isoFromPFCandsMap & muonsPfCombinedIsoVal = *( (*eIsoFromPFCandsValueMap_)[0] );
-    const isoFromPFCandsMap & muonsPfCandChHad01IsoVal = *( (*eIsoFromPFCandsValueMap_)[1] );
-    const isoFromPFCandsMap & muonsPfCandNHad01IsoVal = *( (*eIsoFromPFCandsValueMap_)[2] );
-    const isoFromPFCandsMap & muonsPfCandPhoton01IsoVal = *( (*eIsoFromPFCandsValueMap_)[3] );
-    const isoFromPFCandsMap & muonsPfCandChHad02IsoVal = *( (*eIsoFromPFCandsValueMap_)[4] );
-    const isoFromPFCandsMap & muonsPfCandNHad02IsoVal = *( (*eIsoFromPFCandsValueMap_)[5] );
-    const isoFromPFCandsMap & muonsPfCandPhoton02IsoVal = *( (*eIsoFromPFCandsValueMap_)[6] );
+//     const isoFromPFCandsMap & muonsPfCandChHad01IsoVal = *( (*eIsoFromPFCandsValueMap_)[1] );
+//     const isoFromPFCandsMap & muonsPfCandNHad01IsoVal = *( (*eIsoFromPFCandsValueMap_)[2] );
+//     const isoFromPFCandsMap & muonsPfCandPhoton01IsoVal = *( (*eIsoFromPFCandsValueMap_)[3] );
+//     const isoFromPFCandsMap & muonsPfCandChHad02IsoVal = *( (*eIsoFromPFCandsValueMap_)[4] );
+//     const isoFromPFCandsMap & muonsPfCandNHad02IsoVal = *( (*eIsoFromPFCandsValueMap_)[5] );
+//     const isoFromPFCandsMap & muonsPfCandPhoton02IsoVal = *( (*eIsoFromPFCandsValueMap_)[6] );
     const isoFromPFCandsMap & muonsPfCandChHad03IsoVal = *( (*eIsoFromPFCandsValueMap_)[7] );
     const isoFromPFCandsMap & muonsPfCandNHad03IsoVal = *( (*eIsoFromPFCandsValueMap_)[8] );
     const isoFromPFCandsMap & muonsPfCandPhoton03IsoVal = *( (*eIsoFromPFCandsValueMap_)[9] );
     const isoFromPFCandsMap & muonsPfCandChHad04IsoVal = *( (*eIsoFromPFCandsValueMap_)[10] );
     const isoFromPFCandsMap & muonsPfCandNHad04IsoVal = *( (*eIsoFromPFCandsValueMap_)[11] );
     const isoFromPFCandsMap & muonsPfCandPhoton04IsoVal = *( (*eIsoFromPFCandsValueMap_)[12] );
-    const isoFromPFCandsMap & muonsPfCandChHad05IsoVal = *( (*eIsoFromPFCandsValueMap_)[13] );
-    const isoFromPFCandsMap & muonsPfCandNHad05IsoVal = *( (*eIsoFromPFCandsValueMap_)[14] );
-    const isoFromPFCandsMap & muonsPfCandPhoton05IsoVal = *( (*eIsoFromPFCandsValueMap_)[15] );
-    const isoFromPFCandsMap & muonsPfCandChHad06IsoVal = *( (*eIsoFromPFCandsValueMap_)[16] );
-    const isoFromPFCandsMap & muonsPfCandNHad06IsoVal = *( (*eIsoFromPFCandsValueMap_)[17] );
-    const isoFromPFCandsMap & muonsPfCandPhoton06IsoVal = *( (*eIsoFromPFCandsValueMap_)[18] );
-    const isoFromPFCandsMap & muonsPfCandChHad07IsoVal = *( (*eIsoFromPFCandsValueMap_)[19] );
-    const isoFromPFCandsMap & muonsPfCandNHad07IsoVal = *( (*eIsoFromPFCandsValueMap_)[20] );
-    const isoFromPFCandsMap & muonsPfCandPhoton07IsoVal = *( (*eIsoFromPFCandsValueMap_)[21] );
+//     const isoFromPFCandsMap & muonsPfCandChHad05IsoVal = *( (*eIsoFromPFCandsValueMap_)[13] );
+//     const isoFromPFCandsMap & muonsPfCandNHad05IsoVal = *( (*eIsoFromPFCandsValueMap_)[14] );
+//     const isoFromPFCandsMap & muonsPfCandPhoton05IsoVal = *( (*eIsoFromPFCandsValueMap_)[15] );
+//     const isoFromPFCandsMap & muonsPfCandChHad06IsoVal = *( (*eIsoFromPFCandsValueMap_)[16] );
+//     const isoFromPFCandsMap & muonsPfCandNHad06IsoVal = *( (*eIsoFromPFCandsValueMap_)[17] );
+//     const isoFromPFCandsMap & muonsPfCandPhoton06IsoVal = *( (*eIsoFromPFCandsValueMap_)[18] );
+//     const isoFromPFCandsMap & muonsPfCandChHad07IsoVal = *( (*eIsoFromPFCandsValueMap_)[19] );
+//     const isoFromPFCandsMap & muonsPfCandNHad07IsoVal = *( (*eIsoFromPFCandsValueMap_)[20] );
+//     const isoFromPFCandsMap & muonsPfCandPhoton07IsoVal = *( (*eIsoFromPFCandsValueMap_)[21] );
     const isoFromPFCandsMap & muonsPfCandChHad04DirIsoVal = *( (*eIsoFromPFCandsValueMap_)[22] );
     const isoFromPFCandsMap & muonsPfCandNHad04DirIsoVal = *( (*eIsoFromPFCandsValueMap_)[23] );
     const isoFromPFCandsMap & muonsPfCandPhoton04DirIsoVal = *( (*eIsoFromPFCandsValueMap_)[24] );
@@ -428,27 +405,12 @@ void CmsMuonFiller::writeMuonInfo(const Candidate *cand, const edm::Event& iEven
     const isoFromPFCandsMap & muonsPfCandChHad04PUIsoVal = *( (*eIsoFromPFCandsValueMap_)[26] );
     
     privateData_->pfCombinedIso->push_back( muonsPfCombinedIsoVal[muonRef] );
-    privateData_->pfCandChargedIso01->push_back( muonsPfCandChHad01IsoVal[muonRef] );
-    privateData_->pfCandNeutralIso01->push_back( muonsPfCandNHad01IsoVal[muonRef] );
-    privateData_->pfCandPhotonIso01->push_back( muonsPfCandPhoton01IsoVal[muonRef] );
-    privateData_->pfCandChargedIso02->push_back( muonsPfCandChHad02IsoVal[muonRef] );
-    privateData_->pfCandNeutralIso02->push_back( muonsPfCandNHad02IsoVal[muonRef] );
-    privateData_->pfCandPhotonIso02->push_back( muonsPfCandPhoton02IsoVal[muonRef] );
     privateData_->pfCandChargedIso03->push_back( muonsPfCandChHad03IsoVal[muonRef] );
     privateData_->pfCandNeutralIso03->push_back( muonsPfCandNHad03IsoVal[muonRef] );
     privateData_->pfCandPhotonIso03->push_back( muonsPfCandPhoton03IsoVal[muonRef] );
     privateData_->pfCandChargedIso04->push_back( muonsPfCandChHad04IsoVal[muonRef] );
     privateData_->pfCandNeutralIso04->push_back( muonsPfCandNHad04IsoVal[muonRef] );
     privateData_->pfCandPhotonIso04->push_back( muonsPfCandPhoton04IsoVal[muonRef] );
-    privateData_->pfCandChargedIso05->push_back( muonsPfCandChHad05IsoVal[muonRef] );
-    privateData_->pfCandNeutralIso05->push_back( muonsPfCandNHad05IsoVal[muonRef] );
-    privateData_->pfCandPhotonIso05->push_back( muonsPfCandPhoton05IsoVal[muonRef] );
-    privateData_->pfCandChargedIso06->push_back( muonsPfCandChHad06IsoVal[muonRef] );
-    privateData_->pfCandNeutralIso06->push_back( muonsPfCandNHad06IsoVal[muonRef] );
-    privateData_->pfCandPhotonIso06->push_back( muonsPfCandPhoton06IsoVal[muonRef] );
-    privateData_->pfCandChargedIso07->push_back( muonsPfCandChHad07IsoVal[muonRef] );
-    privateData_->pfCandNeutralIso07->push_back( muonsPfCandNHad07IsoVal[muonRef] );
-    privateData_->pfCandPhotonIso07->push_back( muonsPfCandPhoton07IsoVal[muonRef] );
     privateData_->pfCandChargedDirIso04->push_back( muonsPfCandChHad04DirIsoVal[muonRef] );
     privateData_->pfCandNeutralDirIso04->push_back( muonsPfCandNHad04DirIsoVal[muonRef] );
     privateData_->pfCandPhotonDirIso04->push_back( muonsPfCandPhoton04DirIsoVal[muonRef] );
@@ -461,15 +423,6 @@ void CmsMuonFiller::writeMuonInfo(const Candidate *cand, const edm::Event& iEven
 
     // track kinks
     privateData_->kink->push_back(muonRef->combinedQuality().trkKink) ;
-
-    // Expected deposits in CALO
-    privateData_->EcalExpDepo->push_back(muon->calEnergy().em);
-    privateData_->HcalExpDepo->push_back(muon->calEnergy().had);
-    privateData_->HoExpDepo->push_back(muon->calEnergy().ho);
-    privateData_->emS9->push_back(muon->calEnergy().emS9);
-    privateData_->hadS9->push_back(muon->calEnergy().hadS9);
-    privateData_->hoS9->push_back(muon->calEnergy().hoS9);
-    privateData_->CaloComp->push_back(muon->caloCompatibility());
 
     const reco::GsfElectronCollection dummyIdentifiedEleCollection;
     const reco::MuonCollection dummyIdentifiedMuCollection;
@@ -505,27 +458,12 @@ void CmsMuonFiller::writeMuonInfo(const Candidate *cand, const edm::Event& iEven
     privateData_->nJets05->push_back(-1.);
 
     privateData_->pfCombinedIso->push_back( -1 );
-    privateData_->pfCandChargedIso01->push_back( -1 );
-    privateData_->pfCandNeutralIso01->push_back( -1 );
-    privateData_->pfCandPhotonIso01->push_back( -1 );
-    privateData_->pfCandChargedIso02->push_back( -1 );
-    privateData_->pfCandNeutralIso02->push_back( -1 );
-    privateData_->pfCandPhotonIso02->push_back( -1 );
     privateData_->pfCandChargedIso03->push_back( -1 );
     privateData_->pfCandNeutralIso03->push_back( -1 );
     privateData_->pfCandPhotonIso03->push_back( -1 );
     privateData_->pfCandChargedIso04->push_back( -1 );
     privateData_->pfCandNeutralIso04->push_back( -1 );
     privateData_->pfCandPhotonIso04->push_back( -1 );
-    privateData_->pfCandChargedIso05->push_back( -1 );
-    privateData_->pfCandNeutralIso05->push_back( -1 );
-    privateData_->pfCandPhotonIso05->push_back( -1 );
-    privateData_->pfCandChargedIso06->push_back( -1 );
-    privateData_->pfCandNeutralIso06->push_back( -1 );
-    privateData_->pfCandPhotonIso06->push_back( -1 );
-    privateData_->pfCandChargedIso07->push_back( -1 );
-    privateData_->pfCandNeutralIso07->push_back( -1 );
-    privateData_->pfCandPhotonIso07->push_back( -1 );
     privateData_->pfCandChargedDirIso04->push_back( -1 );
     privateData_->pfCandNeutralDirIso04->push_back( -1 );
     privateData_->pfCandPhotonDirIso04->push_back( -1 );
@@ -536,15 +474,6 @@ void CmsMuonFiller::writeMuonInfo(const Candidate *cand, const edm::Event& iEven
 
     privateData_->mvaiso->push_back( -1 );
     privateData_->kink->push_back( -1 );
-
-    // Expected deposits in CALO
-    privateData_->EcalExpDepo->push_back(-1.);
-    privateData_->HcalExpDepo->push_back(-1.);
-    privateData_->HoExpDepo->push_back(-1.);
-    privateData_->emS9->push_back(-1.);
-    privateData_->hadS9->push_back(-1.);
-    privateData_->hoS9->push_back(-1.);
-    privateData_->CaloComp->push_back(-1.);
 
   }
 }
@@ -576,27 +505,12 @@ void CmsMuonFiller::treeMuonInfo(const std::string &colPrefix, const std::string
 
   // PF isolation rings
   cmstree->column((colPrefix+"pfCombinedIso"+colSuffix).c_str(),  *privateData_->pfCombinedIso, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"pfCandChargedIso01"+colSuffix).c_str(),  *privateData_->pfCandChargedIso01, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"pfCandNeutralIso01"+colSuffix).c_str(),  *privateData_->pfCandNeutralIso01, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"pfCandPhotonIso01"+colSuffix).c_str(),  *privateData_->pfCandPhotonIso01, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"pfCandChargedIso02"+colSuffix).c_str(),  *privateData_->pfCandChargedIso02, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"pfCandNeutralIso02"+colSuffix).c_str(),  *privateData_->pfCandNeutralIso02, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"pfCandPhotonIso02"+colSuffix).c_str(),  *privateData_->pfCandPhotonIso02, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"pfCandChargedIso03"+colSuffix).c_str(),  *privateData_->pfCandChargedIso03, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"pfCandNeutralIso03"+colSuffix).c_str(),  *privateData_->pfCandNeutralIso03, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"pfCandPhotonIso03"+colSuffix).c_str(),  *privateData_->pfCandPhotonIso03, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"pfCandChargedIso04"+colSuffix).c_str(),  *privateData_->pfCandChargedIso04, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"pfCandNeutralIso04"+colSuffix).c_str(),  *privateData_->pfCandNeutralIso04, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"pfCandPhotonIso04"+colSuffix).c_str(),  *privateData_->pfCandPhotonIso04, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"pfCandChargedIso05"+colSuffix).c_str(),  *privateData_->pfCandChargedIso05, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"pfCandNeutralIso05"+colSuffix).c_str(),  *privateData_->pfCandNeutralIso05, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"pfCandPhotonIso05"+colSuffix).c_str(),  *privateData_->pfCandPhotonIso05, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"pfCandChargedIso06"+colSuffix).c_str(),  *privateData_->pfCandChargedIso06, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"pfCandNeutralIso06"+colSuffix).c_str(),  *privateData_->pfCandNeutralIso06, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"pfCandPhotonIso06"+colSuffix).c_str(),  *privateData_->pfCandPhotonIso06, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"pfCandChargedIso07"+colSuffix).c_str(),  *privateData_->pfCandChargedIso07, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"pfCandNeutralIso07"+colSuffix).c_str(),  *privateData_->pfCandNeutralIso07, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"pfCandPhotonIso07"+colSuffix).c_str(),  *privateData_->pfCandPhotonIso07, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"pfCandChargedDirIso04"+colSuffix).c_str(),  *privateData_->pfCandChargedDirIso04, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"pfCandNeutralDirIso04"+colSuffix).c_str(),  *privateData_->pfCandNeutralDirIso04, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"pfCandPhotonDirIso04"+colSuffix).c_str(),  *privateData_->pfCandPhotonDirIso04, nCandString.c_str(), 0, "Reco");
@@ -607,15 +521,6 @@ void CmsMuonFiller::treeMuonInfo(const std::string &colPrefix, const std::string
 
   cmstree->column((colPrefix+"kink"+colSuffix).c_str(),  *privateData_->kink, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"mvaiso"+colSuffix).c_str(),  *privateData_->mvaiso, nCandString.c_str(), 0, "Reco");
-
-  //  Expected deposits in CALO
-  cmstree->column((colPrefix+"EcalExpDepo"+colSuffix).c_str(), *privateData_->EcalExpDepo, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"HcalExpDepo"+colSuffix).c_str(), *privateData_->HcalExpDepo, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"HoExpDepo"+colSuffix).c_str(), *privateData_->HoExpDepo, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"emS9"+colSuffix).c_str(), *privateData_->emS9, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"hadS9"+colSuffix).c_str(), *privateData_->hadS9, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"hoS9"+colSuffix).c_str(), *privateData_->hoS9, nCandString.c_str(), 0, "Reco");
-  cmstree->column((colPrefix+"CaloComp"+colSuffix).c_str(), *privateData_->CaloComp, nCandString.c_str(), 0, "Reco");
 
 }
 
@@ -646,27 +551,12 @@ void CmsMuonFillerData::initialise() {
   nJets05 = new vector<float>;
 
   pfCombinedIso      = new vector<float>;
-  pfCandChargedIso01 = new vector<float>;
-  pfCandNeutralIso01 = new vector<float>;
-  pfCandPhotonIso01  = new vector<float>;
-  pfCandChargedIso02 = new vector<float>;
-  pfCandNeutralIso02 = new vector<float>;
-  pfCandPhotonIso02  = new vector<float>;
   pfCandChargedIso03 = new vector<float>;
   pfCandNeutralIso03 = new vector<float>;
   pfCandPhotonIso03  = new vector<float>;
   pfCandChargedIso04 = new vector<float>;
   pfCandNeutralIso04 = new vector<float>;
   pfCandPhotonIso04  = new vector<float>;
-  pfCandChargedIso05 = new vector<float>;
-  pfCandNeutralIso05 = new vector<float>;
-  pfCandPhotonIso05  = new vector<float>;
-  pfCandChargedIso06 = new vector<float>;
-  pfCandNeutralIso06 = new vector<float>;
-  pfCandPhotonIso06  = new vector<float>;
-  pfCandChargedIso07 = new vector<float>;
-  pfCandNeutralIso07 = new vector<float>;
-  pfCandPhotonIso07  = new vector<float>;
   pfCandChargedDirIso04 = new vector<float>;
   pfCandNeutralDirIso04 = new vector<float>;
   pfCandPhotonDirIso04  = new vector<float>;
@@ -678,14 +568,6 @@ void CmsMuonFillerData::initialise() {
   kink = new vector<float>;
   mvaiso = new vector<float>;
 
-  EcalExpDepo = new vector<float>;
-  HcalExpDepo = new vector<float>;
-  HoExpDepo = new vector<float>;
-  emS9 = new vector<float>;
-  hadS9 = new vector<float>;
-  hoS9 = new vector<float>;
-  CaloComp = new vector<float>;
-  
 }
 
 void CmsMuonFillerData::clearTrkVectors() {
@@ -716,27 +598,12 @@ void CmsMuonFillerData::clearTrkVectors() {
   nJets05->clear();
 
   pfCombinedIso    ->clear();
-  pfCandChargedIso01 ->clear();
-  pfCandNeutralIso01 ->clear();
-  pfCandPhotonIso01  ->clear();
-  pfCandChargedIso02 ->clear();
-  pfCandNeutralIso02 ->clear();
-  pfCandPhotonIso02  ->clear();
   pfCandChargedIso03 ->clear();
   pfCandNeutralIso03 ->clear();
   pfCandPhotonIso03  ->clear();
   pfCandChargedIso04 ->clear();
   pfCandNeutralIso04 ->clear();
   pfCandPhotonIso04  ->clear();
-  pfCandChargedIso05 ->clear();
-  pfCandNeutralIso05 ->clear();
-  pfCandPhotonIso05  ->clear();
-  pfCandChargedIso06 ->clear();
-  pfCandNeutralIso06 ->clear();
-  pfCandPhotonIso06  ->clear();
-  pfCandChargedIso07 ->clear();
-  pfCandNeutralIso07 ->clear();
-  pfCandPhotonIso07  ->clear();
   pfCandChargedDirIso04 ->clear();
   pfCandNeutralDirIso04 ->clear();
   pfCandPhotonDirIso04  ->clear();
@@ -748,12 +615,5 @@ void CmsMuonFillerData::clearTrkVectors() {
   kink->clear();
   mvaiso->clear();
 
-  EcalExpDepo->clear();
-  HcalExpDepo->clear();
-  HoExpDepo->clear();
-  emS9->clear();
-  hadS9->clear();
-  hoS9->clear();
-  CaloComp->clear();
   
 }

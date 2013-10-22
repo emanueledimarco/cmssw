@@ -13,13 +13,16 @@ muonPFIsoNHad01 = WWAnalysis.Tools.muonPFIsoSingleType_cfi.muonPFIsoSingleTypeMa
 muonPFIsoNHad01.pfTypes = cms.untracked.vint32(5)
 muonPFIsoNHad01.deltaR = 0.1
 muonPFIsoNHad01.innerDeltaRVeto = 0.01
+muonPFIsoNHad01.neutralHadronMinPt = 0.5
+muonPFIsoNHad01.photonMinPt = 0.5
 
 # Photon isolation
 muonPFIsoPhoton01 = WWAnalysis.Tools.muonPFIsoSingleType_cfi.muonPFIsoSingleTypeMapProd.clone()
 muonPFIsoPhoton01.pfTypes = cms.untracked.vint32(4)
 muonPFIsoPhoton01.deltaR = 0.1
 muonPFIsoPhoton01.innerDeltaRVeto = 0.01
-
+muonPFIsoPhoton01.neutralHadronMinPt = 0.5
+muonPFIsoPhoton01.photonMinPt = 0.5
 
 ### DR=0.2
 # Charged Hadron isolation
@@ -33,13 +36,16 @@ muonPFIsoNHad02 = WWAnalysis.Tools.muonPFIsoSingleType_cfi.muonPFIsoSingleTypeMa
 muonPFIsoNHad02.pfTypes = cms.untracked.vint32(5)
 muonPFIsoNHad02.deltaR = 0.2
 muonPFIsoNHad02.innerDeltaRVeto = 0.01
+muonPFIsoNHad02.neutralHadronMinPt = 0.5
+muonPFIsoNHad02.photonMinPt = 0.5
 
 # Photon isolation
 muonPFIsoPhoton02 = WWAnalysis.Tools.muonPFIsoSingleType_cfi.muonPFIsoSingleTypeMapProd.clone()
 muonPFIsoPhoton02.pfTypes = cms.untracked.vint32(4)
 muonPFIsoPhoton02.deltaR = 0.2
 muonPFIsoPhoton02.innerDeltaRVeto = 0.01
-
+muonPFIsoPhoton02.neutralHadronMinPt = 0.5
+muonPFIsoPhoton02.photonMinPt = 0.5
 
 ### DR=0.3
 # Charged Hadron isolation
@@ -53,13 +59,16 @@ muonPFIsoNHad03 = WWAnalysis.Tools.muonPFIsoSingleType_cfi.muonPFIsoSingleTypeMa
 muonPFIsoNHad03.pfTypes = cms.untracked.vint32(5)
 muonPFIsoNHad03.deltaR = 0.3
 muonPFIsoNHad03.innerDeltaRVeto = 0.01
+muonPFIsoNHad03.neutralHadronMinPt = 0.5
+muonPFIsoNHad03.photonMinPt = 0.5
 
 # Photon isolation
 muonPFIsoPhoton03 = WWAnalysis.Tools.muonPFIsoSingleType_cfi.muonPFIsoSingleTypeMapProd.clone()
 muonPFIsoPhoton03.pfTypes = cms.untracked.vint32(4)
 muonPFIsoPhoton03.deltaR = 0.3
 muonPFIsoPhoton03.innerDeltaRVeto = 0.01
-
+muonPFIsoPhoton03.neutralHadronMinPt = 0.5
+muonPFIsoPhoton03.photonMinPt = 0.5
 
 ### DR=0.4
 # Charged Hadron isolation
@@ -73,13 +82,16 @@ muonPFIsoNHad04 = WWAnalysis.Tools.muonPFIsoSingleType_cfi.muonPFIsoSingleTypeMa
 muonPFIsoNHad04.pfTypes = cms.untracked.vint32(5)
 muonPFIsoNHad04.deltaR = 0.4
 muonPFIsoNHad04.innerDeltaRVeto = 0.01
+muonPFIsoNHad04.neutralHadronMinPt = 0.5
+muonPFIsoNHad04.photonMinPt = 0.5
 
 # Photon isolation
 muonPFIsoPhoton04 = WWAnalysis.Tools.muonPFIsoSingleType_cfi.muonPFIsoSingleTypeMapProd.clone()
 muonPFIsoPhoton04.pfTypes = cms.untracked.vint32(4)
 muonPFIsoPhoton04.deltaR = 0.4
 muonPFIsoPhoton04.innerDeltaRVeto = 0.01
-
+muonPFIsoPhoton04.neutralHadronMinPt = 0.5
+muonPFIsoPhoton04.photonMinPt = 0.5
 
 ### DR=0.5
 # Charged Hadron isolation
@@ -93,13 +105,16 @@ muonPFIsoNHad05 = WWAnalysis.Tools.muonPFIsoSingleType_cfi.muonPFIsoSingleTypeMa
 muonPFIsoNHad05.pfTypes = cms.untracked.vint32(5)
 muonPFIsoNHad05.deltaR = 0.5
 muonPFIsoNHad05.innerDeltaRVeto = 0.01
+muonPFIsoNHad05.neutralHadronMinPt = 0.5
+muonPFIsoNHad05.photonMinPt = 0.5
 
 # Photon isolation
 muonPFIsoPhoton05 = WWAnalysis.Tools.muonPFIsoSingleType_cfi.muonPFIsoSingleTypeMapProd.clone()
 muonPFIsoPhoton05.pfTypes = cms.untracked.vint32(4)
 muonPFIsoPhoton05.deltaR = 0.5
 muonPFIsoPhoton05.innerDeltaRVeto = 0.01
-
+muonPFIsoPhoton05.neutralHadronMinPt = 0.5
+muonPFIsoPhoton05.photonMinPt = 0.5
 
 ### DR=0.6
 # Charged Hadron isolation
@@ -113,13 +128,16 @@ muonPFIsoNHad06 = WWAnalysis.Tools.muonPFIsoSingleType_cfi.muonPFIsoSingleTypeMa
 muonPFIsoNHad06.pfTypes = cms.untracked.vint32(5)
 muonPFIsoNHad06.deltaR = 0.6
 muonPFIsoNHad06.innerDeltaRVeto = 0.01
+muonPFIsoNHad06.neutralHadronMinPt = 0.5
+muonPFIsoNHad06.photonMinPt = 0.5
 
 # Photon isolation
 muonPFIsoPhoton06 = WWAnalysis.Tools.muonPFIsoSingleType_cfi.muonPFIsoSingleTypeMapProd.clone()
 muonPFIsoPhoton06.pfTypes = cms.untracked.vint32(4)
 muonPFIsoPhoton06.deltaR = 0.6
 muonPFIsoPhoton06.innerDeltaRVeto = 0.01
-
+muonPFIsoPhoton06.neutralHadronMinPt = 0.5
+muonPFIsoPhoton06.photonMinPt = 0.5
 
 ### DR=0.7
 # Charged Hadron isolation
@@ -133,12 +151,16 @@ muonPFIsoNHad07 = WWAnalysis.Tools.muonPFIsoSingleType_cfi.muonPFIsoSingleTypeMa
 muonPFIsoNHad07.pfTypes = cms.untracked.vint32(5)
 muonPFIsoNHad07.deltaR = 0.7
 muonPFIsoNHad07.innerDeltaRVeto = 0.01
+muonPFIsoNHad07.neutralHadronMinPt = 0.5
+muonPFIsoNHad07.photonMinPt = 0.5
 
 # Photon isolation
 muonPFIsoPhoton07 = WWAnalysis.Tools.muonPFIsoSingleType_cfi.muonPFIsoSingleTypeMapProd.clone()
 muonPFIsoPhoton07.pfTypes = cms.untracked.vint32(4)
 muonPFIsoPhoton07.deltaR = 0.7
 muonPFIsoPhoton07.innerDeltaRVeto = 0.01
+muonPFIsoPhoton07.neutralHadronMinPt = 0.5
+muonPFIsoPhoton07.photonMinPt = 0.5
 
 ####=============== DELTA BETA ====================
 ### DR=0.3

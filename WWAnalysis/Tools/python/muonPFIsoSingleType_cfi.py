@@ -7,5 +7,7 @@ muonPFIsoSingleTypeMapProd = cms.EDProducer('MuonPFIsoSingleTypeMapProd',
                                             deltaR = cms.untracked.double(0.4),
                                             innerDeltaRVeto = cms.untracked.double(0.0),
                                             pfTypes = cms.untracked.vint32(1, 2, 3, 4, 5),
-                                            directional = cms.untracked.bool(False)
+                                            directional = cms.untracked.bool(False),
+                                            neutralHadronMinPt = cms.untracked.double(0.),
+                                            photonMinPt = cms.untracked.double(0.)
                                             )

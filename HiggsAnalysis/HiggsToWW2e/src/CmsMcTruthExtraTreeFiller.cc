@@ -77,6 +77,10 @@ void CmsMcTruthExtraTreeFiller::writeCollectionToTree(edm::InputTag mcTruthColle
 
     if( cand.status() == 1 && ( fabs(cand.pdgId()) == 11 || fabs(cand.pdgId()) == 13  ) ) { // store the information only for status 1 muons (|id| == 13) or electrons (|id| == 11)
 
+      // threhsolds
+      if ( fabs(cand.pdgId())==11 && cand.p()*fabs(sin(cand.theta()))<4 ) continue;
+      if ( fabs(cand.pdgId())==13 && cand.p()*fabs(sin(cand.theta()))<2 ) continue;
+
       // Fill candidate information
       pMC.push_back(cand.p());
       thetaMC.push_back(cand.theta());

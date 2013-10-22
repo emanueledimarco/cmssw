@@ -56,6 +56,7 @@
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsV0CandidateFiller.h"
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsTriggerTreeFiller.h"
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsMcTruthTreeFiller.h"
+#include "HiggsAnalysis/HiggsToWW2e/interface/CmsMcTruthExtraTreeFiller.h"
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsRunInfoFiller.h"
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsHcalNoiseFiller.h"
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsMetFiller.h"
@@ -71,6 +72,7 @@ HWWTreeDumper::HWWTreeDumper(const edm::ParameterSet& iConfig)
   nameTree_      = iConfig.getUntrackedParameter<std::string>("nameTree", "BaseTree");
   dumpTree_      = iConfig.getUntrackedParameter<bool>("dumpTree", false);
   dumpMCTruth_   = iConfig.getUntrackedParameter<bool>("dumpMCTruth", false);
+  dumpMCTruthExtra_ = iConfig.getUntrackedParameter<bool>("dumpMCTruthExtra", false);
   
   // control level of Reco Adapters in the tree
   saveTrk_        = iConfig.getUntrackedParameter<bool>("saveTrk", false);
@@ -343,6 +345,15 @@ void HWWTreeDumper::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     bool firstEvent = (jevt_>1) ? false : true;
     treeFill.writeCollectionToTree( mcTruthCollection_, LHEComments_, iEvent, 100, firstEvent );
   }
+
+  // get MC truth for tH analysis 
+  CmsMcTruthExtraTreeFiller treeFillExtra(tree_);
+  treeFillExtra.saveLHEComments(false); // we do not care for this now                                                                                                
+  if(dumpMCTruthExtra_) {
+    bool firstEvent = (jevt_>1) ? false : true;
+    treeFillExtra.writeCollectionToTree( mcTruthCollection_, LHEComments_, iEvent, 100, firstEvent );
+  }
+
 
   // fill the PDF weights
   if(dumpPdfWeight_) {

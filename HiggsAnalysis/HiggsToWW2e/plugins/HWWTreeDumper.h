@@ -53,6 +53,7 @@ private:
   bool dumpTree_;
   //! dump the MC truth (generator) block
   bool dumpMCTruth_;
+  bool dumpMCTruthExtra_;
   //! do the match between reco and truth particles, dump indices into tree
   bool doMCEleMatch_, doMCMuonMatch_;
   //! dump generator informations for the CSA07 soups

@@ -8,7 +8,7 @@ goodPhotons = cms.EDFilter("PhotonSelector",
 
 goodPFJets = cms.EDFilter("PFJetSelector",
                             src = cms.InputTag("ak5PFJets"),
-                            cut = cms.string("pt > 15.0 & abs( eta ) < 5.0")
+                            cut = cms.string("pt > 10.0 & abs( eta ) < 5.0")
                             )
 
 goodPFCHSJets = cms.EDFilter("PFJetSelector",
@@ -18,7 +18,7 @@ goodPFCHSJets = cms.EDFilter("PFJetSelector",
 
 goodGenJets = cms.EDFilter("GenJetRefSelector",
                              src = cms.InputTag("ak5GenJets"),
-                             cut = cms.string("pt > 15.0 & abs( eta ) < 5.0")
+                             cut = cms.string("pt > 10.0 & abs( eta ) < 5.0")
                              )
 
 collectionsFilterSequence = cms.Sequence(goodPhotons *

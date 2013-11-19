@@ -10,6 +10,7 @@ then
     echo HiggsAnalysis/HiggsToWW2e > .git/info/sparse-checkout
     echo HiggsAnalysis/HiggsToWW2Leptons >> .git/info/sparse-checkout
     echo HiggsAnalysis/HiggsToGammaGamma >> .git/info/sparse-checkout
+    echo HiggsAnalysis/Tools >> .git/info/sparse-checkout
     echo MyAnalysis/IsolationTools >> .git/info/sparse-checkout
     echo MyAnalysis/METFlags >> .git/info/sparse-checkout
     echo RecoBTag/ImpactParameter >> .git/info/sparse-checkout

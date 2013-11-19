@@ -85,7 +85,6 @@ process.treeDumper.dumpConversions = True
 process.treeDumper.dumpVertices = True
 process.treeDumper.dumpCaloTowers = False
 process.treeDumper.dumpParticleFlowObjects = True
-process.treeDumper.dumpCalibratedElectrons = True
 # for indirect lepton veto
 process.treeDumper.dumpPFCandidates = True
 process.treeDumper.PFPUCandidateCollection = "pfPileUp"

@@ -49,6 +49,7 @@
 <use   name="RecoVertex/KinematicFit"/>
 <use   name="HLTrigger/HLTcore"/>
 <use   name="HiggsAnalysis/HiggsToGammaGamma"/>
+<use   name="HiggsAnalysis/Tools"/>
 <use   name="CMGTools/External"/>
 <use   name="Muon/MuonAnalysisTools"/>
 <use   name="EgammaAnalysis/ElectronTools"/>

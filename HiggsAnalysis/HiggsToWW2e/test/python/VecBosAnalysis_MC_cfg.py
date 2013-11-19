@@ -91,7 +91,6 @@ process.treeDumper.dumpPdfWeight = False
 process.treeDumper.dumpSignalKfactor = False
 process.treeDumper.dumpTracks = False
 process.treeDumper.dumpElectrons = True
-process.treeDumper.dumpCalibratedElectrons = True
 process.treeDumper.dumpGsfTracks = True
 process.treeDumper.dumpSCs = True
 process.treeDumper.dumpBCs = True

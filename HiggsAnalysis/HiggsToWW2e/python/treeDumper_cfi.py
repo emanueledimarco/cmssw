@@ -73,7 +73,8 @@ treeDumper = cms.EDAnalyzer("HWWTreeDumper",
                             # switch ON/OFF the candidate collections to dump
                             dumpRunInfo = cms.untracked.bool(True),
                             dumpElectrons = cms.untracked.bool(True),
-                            dumpCalibratedElectrons = cms.untracked.bool(True),
+                            # this is off, because we now store the calibrated energy in the std ele collection
+                            dumpCalibratedElectrons = cms.untracked.bool(False),
                             dumpPFlowElectrons = cms.untracked.bool(False),
                             dumpPFpreId = cms.untracked.bool(False),
                             dumpPhotons = cms.untracked.bool(True),

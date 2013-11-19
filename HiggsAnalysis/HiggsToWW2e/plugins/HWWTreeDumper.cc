@@ -431,9 +431,10 @@ void HWWTreeDumper::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     treeFill.saveEleID(true);
     // for full vertex fit conversion veto
     treeFill.setConversionsProdcer(conversions_);
+    // for the fully calibrated electrons
+    treeFill.setCalibElectronCollection(calibElectronCollection_);
 
     treeFill.writeCollectionToTree(electronCollection_, iEvent, iSetup, prefix, suffix, false);
-
   }
 
   // fill minimal electrons block after energy corrections

@@ -52,6 +52,7 @@
 
 #include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
 
+#include "HiggsAnalysis/Tools/interface/ElectronMatcher.hh"
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsTree.h"
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsEleIDTreeFiller.h"
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsCandidateFiller.h"
@@ -134,6 +135,8 @@ CmsElectronFiller::~CmsElectronFiller() {
   delete privateData_->recoFlags;
   delete privateData_->scPixCharge;
   delete privateData_->trackMomentumError;
+  delete privateData_->calibEnergy;
+  delete privateData_->calibEnergyError;
 
   delete privateData_->superClusterIndex;
   delete privateData_->PFsuperClusterIndex;
@@ -228,6 +231,11 @@ void CmsElectronFiller::writeCollectionToTree(edm::InputTag collectionTag,
     try { iEvent.getByLabel("generalTracks", h_tracksTot); }
     catch ( cms::Exception& ex ) { edm::LogWarning("CmsElectronFiller") << "Can't get general track collection: generalTracks"; }
 
+    //  for calib electrons
+    Handle< edm::View<reco::GsfElectron> > calibGsfElectronsHandle;
+    iEvent.getByLabel(m_calibEleCollectionTag, calibGsfElectronsHandle);
+    const edm::View<reco::GsfElectron> *calibGsfElectrons = calibGsfElectronsHandle.product();
+
     // for conversions with full vertex fit
     iEvent.getByLabel("offlineBeamSpot", bsHandle);
 
@@ -253,6 +261,12 @@ void CmsElectronFiller::writeCollectionToTree(edm::InputTag collectionTag,
         // fill (GSF) Track Adapter
         GsfTrackRef trkRef = cand->get<GsfTrackRef>();
         if(saveTrk_) writeTrkInfo(electronRef,iEvent,iSetup,trkRef);
+
+        // fill the calibrated energy by matching the original GsfElectrons
+        ElectronMatcher matcher(*calibGsfElectrons);
+        GsfElectronRef calibele = matcher.matchByGsfTrack(electronRef);
+        privateData_->calibEnergy->push_back(calibele->energy());
+        privateData_->calibEnergyError->push_back(calibele->p4Error( (calibele->candidateP4Kind()) ));
 
       } else {
         edm::LogWarning("CmsElectronFiller") << "Warning! The collection seems to be not made by "
@@ -293,7 +307,9 @@ void CmsElectronFiller::writeCollectionToTree(edm::InputTag collectionTag,
     eIDFiller.savePFlowIsolations(savePFlowIsolation_);
     eIDFiller.writeCollectionToTree(collectionTag,iEvent,iSetup,columnPrefix,columnSuffix,false);
   }
-  
+  cmstree->column((columnPrefix+"calibEnergy"+columnSuffix).c_str(),  *privateData_->calibEnergy, nCandString.c_str(), 0, "Reco");
+  cmstree->column((columnPrefix+"calibEnergyError"+columnSuffix).c_str(),  *privateData_->calibEnergyError, nCandString.c_str(), 0, "Reco");
+
     if(dumpData) cmstree->dumpData();
 
     delete trkIndexName_;
@@ -480,6 +496,8 @@ void CmsElectronFillerData::initialise() {
   fiducialFlags = new vector<int>;
   recoFlags = new vector<int>;
   trackMomentumError = new vector<float>;
+  calibEnergy = new vector<float>;
+  calibEnergyError = new vector<float>;
 
   superClusterIndex = new vector<int>;
   PFsuperClusterIndex = new vector<int>;
@@ -502,6 +520,8 @@ void CmsElectronFillerData::clearTrkVectors() {
   fiducialFlags->clear();
   recoFlags->clear();
   trackMomentumError->clear();
+  calibEnergy->clear();
+  calibEnergyError->clear();
 
   superClusterIndex->clear();
   PFsuperClusterIndex->clear();

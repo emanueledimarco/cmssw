@@ -40,7 +40,7 @@ struct CmsElectronFillerData : public CmsCandidateFillerData {
   vector<int> *fiducialFlags, *recoFlags, *scPixCharge;
 
   vector<int> *superClusterIndex, *PFsuperClusterIndex;
-  vector<float> *trackMomentumError;
+  vector<float> *trackMomentumError, *calibEnergy, *calibEnergyError;
 
   vector<float> *convDist, *convDcot, *convRadius;
   vector<int> *convTrackIndex;
@@ -110,6 +110,8 @@ class CmsElectronFiller : public CmsCandidateFiller {
   void setVertexCollection(edm::InputTag collectionTag) { m_vxtCollectionTag = collectionTag; }
   //! set the PF candidates collection
   void setPFCandidateCollection(edm::InputTag collectionTag) { m_pfcandCollectionTag = collectionTag; }
+  //! set the calibrated GsfElectron collection
+  void setCalibElectronCollection(edm::InputTag collectionTag) { m_calibEleCollectionTag = collectionTag; }
   
   //! set the eleID MVA algos
   void setEleIdMVAs(EGammaMvaEleEstimator* algotrig, EGammaMvaEleEstimator* algotrigidiso, EGammaMvaEleEstimator* algonontrig) { myMVATrig = algotrig; myMVATrigIdIsoCombined = algotrigidiso; myMVANonTrig = algonontrig; }
@@ -156,6 +158,7 @@ class CmsElectronFiller : public CmsCandidateFiller {
   edm::InputTag conversionsProducer_;
   edm::InputTag m_vxtCollectionTag;
   edm::InputTag m_pfcandCollectionTag;
+  edm::InputTag m_calibEleCollectionTag;
 
   edm::Handle< reco::TrackRefVector > h_tracks;
   edm::Handle< reco::TrackCollection > h_tracksTot;

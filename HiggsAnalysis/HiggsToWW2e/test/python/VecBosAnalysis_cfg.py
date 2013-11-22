@@ -5,7 +5,7 @@ isMC = True
 is42X = False
 is52X = False
 runOnAOD = 1
-doDiLeptonSkim = True
+doDiLeptonSkim = False
 ##################
 
 process = cms.Process("VecBosAnalysis")

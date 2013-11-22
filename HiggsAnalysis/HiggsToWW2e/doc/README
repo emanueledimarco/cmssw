@@ -4,7 +4,7 @@ if [[ "$CMSSW_VERSION" == CMSSW_5_3_* ]];
 then
 
     rm README
-    git clone -n -b vecbos-git-01 -o my-cmssw git@github.com:emanueledimarco/cmssw.git $CMSSW_BASE/src
+    git clone -n -b vecbos-run2-light -o my-cmssw git@github.com:emanueledimarco/cmssw.git $CMSSW_BASE/src
     git config core.sparsecheckout true
 
     echo HiggsAnalysis/HiggsToWW2e > .git/info/sparse-checkout
@@ -44,7 +44,7 @@ then
     echo Muon/MuonAnalysisTools >> .git/info/sparse-checkout
     echo QuarkGluonTagger/EightTeV >> .git/info/sparse-checkout
 
-    git pull my-cmssw vecbos-git-01
+    git pull my-cmssw vecbos-run2-light
     git checkout
 
 fi;

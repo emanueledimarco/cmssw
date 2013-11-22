@@ -60,8 +60,6 @@ private:
   bool dumpGenInfo_;
   //! dump H->WW->2lep 2nu preselection marker
   bool dumpPreselInfo_;
-  //! dump H->WW->2lep 2nu gg fusion signal k-factor
-  bool dumpSignalKfactor_;
   //! save the LHE event infos, PDF infos
   bool dumpLHE_, dumpPdfWeight_;
   //! dump the basic candidate informations (4-vectors)
@@ -99,8 +97,8 @@ private:
   bool dumpPFTaus_, dumphpsPFTaus_, dumphpsTancTaus_;
   //! dump PFCandidates
   bool dumpPFCandidates_;
-  //! dump reco / generated / PU corrected jets block
-  bool dumpJets_, dumpGenJets_, dumpPUcorrPFJet_;
+  //! dump reco / generated / PU corrected / CHS jets block
+  bool dumpJets_, dumpGenJets_, dumpPUcorrPFJet_, dumpCHSPFJet_;
   //! dump reco / generated MET block
   bool dumpMet_, dumpGenMet_;
   //! dump Super/Basic Clusters block
@@ -232,6 +230,9 @@ private:
   //! number of the processed event
   int jevt_;
   int jevtInRun_;
+
+  //! 8 TeV / 7 TeV
+  bool is8TeV_;
 
   //! need to keep the HLTObjectDumper to update the trigger configuration on run boundaries
   bool dumpHLTObject_;

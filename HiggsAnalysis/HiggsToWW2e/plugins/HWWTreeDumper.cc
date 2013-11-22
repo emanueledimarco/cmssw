@@ -73,6 +73,7 @@ HWWTreeDumper::HWWTreeDumper(const edm::ParameterSet& iConfig)
   dumpTree_      = iConfig.getUntrackedParameter<bool>("dumpTree", false);
   dumpMCTruth_   = iConfig.getUntrackedParameter<bool>("dumpMCTruth", false);
   dumpMCTruthExtra_ = iConfig.getUntrackedParameter<bool>("dumpMCTruthExtra", false);
+  is8TeV_        = iConfig.getUntrackedParameter<bool>("is8TeV", true);
   
   // control level of Reco Adapters in the tree
   saveTrk_        = iConfig.getUntrackedParameter<bool>("saveTrk", false);
@@ -94,11 +95,6 @@ HWWTreeDumper::HWWTreeDumper(const edm::ParameterSet& iConfig)
   //electron pflow
   savePFEleBasic_  = iConfig.getUntrackedParameter<bool>("savePFEleBasic",  true);
   savePFEleIsoDep_ = iConfig.getUntrackedParameter<bool>("savePFEleIsoDep", true);
-
-  //tau pflow
-  savePFTauBasic_  = iConfig.getUntrackedParameter<bool>("savePFTauBasic", false);
-  saveLeadPFCand_  = iConfig.getUntrackedParameter<bool>("saveLeadPFCand", false);
-  savePFTauDiscriminators_ = iConfig.getUntrackedParameter<bool>("savePFTauDiscriminators", false);
 
   // particle identification
   saveEleID_    = iConfig.getUntrackedParameter<bool>("saveEleID", false);
@@ -123,7 +119,6 @@ HWWTreeDumper::HWWTreeDumper(const edm::ParameterSet& iConfig)
   
   // Candidate Collections
   dumpPreselInfo_     = iConfig.getUntrackedParameter<bool>("dumpPreselInfo", false);
-  dumpSignalKfactor_  = iConfig.getUntrackedParameter<bool>("dumpSignalKfactor", false);
   dumpGenInfo_        = iConfig.getUntrackedParameter<bool>("dumpGenInfo", false);
   dumpLHE_            = iConfig.getUntrackedParameter<bool>("dumpLHE", false);
   dumpElectrons_      = iConfig.getUntrackedParameter<bool>("dumpElectrons", false);
@@ -138,12 +133,10 @@ HWWTreeDumper::HWWTreeDumper(const edm::ParameterSet& iConfig)
   dumpGsfTracks_      = iConfig.getUntrackedParameter<bool>("dumpGsfTracks", false);
   dumpMuonTracks_     = iConfig.getUntrackedParameter<bool>("dumpMuonTracks", false);
   dumpMuons_          = iConfig.getUntrackedParameter<bool>("dumpMuons", false);
-  dumpPFTaus_         = iConfig.getUntrackedParameter<bool>("dumpPFTaus", false);
-  dumphpsPFTaus_      = iConfig.getUntrackedParameter<bool>("dumphpsPFTaus", false);
-  dumphpsTancTaus_    = iConfig.getUntrackedParameter<bool>("dumphpsTancTaus", false);
   dumpJets_           = iConfig.getUntrackedParameter<bool>("dumpJets", false);
   dumpGenJets_        = iConfig.getUntrackedParameter<bool>("dumpGenJets", false);
   dumpPUcorrPFJet_    = iConfig.getUntrackedParameter<bool>("dumpPUcorrPFJet", false);
+  dumpCHSPFJet_       = iConfig.getUntrackedParameter<bool>("dumpCHSPFJet", false);
   dumpMet_            = iConfig.getUntrackedParameter<bool>("dumpMet", false);
   dumpGenMet_         = iConfig.getUntrackedParameter<bool>("dumpGenMet", false);
   dumpVertices_       = iConfig.getUntrackedParameter<bool>("dumpVertices", false);
@@ -168,9 +161,6 @@ HWWTreeDumper::HWWTreeDumper(const edm::ParameterSet& iConfig)
   pflowElectronCollection_ = iConfig.getParameter<edm::InputTag>("pflowElectronCollection");
   photonCollection_        = iConfig.getParameter<edm::InputTag>("photonCollection");
   muonCollection_          = iConfig.getParameter<edm::InputTag>("muonCollection");
-  pfTauCollection_         = iConfig.getParameter<edm::InputTag>("pfTauCollection");
-  hpspfTauCollection_      = iConfig.getParameter<edm::InputTag>("hpspfTauCollection");
-  hpsTancTausCollection_   = iConfig.getParameter<edm::InputTag>("hpsTancTausCollection");
   PFCandidateCollection_   = iConfig.getParameter<edm::InputTag>("PFCandidateCollection");
   PFPUCandidateCollection_  = iConfig.getParameter<edm::InputTag>("PFPUCandidateCollection");
   PFNoPUCandidateCollection_  = iConfig.getParameter<edm::InputTag>("PFNoPUCandidateCollection");
@@ -236,69 +226,6 @@ HWWTreeDumper::HWWTreeDumper(const edm::ParameterSet& iConfig)
   // dump PFCandidates
   dumpPFCandidates_  = iConfig.getUntrackedParameter<bool>("dumpPFCandidates");
 
-  // PFTau Discriminators
-  tauDiscrByLeadingTrackFindingTag_ = iConfig.getParameter<edm::InputTag>("tauDiscrByLeadingTrackFindingTag");
-  tauDiscrByLeadingTrackPtCutTag_ = iConfig.getParameter<edm::InputTag>("tauDiscrByLeadingTrackPtCutTag");
-  tauDiscrByLeadingPionPtCutTag_ = iConfig.getParameter<edm::InputTag>("tauDiscrByLeadingPionPtCutTag");
-  tauDiscrByIsolationTag_ = iConfig.getParameter<edm::InputTag>("tauDiscrByIsolationTag");
-  tauDiscrByIsolationUsingLeadingPionTag_ = iConfig.getParameter<edm::InputTag>("tauDiscrByIsolationUsingLeadingPionTag");
-  tauDiscrByTrackIsolationTag_ = iConfig.getParameter<edm::InputTag>("tauDiscrByTrackIsolationTag");
-  tauDiscrByTrackIsolationUsingLeadingPionTag_ = iConfig.getParameter<edm::InputTag>("tauDiscrByTrackIsolationUsingLeadingPionTag");
-  tauDiscrByECALIsolationTag_ = iConfig.getParameter<edm::InputTag>("tauDiscrByECALIsolationTag");
-  tauDiscrByECALIsolationUsingLeadingPionTag_ = iConfig.getParameter<edm::InputTag>("tauDiscrByECALIsolationUsingLeadingPionTag");
-  tauDiscrAgainstMuonTag_ = iConfig.getParameter<edm::InputTag>("tauDiscrAgainstMuonTag");
-  tauDiscrAgainstElectronTag_ = iConfig.getParameter<edm::InputTag>("tauDiscrAgainstElectronTag");
-  tauDiscrByTaNCTag_ = iConfig.getParameter<edm::InputTag>("tauDiscrByTaNCTag");
-  tauDiscrByTaNCfrHalfPercentTag_ = iConfig.getParameter<edm::InputTag>("tauDiscrByTaNCfrHalfPercentTag");
-  tauDiscrByTaNCfrOnePercentTag_ = iConfig.getParameter<edm::InputTag>("tauDiscrByTaNCfrOnePercentTag");
-  tauDiscrByTaNCfrQuarterPercentTag_ = iConfig.getParameter<edm::InputTag>("tauDiscrByTaNCfrQuarterPercentTag");
-  tauDiscrByTaNCfrTenthPercentTag_ = iConfig.getParameter<edm::InputTag>("tauDiscrByTaNCfrTenthPercentTag");
-  // HPS PFTau Discriminators
-  hpsTauDiscrByLooseElectronRejectionTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByLooseElectronRejectionTag");
-  hpsTauDiscrByMediumElectronRejectionTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByMediumElectronRejectionTag");
-  hpsTauDiscrByTightElectronRejectionTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByTightElectronRejectionTag");
-  hpsTauDiscrByLooseMuonRejectionTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByLooseMuonRejectionTag");
-  hpsTauDiscrByTightMuonRejectionTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByTightMuonRejectionTag");
-  hpsTauDiscrByDecayModeFindingTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByDecayModeFindingTag");
-  hpsTauDiscrByVLooseIsolationTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByVLooseIsolationTag");
-  hpsTauDiscrByLooseIsolationTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByLooseIsolationTag");
-  hpsTauDiscrByMediumIsolationTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByMediumIsolationTag");
-  hpsTauDiscrByTightIsolationTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByTightIsolationTag");
-  hpsTauDiscrByVLooseCombinedIsolationDBSumPtCorrTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByVLooseCombinedIsolationDBSumPtCorrTag");
-  hpsTauDiscrByLooseCombinedIsolationDBSumPtCorrTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByLooseCombinedIsolationDBSumPtCorrTag");
-  hpsTauDiscrByMediumCombinedIsolationDBSumPtCorrTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByMediumCombinedIsolationDBSumPtCorrTag");
-  hpsTauDiscrByTightCombinedIsolationDBSumPtCorrTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByTightCombinedIsolationDBSumPtCorrTag");
-  hpsTauDiscrAgainstMuonLoose2Tag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrAgainstMuonLoose2Tag");
-  hpsTauDiscrAgainstMuonMedium2Tag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrAgainstMuonMedium2Tag");
-  hpsTauDiscrAgainstMuonTight2Tag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrAgainstMuonTight2Tag");
-  hpsTauDiscrByLooseCombinedIsolationDeltaBetaCorr3HitsTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByLooseCombinedIsolationDeltaBetaCorr3HitsTag");
-  hpsTauDiscrByMediumCombinedIsolationDeltaBetaCorr3HitsTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByMediumCombinedIsolationDeltaBetaCorr3HitsTag");
-  hpsTauDiscrByTightCombinedIsolationDeltaBetaCorr3HitsTag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrByTightCombinedIsolationDeltaBetaCorr3HitsTag");
-  hpsTauDiscrAgainstElectronLooseMVA3Tag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrAgainstElectronLooseMVA3Tag");
-  hpsTauDiscrAgainstElectronMediumMVA3Tag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrAgainstElectronMediumMVA3Tag");
-  hpsTauDiscrAgainstElectronTightMVA3Tag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrAgainstElectronTightMVA3Tag");
-  hpsTauDiscrAgainstElectronVTightMVA3Tag_ = iConfig.getParameter<edm::InputTag>("hpsTauDiscrAgainstElectronVTightMVA3Tag");
-  // HPS Tanc Tau Discriminators
-  hpsTancTausDiscrByLeadingTrackFindingTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByLeadingTrackFindingTag");
-  hpsTancTausDiscrByLeadingTrackPtCutTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByLeadingTrackPtCutTag");
-  hpsTancTausDiscrByLeadingPionPtCutTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByLeadingPionPtCutTag");
-  hpsTancTausDiscrByTancTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByTancTag");
-  hpsTancTausDiscrByTancRawTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByTancRawTag");
-  hpsTancTausDiscrByTancVLooseTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByTancVLooseTag");
-  hpsTancTausDiscrByTancLooseTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByTancLooseTag");
-  hpsTancTausDiscrByTancMediumTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByTancMediumTag");
-  hpsTancTausDiscrByTancTightTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByTancTightTag");
-  hpsTancTausDiscrByLooseElectronRejectionTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByLooseElectronRejectionTag");
-  hpsTancTausDiscrByMediumElectronRejectionTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByMediumElectronRejectionTag");
-  hpsTancTausDiscrByTightElectronRejectionTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByTightElectronRejectionTag");
-  hpsTancTausDiscrByLooseMuonRejectionTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByLooseMuonRejectionTag");
-  hpsTancTausDiscrByTightMuonRejectionTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByTightMuonRejectionTag");
-  hpsTancTausDiscrByDecayModeSelectionTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByDecayModeSelectionTag");
-  hpsTancTausDiscrByVLooseIsolationTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByVLooseIsolationTag");
-  hpsTancTausDiscrByLooseIsolationTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByLooseIsolationTag");
-  hpsTancTausDiscrByMediumIsolationTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByMediumIsolationTag");
-  hpsTancTausDiscrByTightIsolationTag_ = iConfig.getParameter<edm::InputTag>("hpsTancTausDiscrByTightIsolationTag");
-
   // Hcal collections
   hcalNoiseSummaryLabel_ = iConfig.getParameter<edm::InputTag>("hcalNoiseSummary");
 
@@ -330,7 +257,7 @@ void HWWTreeDumper::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
   /// fill the run info (run number, event, ...)
   if(dumpRunInfo_) {
-    CmsRunInfoFiller runFiller( tree_, dumpMCTruth_ );
+    CmsRunInfoFiller runFiller( tree_, dumpMCTruth_, is8TeV_ );
     runFiller.dumpL1Trigger(dumpTriggerResults_);
     runFiller.dumpLogErrorFlags(dumpLogErrorFlags_);
     runFiller.writeRunInfoToTree(iEvent,iSetup,false);
@@ -395,14 +322,6 @@ void HWWTreeDumper::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
   }
 
-
-  // fill signal gg fusion k-factor
-  if (dumpSignalKfactor_) {
-    Handle<double> theFactor;
-    iEvent.getByLabel("KFactorProducer", theFactor );
-    double theKfactor = *theFactor;
-    tree_->column ("evtKfactor", theKfactor, 0., "kFac");
-  } 
 
   // fill Electrons block
   if(dumpElectrons_) {
@@ -671,100 +590,6 @@ void HWWTreeDumper::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     treeFill.writeCollectionToTree(muonCollection_, iEvent, iSetup, prefix, suffix, false);
   }
 
-  // fill PFTau block
-  if(dumpPFTaus_)
-    {
-      CmsPFTauFiller treeFill(tree_, true);
-      std::string prefix("");
-      std::string suffix("PFTau");
-      treeFill.savePFTauBasic(savePFTauBasic_);
-      treeFill.saveLeadPFCand(saveLeadPFCand_);
-      treeFill.writeCollectionToTree(pfTauCollection_, iEvent, iSetup, prefix, suffix,
-                                     tauDiscrByLeadingTrackFindingTag_,
-                                     tauDiscrByLeadingTrackPtCutTag_,
-                                     tauDiscrByLeadingPionPtCutTag_,
-                                     tauDiscrByIsolationTag_,
-                                     tauDiscrByIsolationUsingLeadingPionTag_,
-                                     tauDiscrByTrackIsolationTag_,
-                                     tauDiscrByTrackIsolationUsingLeadingPionTag_,
-                                     tauDiscrByECALIsolationTag_,
-                                     tauDiscrByECALIsolationUsingLeadingPionTag_,
-                                     tauDiscrAgainstMuonTag_,
-                                     tauDiscrAgainstElectronTag_,
-                                     tauDiscrByTaNCTag_,
-                                     tauDiscrByTaNCfrHalfPercentTag_,
-                                     tauDiscrByTaNCfrOnePercentTag_,
-                                     tauDiscrByTaNCfrQuarterPercentTag_,
-                                     tauDiscrByTaNCfrTenthPercentTag_,
-                                     false);
-
-    }
-
-  if(dumphpsPFTaus_)
-    {
-      CmsPFTauFiller treeFill(tree_, true);
-      std::string prefix("");
-      std::string suffix("PFTau");
-      treeFill.savePFTauBasic(savePFTauBasic_);
-      treeFill.saveLeadPFCand(saveLeadPFCand_);
-      treeFill.writeCollectionToTree(hpspfTauCollection_, iEvent, iSetup, prefix, suffix,
-                                     hpsTauDiscrByLooseElectronRejectionTag_,
-                                     hpsTauDiscrByMediumElectronRejectionTag_,
-                                     hpsTauDiscrByTightElectronRejectionTag_,
-                                     hpsTauDiscrByLooseMuonRejectionTag_,
-                                     hpsTauDiscrByTightMuonRejectionTag_,
-                                     hpsTauDiscrByDecayModeFindingTag_,
-                                     hpsTauDiscrByVLooseIsolationTag_,
-                                     hpsTauDiscrByLooseIsolationTag_,
-                                     hpsTauDiscrByMediumIsolationTag_,
-                                     hpsTauDiscrByTightIsolationTag_,
-                                     hpsTauDiscrByVLooseCombinedIsolationDBSumPtCorrTag_,
-                                     hpsTauDiscrByLooseCombinedIsolationDBSumPtCorrTag_,
-                                     hpsTauDiscrByMediumCombinedIsolationDBSumPtCorrTag_,
-                                     hpsTauDiscrByTightCombinedIsolationDBSumPtCorrTag_,                                     
-				     hpsTauDiscrAgainstMuonLoose2Tag_,
-				     hpsTauDiscrAgainstMuonMedium2Tag_,
-				     hpsTauDiscrAgainstMuonTight2Tag_,
-				     hpsTauDiscrByLooseCombinedIsolationDeltaBetaCorr3HitsTag_,
-				     hpsTauDiscrByMediumCombinedIsolationDeltaBetaCorr3HitsTag_,
-				     hpsTauDiscrByTightCombinedIsolationDeltaBetaCorr3HitsTag_,
-				     hpsTauDiscrAgainstElectronLooseMVA3Tag_,
-				     hpsTauDiscrAgainstElectronMediumMVA3Tag_,
-				     hpsTauDiscrAgainstElectronTightMVA3Tag_,
-				     hpsTauDiscrAgainstElectronVTightMVA3Tag_,
-                                     false);
-    }
-
-  if(dumphpsTancTaus_)
-    {
-      CmsPFTauFiller treeFill(tree_, true);
-      std::string prefix("");
-      std::string suffix("PFTau");
-      treeFill.savePFTauBasic(savePFTauBasic_);
-      treeFill.saveLeadPFCand(saveLeadPFCand_);
-      treeFill.writeCollectionToTree(hpsTancTausCollection_, iEvent, iSetup, prefix, suffix,
-                                     hpsTancTausDiscrByLeadingTrackFindingTag_,
-                                     hpsTancTausDiscrByLeadingTrackPtCutTag_,
-                                     hpsTancTausDiscrByLeadingPionPtCutTag_,
-                                     hpsTancTausDiscrByTancTag_,
-                                     hpsTancTausDiscrByTancRawTag_,
-                                     hpsTancTausDiscrByTancVLooseTag_,
-                                     hpsTancTausDiscrByTancLooseTag_,
-                                     hpsTancTausDiscrByTancMediumTag_,
-                                     hpsTancTausDiscrByTancTightTag_,
-                                     hpsTancTausDiscrByLooseElectronRejectionTag_,
-                                     hpsTancTausDiscrByMediumElectronRejectionTag_,
-                                     hpsTancTausDiscrByTightElectronRejectionTag_,
-                                     hpsTancTausDiscrByLooseMuonRejectionTag_,
-                                     hpsTancTausDiscrByTightMuonRejectionTag_,
-                                     hpsTancTausDiscrByDecayModeSelectionTag_,
-                                     hpsTancTausDiscrByVLooseIsolationTag_,
-                                     hpsTancTausDiscrByLooseIsolationTag_,
-                                     hpsTancTausDiscrByMediumIsolationTag_,
-                                     hpsTancTausDiscrByTightIsolationTag_,
-                                     false);
-    }
-
   // PF candidates
   if(dumpPFCandidates_) {
     CmsPFCandidateFiller treeFill(tree_);
@@ -866,54 +691,60 @@ void HWWTreeDumper::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     caloJetFiller.setJetCorrectionService(JetCorrectionService_);
     caloJetFiller.writeCollectionToTree(jetCollection1_, iEvent, iSetup, prefix, suffix, false, jetCollection2_);
 
-    // particle flow jets
-    if ( dumpParticleFlowObjects_ ) {  
-      CmsPFJetFiller pfJetFiller(tree_, true);
-      suffix = "AK5PFNoPUJet";
-      pfJetFiller.saveCand(saveCand_);
-      pfJetFiller.saveJetBTag(saveJetBTag_);
-      pfJetFiller.setBTags(PFJetsBTags_);
-      pfJetFiller.setjetMVAAlgos(_jetId_algos);
-      pfJetFiller.setVertexCollection(vertexCollection_);
-      pfJetFiller.setJetCorrectionService(PFJetCorrectionService_);
-      pfJetFiller.writeCollectionToTree(PFjetCollection1_, iEvent, iSetup, prefix, suffix, false);
-    }
+  }
 
-    // particle flow jets with correction for pileup
-    if ( dumpParticleFlowObjects_ && dumpPUcorrPFJet_ ) {
-      CmsPFJetFiller pfPUcorrJetFiller(tree_, true);
-      suffix = "AK5PFPUcorrJet";
-      pfPUcorrJetFiller.saveCand(saveCand_);
-      pfPUcorrJetFiller.saveJetBTag(saveJetBTag_);
-      pfPUcorrJetFiller.setBTags(PFPUcorrJetsBTags_);
-      pfPUcorrJetFiller.setjetMVAAlgos(_jetId_algos);
-      pfPUcorrJetFiller.setVertexCollection(vertexCollection_);
-      pfPUcorrJetFiller.setJetCorrectionService(PFJetCorrectionService_);
-      pfPUcorrJetFiller.writeCollectionToTree(PFpuCorrJetCollection1_, iEvent, iSetup, prefix, suffix, false);
-    }
+  if ( dumpParticleFlowObjects_ && dumpCHSPFJet_ ) { 
 
-    // Jet Plus Tracks jets: not used for the moment
-    //     CmsJPTJetFiller jptJetFiller(tree_, true);
-    //     suffix = "AK5JPTJet";
-    //     jptJetFiller.saveCand(saveCand_);
-    //     jptJetFiller.saveJetBTag(saveJetBTag_);
-    //     jptJetFiller.writeCollectionToTree(JPTjetCollection1_, iEvent, iSetup, prefix, suffix, false, JPTjetCollection2_);
-
-    // dump generated JETs
-    if(dumpGenJets_) {
-
-      CmsJetFiller genJetFiller(tree_, true);
-      suffix = "AK5GenJet";
-      genJetFiller.saveJetExtras(false);
-      genJetFiller.saveJetBTag(false);
-      genJetFiller.setJetCorrectionService(JetCorrectionService_);
-      genJetFiller.isGenJets(true);
-      genJetFiller.writeCollectionToTree(genJetCollection_, iEvent, iSetup, prefix, suffix, false);
-
-    }
+    // particle flow jets. These take as input the PFnoPU candidates. 
+    CmsPFJetFiller pfJetFiller(tree_, true);
+    std::string prefix("");
+    std::string suffix = "AK5PFNoPUJet";
+    pfJetFiller.saveCand(saveCand_);
+    pfJetFiller.saveJetBTag(saveJetBTag_);
+    pfJetFiller.setBTags(PFJetsBTags_);
+    pfJetFiller.setjetMVAAlgos(_jetId_algos);
+    pfJetFiller.setVertexCollection(vertexCollection_);
+    pfJetFiller.setJetCorrectionService(PFJetCorrectionService_);
+    pfJetFiller.writeCollectionToTree(PFjetCollection1_, iEvent, iSetup, prefix, suffix, false);
 
   }
+
+  // particle flow jets with correction for pileup
+  if ( dumpParticleFlowObjects_ && dumpPUcorrPFJet_ ) {
+
+    CmsPFJetFiller pfPUcorrJetFiller(tree_, true);
+    std::string prefix("");
+    std::string suffix = "AK5PFPUcorrJet";
+    pfPUcorrJetFiller.saveCand(saveCand_);
+    pfPUcorrJetFiller.saveJetBTag(saveJetBTag_);
+    pfPUcorrJetFiller.setBTags(PFPUcorrJetsBTags_);
+    pfPUcorrJetFiller.setjetMVAAlgos(_jetId_algos);
+    pfPUcorrJetFiller.setVertexCollection(vertexCollection_);
+    pfPUcorrJetFiller.setJetCorrectionService(PFJetCorrectionService_);
+    pfPUcorrJetFiller.writeCollectionToTree(PFpuCorrJetCollection1_, iEvent, iSetup, prefix, suffix, false);
+
+  }
+
+  // Jet Plus Tracks jets: not used for the moment
+  //     CmsJPTJetFiller jptJetFiller(tree_, true);
+  //     suffix = "AK5JPTJet";
+  //     jptJetFiller.saveCand(saveCand_);
+  //     jptJetFiller.saveJetBTag(saveJetBTag_);
+  //     jptJetFiller.writeCollectionToTree(JPTjetCollection1_, iEvent, iSetup, prefix, suffix, false, JPTjetCollection2_);
   
+  // dump generated JETs
+  if(dumpGenJets_) {
+    
+    CmsJetFiller genJetFiller(tree_, true);
+    std::string prefix("");
+    std::string suffix = "AK5GenJet";
+    genJetFiller.saveJetExtras(false);
+    genJetFiller.saveJetBTag(false);
+    genJetFiller.setJetCorrectionService(JetCorrectionService_);
+    genJetFiller.isGenJets(true);
+    genJetFiller.writeCollectionToTree(genJetCollection_, iEvent, iSetup, prefix, suffix, false);
+    
+  }
 
   // dump infos on MC production 
   if (dumpGenInfo_) {

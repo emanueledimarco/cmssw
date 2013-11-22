@@ -51,7 +51,7 @@ struct CmsMuonFillerData : public CmsCandidateFillerData {
     *pfIsolationSumPUPtR03, *pfIsolationSumPUPtR04,
     *mvaiso,
     *pfCandChargedPUIso03, *pfCandChargedPUIso04;
-  vector<float> *kink;
+  vector<float> *kink, *scaledMomentum;
 
 public:
   void initialise();
@@ -91,6 +91,8 @@ class CmsMuonFiller : public CmsCandidateFiller {
   void setVertexCollection(edm::InputTag collectionTag);
   //! set the muon MVA algo
   void setMuonIsoMVA(MuonMVAEstimator* algo) { fMuonIsoMVA = algo; }
+  //! set the clibrated muon collection
+  void setCalibMuonCollection(edm::InputTag collectionTag) { m_calibMuonCollectionTag = collectionTag; }
 
   // Operators
 
@@ -123,6 +125,7 @@ class CmsMuonFiller : public CmsCandidateFiller {
 
   edm::InputTag generalTracks_;
   edm::InputTag m_vxtCollectionTag;
+  edm::InputTag m_calibMuonCollectionTag;
 
   CmsTree *cmstree;
 

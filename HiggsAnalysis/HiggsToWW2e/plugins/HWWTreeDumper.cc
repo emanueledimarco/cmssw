@@ -147,6 +147,7 @@ HWWTreeDumper::HWWTreeDumper(const edm::ParameterSet& iConfig)
   pflowElectronCollection_ = iConfig.getParameter<edm::InputTag>("pflowElectronCollection");
   photonCollection_        = iConfig.getParameter<edm::InputTag>("photonCollection");
   muonCollection_          = iConfig.getParameter<edm::InputTag>("muonCollection");
+  calibMuonCollection_     = iConfig.getParameter<edm::InputTag>("calibMuonCollection");
   PFCandidateCollection_   = iConfig.getParameter<edm::InputTag>("PFCandidateCollection");
   PFPUCandidateCollection_  = iConfig.getParameter<edm::InputTag>("PFPUCandidateCollection");
   PFNoPUCandidateCollection_  = iConfig.getParameter<edm::InputTag>("PFNoPUCandidateCollection");
@@ -558,6 +559,8 @@ void HWWTreeDumper::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     treeFill.setMuonIsoMVA(fMuonIsoMVA);
     treeFill.saveCand(saveCand_);
     treeFill.saveFatTrk(saveFatTrk_);
+    // for the fully calibrated muons
+    treeFill.setCalibMuonCollection(calibMuonCollection_);
     treeFill.writeCollectionToTree(muonCollection_, iEvent, iSetup, prefix, suffix, false);
   }
 

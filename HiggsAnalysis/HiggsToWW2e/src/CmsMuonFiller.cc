@@ -27,6 +27,7 @@
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "DataFormats/MuonReco/interface/MuonSelectors.h"
 
+#include "HiggsAnalysis/Tools/interface/MuonMatcher.hh"
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsTree.h"
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsCandidateFiller.h"
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsMuonFiller.h"
@@ -131,6 +132,7 @@ CmsMuonFiller::~CmsMuonFiller() {
   delete privateData_->  nTrk05;
   delete privateData_->  nJets05;
   delete privateData_->  kink;
+  delete privateData_->  scaledMomentum;
 
   delete privateData_->pfCombinedIso;
   delete privateData_->pfCandChargedIso03;
@@ -187,6 +189,11 @@ void CmsMuonFiller::writeCollectionToTree(edm::InputTag collectionTag,
   catch(cms::Exception& ex ) {edm::LogWarning("CmsVertexFiller") << "Can't get candidate collection: " << m_vxtCollectionTag; }
 
   iEvent.getByLabel("particleFlow",pfCands);
+
+  //  for calib muons
+  Handle< edm::View<reco::Muon> > calibMuonsHandle;
+  iEvent.getByLabel(m_calibMuonCollectionTag, calibMuonsHandle);
+  const edm::View<reco::Muon> *calibMuons = calibMuonsHandle.product();
 
   privateData_->clearTrkVectors();
 
@@ -257,6 +264,12 @@ void CmsMuonFiller::writeCollectionToTree(edm::InputTag collectionTag,
 
       // fill tracks extra informations (only if the muon has a tracker track)
       if(saveTrk_) writeTrkInfo(&(*cand),iEvent,iSetup,&(*muon));
+
+      // fill the calibrated momentum by matching the corrected collection
+      MuonMatcher matcher(*calibMuons);
+      MuonRef calibmu = matcher.matchByTrack(muonRef);
+      privateData_->scaledMomentum->push_back(calibmu->energy());
+
       imu++;
     }
   }
@@ -521,6 +534,7 @@ void CmsMuonFiller::treeMuonInfo(const std::string &colPrefix, const std::string
 
   cmstree->column((colPrefix+"kink"+colSuffix).c_str(),  *privateData_->kink, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"mvaiso"+colSuffix).c_str(),  *privateData_->mvaiso, nCandString.c_str(), 0, "Reco");
+  cmstree->column((colPrefix+"scaledMomentum"+colSuffix).c_str(),  *privateData_->scaledMomentum, nCandString.c_str(), 0, "Reco");
 
 }
 
@@ -567,6 +581,7 @@ void CmsMuonFillerData::initialise() {
   
   kink = new vector<float>;
   mvaiso = new vector<float>;
+  scaledMomentum = new vector<float>;
 
 }
 
@@ -614,6 +629,6 @@ void CmsMuonFillerData::clearTrkVectors() {
 
   kink->clear();
   mvaiso->clear();
-
+  scaledMomentum->clear();
   
 }

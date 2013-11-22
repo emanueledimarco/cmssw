@@ -131,7 +131,7 @@ private:
   std::vector<PileupJetIdAlgo* > _jetId_algos;
 
   //! candidate collections in input
-  edm::InputTag electronCollection_, calibElectronCollection_, muonCollection_,pflowElectronCollection_;
+  edm::InputTag electronCollection_, calibElectronCollection_, muonCollection_, calibMuonCollection_, pflowElectronCollection_;
   edm::InputTag photonCollection_;
   edm::InputTag jetCollection1_, genJetCollection_, jetCollection2_;
   edm::InputTag PFpuCorrJetCollection1_, PFpuCorrJetCollection2_, PFpuCorrJetCollection3_;

@@ -17,10 +17,6 @@
 #include <TTree.h>
 #include <TFile.h>
 
-
-#include "HiggsAnalysis/HiggsToGammaGamma/interface/EGEnergyCorrector.h"
-#include "HiggsAnalysis/HiggsToGammaGamma/interface/PhotonFix.h"
-
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterFunctionFactory.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterFunctionBaseClass.h"
 #include "CondFormats/EcalObjects/interface/EcalFunctionParameters.h" 
@@ -102,7 +98,7 @@ private:
   //! dump reco / generated MET block
   bool dumpMet_, dumpGenMet_;
   //! dump Super/Basic Clusters block
-  bool dumpSCs_, dumpBCs_;
+  bool dumpSCs_, dumpBCs_, dumpPhoPFClusters_;
   //! dump tracks
   bool dumpTracks_, dumpLinkedTracks_, dumpGsfTracks_, dumpMuonTracks_;
   //! dump the primary vertices of the event
@@ -133,13 +129,6 @@ private:
   MuonMVAEstimator *fMuonIsoMVA;
   EGammaMvaEleEstimator *fEleIdMVANonTrig, *fEleIdMVATrig, *fEleIdMVATrigIdIsoCombined;
   std::vector<PileupJetIdAlgo* > _jetId_algos;
-
-  bool usePhotonFix_;
-
-  bool useEnergyRegression_;
-
-  std::string energyRegressionElectronFile_;
-  std::string energyRegressionPhotonFile_;
 
   //! candidate collections in input
   edm::InputTag electronCollection_, calibElectronCollection_, muonCollection_,pflowElectronCollection_;
@@ -242,18 +231,5 @@ private:
   std::vector<std::string>* trgNames_;
   std::vector<std::string>* LHEComments_;
 
-  edm::ParameterSet phFixElePar_;
-  edm::ParameterSet phFixPhoPar_;
-
-  edm::ParameterSet posCalcParameters_;
-
-  EGEnergyCorrector* eCorrector_;
-  EGEnergyCorrector* pCorrector_;
-  PhotonFix* phFixE_;
-  PhotonFix* phFixP_;
-
-  EcalClusterFunctionBaseClass* energyCorrectionF;
-
-  PositionCalc* posCalculator_;
 };
 #endif // HWWTreeDumper_h

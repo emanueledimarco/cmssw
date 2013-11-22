@@ -44,13 +44,14 @@ class CmsRunInfoFiller {
 
 public:
   
-  CmsRunInfoFiller(CmsTree *tree, bool isMC);
+  CmsRunInfoFiller(CmsTree *tree, bool isMC, bool is8TeV);
   virtual ~CmsRunInfoFiller();
 
   void dumpL1Trigger(bool what) { dumpL1_ = what; }
   void dumpLogErrorFlags(bool what) { dumpLogErrorFlags_ = what; }
   void writeRunInfoToTree(const edm::Event&, const edm::EventSetup&, 
                           bool dumpData=false);
+  void is8TeV(bool what) { is8TeV_ = what; }
 
 protected:
 
@@ -60,6 +61,7 @@ protected:
   
   CmsTree *cmstree;
   bool isMC_;
+  bool is8TeV_;
   bool dumpL1_;
   bool dumpLogErrorFlags_;
 

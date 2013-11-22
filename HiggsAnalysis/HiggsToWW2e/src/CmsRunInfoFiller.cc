@@ -7,13 +7,14 @@
 using namespace edm;
 using namespace std;
 
-CmsRunInfoFiller::CmsRunInfoFiller(CmsTree *cmsTree, bool isMC): 
+CmsRunInfoFiller::CmsRunInfoFiller(CmsTree *cmsTree, bool isMC, bool is8TeV): 
   privateData_(new CmsRunInfoFillerData) {
 
   cmstree=cmsTree;
   privateData_->setMC(isMC);
   privateData_->initialise();
   isMC_=isMC;
+  is8TeV_=is8TeV;
   dumpL1_=true;
 }
 
@@ -137,12 +138,13 @@ void CmsRunInfoFiller::writeRunInfoToTree(const edm::Event& iEvent, const edm::E
   // get the rho parameter from Fastjet computation - isolation
   edm::Handle<double> rhoH, sigmaH;
   float rho;
-  if( iEvent.getByLabel(edm::InputTag("kt6PFJetsForIsolation","rho"),rhoH) )
+  std::string isolationRhoLabel = (is8TeV_) ? "kt6PFJets" : "kt6PFJetsForIsolation";
+  if( iEvent.getByLabel(edm::InputTag(isolationRhoLabel,"rho"),rhoH) )
     rho = *rhoH;
   else
     rho = 0.;
   float sigma;
-  if( iEvent.getByLabel(edm::InputTag("kt6PFJetsForIsolation","sigma"),sigmaH) )
+  if( iEvent.getByLabel(edm::InputTag(isolationRhoLabel,"sigma"),sigmaH) )
     sigma = *sigmaH;
   else
     sigma = 0.;

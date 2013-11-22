@@ -21,7 +21,9 @@ goodGenJets = cms.EDFilter("GenJetRefSelector",
                              cut = cms.string("pt > 10.0 & abs( eta ) < 5.0")
                              )
 
-collectionsFilterSequence = cms.Sequence(goodPhotons *
-                                         goodPFJets *
-                                         goodPFCHSJets *
-                                         goodGenJets)
+collectionsFilterSequenceMC = cms.Sequence(goodPhotons *
+                                           goodPFJets *
+                                           goodGenJets )
+
+collectionsFilterSequenceData = cms.Sequence(goodPhotons *
+                                             goodPFJets )

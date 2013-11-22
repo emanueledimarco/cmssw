@@ -98,12 +98,39 @@ process.load("HiggsAnalysis.HiggsToWW2e.electronIdSequence_cff")
 
 # --- electron regression and corrections ---
 process.load("HiggsAnalysis.HiggsToWW2e.calibratedElectronsSequence_cff")
+process.calibratedElectrons.isMC = isMC
+eleCalibString = "22Jan2013ReReco"
 if(isMC):
-    process.calibratedElectrons.isMC = cms.bool(True)                       
-    process.calibratedElectrons.inputDataset = cms.string("Summer12_LegacyPaper")
+    if(is42X):
+        eleCalibString = "Fall11"
+    else:
+        eleCalibString = "Summer12_LegacyPaper"
 else:
-    process.calibratedElectrons.isMC = cms.bool(False)                       
-    process.calibratedElectrons.inputDataset = cms.string("22Jan2013ReReco")
+    if(is42X):
+        eleCalibString = "Jan16ReReco"
+    else:
+        eleCalibString = "22Jan2013ReReco"
+
+process.calibratedElectrons.inputDataset = eleCalibString
+
+
+# --- muon MuScleFit corrections ---
+process.load("HiggsAnalysis.HiggsToWW2e.scaledMuonsSequence_cff")
+process.scaledMuons.applySmearing = isMC
+muonCalibString = "Data2012_53X_ReReco"
+if(is42X):
+    if(isMC):
+        muonCalibString = "Fall11_START42"
+    else:
+        muonCalibString = "Data2011_42X"
+else:
+    if(isMC):
+        muonCalibString = "Summer12_DR53X_smearReReco"
+    else:
+        muonCalibString = "Data2012_53X_ReReco"
+
+process.scaledMuons.identifier = muonCalibString
+
 
 # --- pf isolation sequence ---
 process.load("HiggsAnalysis.HiggsToWW2e.leptonPFIsoSequence_cff")
@@ -180,6 +207,7 @@ else:
     process.skim = cms.Sequence( )
 
 process.prejets = cms.Sequence( process.eCalibSequence
+                                * process.scaledMuons
                                 * process.leptonLinkedTracks 
                                 * process.electronAndPhotonSuperClustersSequence
                                 * process.chargedMetProducer
@@ -229,7 +257,7 @@ massSearchReplaceAnyInputTag(process.jets,cms.InputTag("offlinePrimaryVertices")
 massSearchReplaceAnyInputTag(process.postjets,cms.InputTag("offlinePrimaryVertices"), cms.InputTag("goodPrimaryVertices"),True)
 
 process.MessageLogger.destinations = ['cout', 'cerr']
-process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
+process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 
 if(process.treeDumper.dumpPdfWeight == False) :
     process.vecbosPath = cms.Path ( process.skim

@@ -36,9 +36,6 @@
 
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsTree.h"
 
-#include "HiggsAnalysis/HiggsToGammaGamma/interface/EGEnergyCorrector.h"
-#include "HiggsAnalysis/HiggsToGammaGamma/interface/PhotonFix.h"
-
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterFunctionFactory.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterFunctionBaseClass.h"
 #include "CondFormats/EcalObjects/interface/EcalFunctionParameters.h" 
@@ -60,10 +57,6 @@ struct CmsSuperClusterFillerData {
   vector<int> *esL1Strips, *esL2Strips;
 //   vector<float> *etaC,*etaS,*etaM,*phiC,*phiS,*phiM;
 //   vector<float> *xZ,*xC,*xS,*xM,*yZ,*yC,*yS,*yM;
-  vector<float> * photonFix_phoE,* photonFix_phoSigma;
-  vector<float> * photonFix_eleE,* photonFix_eleSigma;
-  vector<float> * regrCorr_phoE,* regrCorr_phoSigma;
-  vector<float> * regrCorr_eleE,* regrCorr_eleSigma;
 
   vector<float> *hOverE;
   int *nSC;
@@ -105,15 +98,6 @@ public:
   //! set the rechits for preshower (needed for cluster shapes)
   void setESRecHits( edm::InputTag ESRecHits ) { ESRecHits_ = ESRecHits; }
 
-  void setEGEnergyCorrectorElectron( EGEnergyCorrector* eg) { eCorrector_=eg; }
-  void setEGEnergyCorrectorPhoton( EGEnergyCorrector* eg) { pCorrector_=eg; }
-
-  void setPhotonFixElectron( PhotonFix* eg) { photonFixE_=eg; }
-  void setPhotonFixPhoton( PhotonFix* eg) { photonFixP_=eg; }
-
-  void setPositionCalc( PositionCalc* pos) { posCalculator_=pos; }
-  
-  void setEnergyCorrectionFunction( EcalClusterFunctionBaseClass* ef ) { energyCorrectionF=ef; }
 protected:
   virtual void writeSCInfo(const reco::SuperCluster *cand, 
 			   const edm::Event&, const edm::EventSetup&,
@@ -139,15 +123,6 @@ protected:
 
   int maxSC_;
   std::string *trkIndexName_;
-
-  EGEnergyCorrector* eCorrector_;
-  EGEnergyCorrector* pCorrector_;
-
-  PhotonFix* photonFixE_;
-  PhotonFix* photonFixP_;
-
-  PositionCalc* posCalculator_;
-  EcalClusterFunctionBaseClass* energyCorrectionF;
 
   std::map<DetId, EcalRecHit> es_rechits_map_;
 };

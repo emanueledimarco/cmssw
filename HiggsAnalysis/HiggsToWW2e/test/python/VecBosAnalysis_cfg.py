@@ -2,11 +2,15 @@ import FWCore.ParameterSet.Config as cms
 
 # configure here #
 isMC = True
+isFastSim = False
 is42X = False
 is52X = False
 runOnAOD = 1
 doDiLeptonSkim = False
 ##################
+
+if(isFastSim):
+    isMC = True
 
 process = cms.Process("VecBosAnalysis")
 
@@ -38,7 +42,10 @@ if(isMC):
     elif(is52X):
         inputfile = cms.untracked.vstring('file:/cmsrm/pc21_2/emanuele/data/AOD_WWSummer12.root')
     else:
-        inputfile = cms.untracked.vstring('/store/mc/Summer12_DR53X/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/GEN-SIM-RECO/HLT8E33_PU_S10_START53_V7I-v1/30000/FCC5A42A-1A7A-E211-B82D-0025901D4B08.root')
+        if(isFastSim):
+            inputfile = cms.untracked.vstring('file:/cmsrm/pc23_2/emanuele/data/Pool/SMS-T2bb_2J_mSbottom-100to475_mLSP-1to465_TuneZ2star_8TeV-madgraph-tauola.root')
+        else:
+            inputfile = cms.untracked.vstring('/store/mc/Summer12_DR53X/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/GEN-SIM-RECO/HLT8E33_PU_S10_START53_V7I-v1/30000/FCC5A42A-1A7A-E211-B82D-0025901D4B08.root')
 else:
     if(is42X):
         inputfile = cms.untracked.vstring('file:/cmsrm/pc24_2/emanuele/data/reRecoMay10File.root')
@@ -193,6 +200,10 @@ else :
     process.treeDumper.dumpPFlowElectrons = True
     process.treeDumper.dumpHcalNoiseFlags = True
     process.treeDumper.AODHcalNoiseFlags = False
+if(isFastSim):
+    process.treeDumper.dumpHcalNoiseFlags = False
+    process.treeDumper.AODHcalNoiseFlags = False
+
 process.treeDumper.dumpTree = True
 
 
@@ -240,6 +251,9 @@ process.postjets = cms.Sequence( process.eIdSequence
 # this is needed only for 42X, since after that the isolation is corrected with the kt6PFJets rho
 if(is42X):
     process.postjet *=  process.FastjetForIsolation
+else:
+    if(isFastSim):
+        process.eleRegressionEnergy.rhoCollection = "kt6PFJets:rho:HLT"
 
 
 if(isMC):

@@ -1,0 +1,16 @@
+? RecoEgamma/ElectronIdentification/myelectronfxs
+? RecoEgamma/ElectronIdentification/myelectronfxs2
+? RecoEgamma/ElectronIdentification/python/__init__.py
+Index: RecoEgamma/ElectronIdentification/plugins/ElectronIDExternalProducer.h
+===================================================================
+RCS file: /cvs/CMSSW/CMSSW/RecoEgamma/ElectronIdentification/plugins/ElectronIDExternalProducer.h,v
+retrieving revision 1.2
+diff -r1.2 ElectronIDExternalProducer.h
+39c39
+<      edm::Handle<reco::GsfElectronCollection> electrons;
+---
+>      edm::Handle<edm::View<reco::GsfElectron> > electrons;
+47c47
+<      for ( reco::GsfElectronCollection::const_iterator eleIt = electrons->begin () ;
+---
+>      for ( edm::View<reco::GsfElectron>::const_iterator eleIt = electrons->begin () ;

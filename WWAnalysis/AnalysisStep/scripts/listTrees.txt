@@ -1,0 +1,41 @@
+#'input' 'output'
+#
+#'id1' 'histo.id1.root'
+#'id2' 'histo.id2.root'
+#'id3' 'histo.id3.root'
+#
+#'id4' 'histo.id4.root'
+#
+#'id5' 'histo.id5.root'
+#'id6' 'histo.id6.root'
+#'id7' 'histo.id7.root'
+#'id8' 'histo.id8.root'
+#
+##'id9' 'histo.id9.root'
+##'id10' 'histo.id10.root'
+#
+#'id11_job1' 'histo.id11_1.root'
+#'id11_job2' 'histo.id11_2.root'
+#'id11_job3' 'histo.id11_3.root'
+#'id11_job4' 'histo.id11_4.root'
+#'id11_job5' 'histo.id11_5.root'
+#'id11_job6' 'histo.id11_6.root'
+#'id11_job7' 'histo.id11_7.root'
+#'id11_job8' 'histo.id11_8.root'
+#'id11_job9' 'histo.id11_9.root'
+#'id11_job10' 'histo.id11_10.root'
+#'id11_job11' 'histo.id11_11.root'
+## hadd histo.id11.root histo.id11_1.root histo.id11_2.root histo.id11_3.root histo.id11_4.root histo.id11_5.root histo.id11_6.root histo.id11_7.root histo.id11_8.root histo.id11_9.root histo.id11_10.root histo.id11_11.root 
+#
+#'id12' 'histo.id12.root'
+#'id13' 'histo.id13.root'
+#'id14' 'histo.id14.root'
+#'id15' 'histo.id15.root'
+#'id16' 'histo.id16.root'
+#'id17' 'histo.id17.root'
+#'id18' 'histo.id18.root'
+#'id19' 'histo.id19.root'
+'id20' 'histo.id20.root'
+#
+#'id115' 'histo.id115.root'
+#

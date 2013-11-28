@@ -1,0 +1,22 @@
+#!/bin/bash
+NJ=4
+DIR=/nfs/bluearc/group/skims/ww/oct29Skim
+DATASETS="MuRun2010B MuSep17"
+if [[ "$*" != "" ]]; then DATASETS="$*"; fi;
+for DS in $DATASETS; do
+    CUST="tp_lepton_effs_cust_data.py";
+    MAXFILES="" 
+    if echo $DS | grep -q "Run2010B\|Sep17"; then 
+        CUST="tp_lepton_effs_cust_data.py";
+    else
+        CUST="tp_lepton_effs_cust_mc.py";
+        MAXFILES="--maxfiles=$NJ"
+    fi;
+    /afs/cern.ch/user/g/gpetrucc/pl/cmsSplit.pl --bash -n $NJ \
+        tp_lepton_effs_on_hwwskim.py \
+        --label $DS --files=$DIR/$DS/*root $MAXFILES \
+        --customize $CUST && \
+    ./tp_lepton_effs_on_hwwskim_${DS}_local.sh  # && ./tp_lepton_effs_on_hwwskim_${DS}_cleanup.sh 
+done
+    
+    

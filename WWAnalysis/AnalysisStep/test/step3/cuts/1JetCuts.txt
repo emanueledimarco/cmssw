@@ -1,0 +1,12 @@
+trigger: trigger
+$\met$: pfmet > 20
+$m_{\ell\ell} > 20/12$: mll > (12+8*sameflav)
+Z veto: zveto 
+p$\met>40/20$: mpmet > (20+((17+nvtx/2.)*sameflav))
+one jet: njet == 1 
+$\Delta\phi(ll,j)$: dphiveto||!sameflav
+soft-$\mu$ veto: bveto_mu 
+lepton veto: nextra == 0 
+b-tag veto : bveto_ip && nbjet == 0
+$p_{T}^{sf trail} > 15$ GeV : pt2>15||!sameflav
+$p_{T}^{ll} > 45$ GeV : ptll > 45

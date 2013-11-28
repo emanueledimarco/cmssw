@@ -1,0 +1,7 @@
+met: met > 20
+m(ll) > 12: mll > 12
+Z veto: zveto 
+pMET > 35/20: pmmet > (20+15*sameflav)
+Jet veto: njet == 0
+B veto: bveto
+m(ll) > 100: mll > 100

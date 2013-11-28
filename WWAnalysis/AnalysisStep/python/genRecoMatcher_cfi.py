@@ -1,0 +1,21 @@
+import FWCore.ParameterSet.Config as cms
+
+genRecoMatcher = cms.EDFilter("RecoFinalStateMatcher",
+    genParticles = cms.InputTag("prunedGen"),
+    genPhotonPtMin = cms.double(3.0),
+    muons = cms.InputTag("recMu"),
+    muonSelection = cms.string(""),
+    muonDEtaScale   = cms.double(0.01),
+    muonDPhiScale   = cms.double(0.01),
+    muonDPtRelScale = cms.double(0.3),
+    electrons = cms.InputTag("recEl"),
+    electronSelection = cms.string(""),
+    electronDEtaScale   = cms.double(0.05),
+    electronDPhiScale   = cms.double(0.25),
+    electronDPtRelScale = cms.double(1.0),
+    photons = cms.InputTag("reducedPFCands"),
+    photonSelection = cms.string("pdgId == 22 && pt > 2"),
+    photonDEtaScale   = cms.double(0.02),
+    photonDPhiScale   = cms.double(0.25),
+    photonDPtRelScale = cms.double(1.0),
+)

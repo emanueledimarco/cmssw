@@ -1,0 +1,9 @@
+Index: DataFormats/PatCandidates/src/Jet.cc
+===================================================================
+RCS file: /cvs/CMSSW/CMSSW/DataFormats/PatCandidates/src/Jet.cc,v
+retrieving revision 1.42
+diff -r1.42 Jet.cc
+249c249
+<   return jec_.at(set).correction(level, flavor)/jec_.at(set).correction(currentJECLevel_, currentJECFlavor_);
+---
+>   return jec_.at(set).correction(level, flavor)/jec_.at(0).correction(currentJECLevel_, currentJECFlavor_);

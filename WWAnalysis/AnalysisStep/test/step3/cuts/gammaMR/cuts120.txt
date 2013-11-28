@@ -1,0 +1,5 @@
+$m_{\ell\ell} < 40$: mll < 40
+$p_T^{max} > 20$: pt1 > 20
+$p_T^{min} > 10$: pt2 > 10
+$\Delta\phi < 115$: dphill < 3.14159265/180.*115
+$2\cdot\gamma m_R^*/m_H$: 0.5 < 2*gammaMRStar/120 && 2*gammaMRStar/120 < 1.1

@@ -1,0 +1,15 @@
+<use   name="FWCore/Framework"/>
+<use   name="FWCore/PluginManager"/>
+<use   name="FWCore/ParameterSet"/>
+<use   name="DataFormats/MuonReco"/>
+<use   name="DataFormats/VertexReco"/>
+<use   name="DataFormats/METReco"/>
+<use   name="DataFormats/JetReco"/>
+<use   name="DataFormats/EgammaCandidates"/>
+<use   name="RecoEgamma/EgammaTools"/>
+<use   name="DataFormats/PatCandidates"/>
+<use   name="CommonTools/RecoAlgos"/>
+<use   name="CommonTools/UtilAlgos"/>
+<use   name="rootmath"/>
+<use   name="HiggsAnalysis/HiggsToWW2Leptons"/>
+<flags   EDM_PLUGIN="1"/>

@@ -1,0 +1,5 @@
+$m_{\ell\ell} < 500$: mll < 500
+$p_T^{max} > 140$: pt1 > 140
+$p_T^{min} > 25$: pt2 > 25
+$\Delta\phi < 175$: dphill < 3.14159265/180.*175.
+$m_T^H$:  120 < mth && mth < 600

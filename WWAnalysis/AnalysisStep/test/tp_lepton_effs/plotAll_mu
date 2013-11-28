@@ -1,0 +1,25 @@
+#!/bin/bash
+
+if [[ "$1" == "mc" ]]; then
+    rm plots/muonid_mc/*{png,txt,pdf};
+    for X in all id hlt iso; do
+        root.exe -b -l -q TnP_Z_MuID_mc_some.$X.root TnP_Z_MuID_mc_some.$X.root 'plotMuonID.cxx+(0,"muonid_mc")';
+    done;
+    exit;
+fi;
+
+if [[ "$1" == "test" ]]; then
+    rm plots/muonid_test/*{png,txt,pdf};
+    for X in all id hlt iso; do
+        root.exe -b -l -q TnP_Z_MuID_data_all.$X.root TnP_Z_MuID_data_all.$X.root 'plotMuonID.cxx+(0,"muonid_test")';
+    done;
+    exit;
+fi;
+
+rm plots/muonid/*{png,pdf}
+for X in all hlt; do
+    root.exe -b -l -q TnP_Z_MuID_data_all.$X.root TnP_Z_MuID_mc_some.$X.root 'plotMuonID.cxx+(1)';
+done;
+#for X in mu9 mu15 iso; do
+#    root.exe -b -l -q TnP_Z_MuID_data_all.$X.root  'plotMuonID.cxx+(1)';
+#done;

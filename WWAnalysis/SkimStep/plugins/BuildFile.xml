@@ -1,0 +1,26 @@
+<export>
+</export>
+<library   name="WWAnalysisSkimStep_plugins" file="*.cc">
+  <flags   EDM_PLUGIN="1"/>
+  <use   name="FWCore/Framework"/>
+  <use   name="FWCore/MessageLogger"/>
+  <use   name="FWCore/PluginManager"/>
+  <use   name="FWCore/ParameterSet"/>
+  <use   name="FWCore/ServiceRegistry"/>
+  <use   name="DataFormats/TrackReco"/>
+  <use   name="DataFormats/RecoCandidate"/>
+  <use   name="DataFormats/ParticleFlowCandidate"/>
+  <use   name="DataFormats/VertexReco"/>
+  <use   name="DataFormats/Candidate"/>
+  <use   name="DataFormats/Common"/>
+  <use   name="PhysicsTools/PatUtils"/>
+  <use   name="TrackingTools/GeomPropagators"/>
+  <use   name="RecoTracker/Record"/>
+  <use   name="TrackingTools/KalmanUpdators"/>
+  <use   name="RecoTracker/MeasurementDet"/>
+  <use   name="RecoTracker/TkNavigation"/>
+  <use   name="MagneticField/Engine"/>
+  <use   name="MagneticField/Records"/>
+  <use   name="RecoTracker/TkDetLayers"/>
+#  <use   name=""/>
+</library>

@@ -1,0 +1,10 @@
+<use name="FWCore/Framework"/>
+<use name="DataFormats/PatCandidates"/>
+<use name="MagneticField/Engine"/>
+<use name="MagneticField/Records"/>
+<use name="TrackingTools/TransientTrack"/>
+<use name="root"/>
+
+<export>
+  <lib   name="1"/>
+</export>

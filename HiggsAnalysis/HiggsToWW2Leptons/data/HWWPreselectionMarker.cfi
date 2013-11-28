@@ -1,0 +1,13 @@
+module preselectionMarker = HWWPreselectionMarker {
+  InputTag ElectronLabel	  = isolatedElectrons
+  InputTag MuonLabel		  = isolatedMuons
+  InputTag JetLabel		  = iterativeCone5CaloJets
+  InputTag CaloMetLabel 	  = muonCorrectedMET
+
+  double LeptonPtMinMin 	  = 10
+  double LeptonPtMaxMin 	  = 20
+  double LeptonEtaMax		  = 2.5
+  double LeptonChargeCombination  = -1
+  double MetMin 		  = 30
+  double InvMassMin		  = 12
+}

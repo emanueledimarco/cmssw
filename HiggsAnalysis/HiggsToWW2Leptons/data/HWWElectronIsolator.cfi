@@ -1,0 +1,18 @@
+module isolatedElectrons = HWWElectronIsolation {
+
+  InputTag src  			      = pixelMatchGsfElectrons
+  InputTag SelectedElectronRefCollectionLabel = selectedElectronsRef
+  InputTag TrckIsolationProducerLabel 	      = egammaElectronTkRelIsolation
+  double TrackIsolCut			      = 0.1
+  bool doRefCheck			      = true
+}
+
+module isolatedElectronsRef = HWWElectronIsolationRef {
+
+  InputTag src  			      = pixelMatchGsfElectrons        
+  InputTag SelectedElectronRefCollectionLabel = selectedElectronsRef
+  InputTag TrckIsolationProducerLabel 	      = egammaElectronTkRelIsolation
+  double TrackIsolCut			      = 0.1
+  bool doRefCheck			      = true
+}
+

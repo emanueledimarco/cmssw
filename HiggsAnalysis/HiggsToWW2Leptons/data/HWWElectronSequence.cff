@@ -1,0 +1,33 @@
+# --- electron identification ---
+include "EgammaAnalysis/ElectronIDProducers/data/electronId.cfi"
+replace electronId.electronIDAssociationLabel = "electronId"
+replace electronId.doPtdrId = true
+replace electronId.doCutBased = false
+replace electronId.doLikelihood = true
+replace electronId.doNeuralNet = false
+
+
+# --- electron isolation ---
+# tracker isolation module
+include "EgammaAnalysis/EgammaIsolationProducers/data/egammaElectronTkRelIsolation.cfi"
+replace egammaElectronTkRelIsolation.intRadius   = 0.015
+replace egammaElectronTkRelIsolation.extRadius   = 0.2
+replace egammaElectronTkRelIsolation.maxVtxDist  = 0.2
+
+# HCAL isolation (based on calo towers)
+include "EgammaAnalysis/EgammaIsolationProducers/data/egammaTowerIsolation.cfi"
+replace egammaTowerIsolation.etMin     =  0.
+replace egammaTowerIsolation.intRadius =  0.15
+replace egammaTowerIsolation.extRadius =  0.30
+replace egammaTowerIsolation.absolut   = false 
+
+include "EgammaAnalysis/EgammaIsolationProducers/data/egammaTowerIsolation.cfi"
+
+sequence HWWElectronSequence = {
+
+    egammaElectronTkRelIsolation,
+    egammaTowerIsolation,
+    electronId
+
+}
+

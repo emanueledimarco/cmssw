@@ -1,0 +1,8 @@
+=== list of extra tags needed in releases 2_1_X ===
+
+cvs co -r V00-16-07  DataFormats/RecoCandidate
+cvs co -r V00-02-05  EgammaAnalysis/EgammaIsolationProducers
+cvs co -r V01-02-00  PhysicsTools/IsolationAlgos
+cvs co -r V00-02-03  RecoEgamma/EgammaIsolationAlgos
+
+cvs co -r V01-2_1_X HiggsAnalysis/HiggsToWW2Leptons

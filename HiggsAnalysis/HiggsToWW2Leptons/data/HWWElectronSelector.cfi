@@ -1,0 +1,13 @@
+module selectedElectrons = HWWElectronSelection {
+
+  InputTag src  			  = pixelMatchGsfElectrons
+  InputTag electronIDAssocProducer	  = electronId:electronId
+
+}
+
+module selectedElectronsRef = HWWElectronSelectionRef {
+
+ InputTag src				 = pixelMatchGsfElectrons
+ InputTag electronIDAssocProducer	 = electronId:electronId
+
+}

@@ -1,0 +1,15 @@
+module muonCorrectedMET = HWWMetCorrector {
+  InputTag CaloMetLabel = met
+  InputTag MuonLabel    = muons
+  bool MuonCorrection   = true
+  bool MuonDepositCor   = true
+  double MuonPtMin      = 5
+  double MuonEtaMax     = 2.5
+  double MuonTrackD0Max = 999.0
+  double MuonTrackDzMax = 999.0
+  double MuonNHitsMin   = 5
+  double MuonDPtMax     = 0.5
+  double MuonChiSqMax   = 1000
+  double CorrMetMin     = 5   
+}
+

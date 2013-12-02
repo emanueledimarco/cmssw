@@ -170,11 +170,11 @@ modules::MuScleFitMuonCorrectorT<T>::produce(edm::Event & iEvent, const edm::Eve
 
 
 namespace modules {
-  //typedef modules::MuScleFitMuonCorrectorT<reco::Muon>  MuScleFitMuonCorrector;
-  typedef modules::MuScleFitMuonCorrectorT<pat::Muon>   MuScleFitPATMuonCorrector;
+  typedef modules::MuScleFitMuonCorrectorT<reco::Muon>  MuScleFitMuonCorrector;
+  //typedef modules::MuScleFitMuonCorrectorT<pat::Muon>   MuScleFitPATMuonCorrector;
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
 using namespace modules;
-//DEFINE_FWK_MODULE(MuScleFitMuonCorrector);
-DEFINE_FWK_MODULE(MuScleFitPATMuonCorrector);
+DEFINE_FWK_MODULE(MuScleFitMuonCorrector);
+//DEFINE_FWK_MODULE(MuScleFitPATMuonCorrector);

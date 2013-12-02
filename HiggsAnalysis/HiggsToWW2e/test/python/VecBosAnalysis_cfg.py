@@ -174,7 +174,6 @@ process.treeDumper.dumpHLTObjects = True
 process.treeDumper.dumpElectrons = True
 process.treeDumper.dumpGsfTracks = True
 process.treeDumper.dumpSCs = True
-process.treeDumper.dumpBCs = True
 process.treeDumper.dumpConversions = False
 process.treeDumper.dumpVertices = True
 process.treeDumper.dumpParticleFlowObjects = True

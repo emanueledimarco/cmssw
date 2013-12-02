@@ -1,0 +1,7 @@
+scramv1 p -n test_5_3_12 CMSSW CMSSW_5_3_12
+cd test_5_3_12/src/
+cmsenv
+wget https://raw.github.com/emanueledimarco/cmssw/vecbos-run2-light/HiggsAnalysis/HiggsToWW2e/scripts/install.sh
+bash install.sh TAG
+
+

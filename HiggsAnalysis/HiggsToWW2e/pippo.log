@@ -1,0 +1,7 @@
+----- Begin Fatal Exception 21-Nov-2013 12:45:48 CET-----------------------
+An exception of category 'ConfigFileReadError' occurred while
+   [0] Processing the python configuration file named VecBosAnalysis_MC_cfg.py
+Exception Message:
+python encountered the error: <type 'exceptions.IOError'>
+[Errno 2] No such file or directory: 'VecBosAnalysis_MC_cfg.py'
+----- End Fatal Exception -------------------------------------------------

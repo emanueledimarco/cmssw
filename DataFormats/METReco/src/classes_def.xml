@@ -2,6 +2,7 @@
 
   <class name="CorrMETData"/> 
   <class name="std::vector<CorrMETData>"/> 
+  <class name="edm::Wrapper<CorrMETData>"/>
 
   <class name="SpecificCaloMETData"/>
   <class name="std::vector<SpecificCaloMETData> "/>
@@ -121,6 +122,13 @@
 
  <class name="edm::Ptr<reco::MET>" />
  <class name="edm::PtrVector<reco::MET>" />
+
+  <class name="AnomalousECALVariables"/>
+  <class name="edm::Wrapper<AnomalousECALVariables>"/>
+  <class name="BoundaryInformation"/>
+  <class name="edm::Wrapper<BoundaryInformation>"/>
+  <class name="std::vector<BoundaryInformation>"/>
+  <class name="edm::Wrapper<std::vector<BoundaryInformation> >"/>
 
 
 </lcgdict>

@@ -30,6 +30,9 @@
 #include "DataFormats/METReco/interface/GlobalHaloData.h"
 #include "DataFormats/METReco/interface/PhiWedge.h"
 #include "DataFormats/METReco/interface/BeamHaloSummary.h"
+#include "DataFormats/METReco/interface/CorrMETData.h"
+#include "DataFormats/METReco/interface/AnomalousECALVariables.h"
+#include "DataFormats/METReco/interface/BoundaryInformation.h"
 
 #include <vector>
 namespace {
@@ -84,7 +87,6 @@ namespace {
     std::vector<reco::PFClusterMET> dummy39;
     edm::reftobase::Holder<reco::Candidate,reco::PFClusterMETRef> rtb5;
 
-
     reco::HcalNoiseHPD dummy22;
     reco::HcalNoiseHPDCollection dummy23;
     edm::Wrapper<reco::HcalNoiseHPDCollection> dummy24;
@@ -138,6 +140,16 @@ namespace {
     std::vector<edm::Ref<std::vector<reco::CaloMET> > > vrvcm;
     std::vector<edm::Ref<std::vector<reco::MET> > > vrvrm;
 
+    CorrMETData dummy41;
+    edm::Wrapper<CorrMETData> dummy42;
+    std::vector<CorrMETData> dummy43;
+    edm::Wrapper<std::vector<CorrMETData> > dummy44;
 
+    AnomalousECALVariables dummyBE20;
+    edm::Wrapper<AnomalousECALVariables> dummyBE21;
+    BoundaryInformation dummyBE22;
+    edm::Wrapper<BoundaryInformation> dummyBE23;
+    std::vector<BoundaryInformation> dummyBE24;
+    edm::Wrapper< std::vector<BoundaryInformation> > dummyBE25;
   };
 }

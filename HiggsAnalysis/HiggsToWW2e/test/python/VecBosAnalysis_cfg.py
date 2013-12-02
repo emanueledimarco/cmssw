@@ -292,6 +292,3 @@ else:
 
 process.schedule = cms.Schedule(process.vecbosPath)
 
-process.testPath = cms.Path( process.globalEvent * process.eCalibSequence *  process.prejets * process.jets  )
-
-#process.schedule = cms.Schedule( process.testPath )

@@ -133,7 +133,7 @@ modules::MuScleFitMuonCorrectorT<T>::produce(edm::Event & iEvent, const edm::Eve
       cout<<"   Muon pT (RAW) =        "<<p4->Pt()<<endl;
     }
 
-    if (run < 203773){
+    if (run < 203773 || run == 206859) { // 206859 is the only run of 2012D in the run-dependent MC
       corrector_->applyPtCorrection(*p4,chg);
     } else {
       corrector2012D_->applyPtCorrection(*p4,chg);

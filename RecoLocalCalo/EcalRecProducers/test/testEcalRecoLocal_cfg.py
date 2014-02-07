@@ -14,6 +14,7 @@ process.load("EventFilter.EcalRawToDigi.EcalUnpackerData_cfi")
 
 #### CONFIGURE IT HERE
 isMC = True
+# methods: Weights, AlphaBetaFit, AnalyticFit
 AmplitudeRecoMethod = "Weights"
 #####################
 
@@ -39,6 +40,12 @@ import RecoLocalCalo.EcalRecProducers.ecalFixedAlphaBetaFitUncalibRecHit_cfi
 process.ecalUncalibHitFixedAlphaBetaFit = RecoLocalCalo.EcalRecProducers.ecalFixedAlphaBetaFitUncalibRecHit_cfi.ecalFixedAlphaBetaFitUncalibRecHit.clone()
 process.ecalUncalibHitFixedAlphaBetaFit.EBdigiCollection = 'ecalEBunpacker:ebDigis'
 process.ecalUncalibHitFixedAlphaBetaFit.EEdigiCollection = 'ecalEBunpacker:eeDigis'
+
+# get uncalibrechits with analytic fit method  
+import RecoLocalCalo.EcalRecProducers.ecalAnalFitUncalibRecHit_cfi
+process.ecalUncalibHitAnalFit = RecoLocalCalo.EcalRecProducers.ecalAnalFitUncalibRecHit_cfi.ecalAnalFitUncalibRecHit.clone()
+process.ecalUncalibHitAnalFit.EBdigiCollection = 'ecalEBunpacker:ebDigis'
+process.ecalUncalibHitAnalFit.EEdigiCollection = 'ecalEBunpacker:eeDigis'
 
 # get uncalibrechits with ratio method (does not run in 5_3_12)
 #import RecoLocalCalo.EcalRecProducers.ecalRatioUncalibRecHit_cfi
@@ -66,6 +73,9 @@ process.ecalDetIdToBeRecovered.eeIntegrityChIdErrors = 'ecalEBunpacker:EcalInteg
 process.ecalDetIdToBeRecovered.integrityTTIdErrors = 'ecalEBunpacker:EcalIntegrityTTIdErrors'
 process.ecalDetIdToBeRecovered.integrityBlockSizeErrors = 'ecalEBunpacker:EcalIntegrityBlockSizeErrors'
 
+
+wrongAlgoMessage = "The AmplitudeRecoMethod: "+AmplitudeRecoMethod+" that you chose is not foreseen. Check the customization of the cfg "
+
 # get rechits e.g. from the weights
 process.load("CalibCalorimetry.EcalLaserCorrection.ecalLaserCorrectionService_cfi")
 process.load("RecoLocalCalo.EcalRecProducers.ecalRecHit_cfi")
@@ -78,6 +88,11 @@ elif AmplitudeRecoMethod == "AlphaBetaFit":
     print "==> Using AlphaBetaFit as amplitude reconstruction" 
     process.ecalRecHit.EBuncalibRecHitCollection = 'ecalUncalibHitFixedAlphaBetaFit:EcalUncalibRecHitsEB'
     process.ecalRecHit.EEuncalibRecHitCollection = 'ecalUncalibHitFixedAlphaBetaFit:EcalUncalibRecHitsEE'    
+elif AmplitudeRecoMethod == "AnalyticFit":
+    print "==> Using AlphaBetaFit as amplitude reconstruction" 
+    process.ecalRecHit.EBuncalibRecHitCollection = 'ecalUncalibHitAnalFit:EcalUncalibRecHitsEB'
+    process.ecalRecHit.EEuncalibRecHitCollection = 'ecalUncalibHitAnalFit:EcalUncalibRecHitsEE'        
+else: print wrongAlgoMessage
 
 process.maxEvents = cms.untracked.PSet(  input = cms.untracked.int32(10) )
 process.source = cms.Source("PoolSource",
@@ -97,7 +112,8 @@ process.out = cms.OutputModule("PoolOutputModule",
 
 if AmplitudeRecoMethod == "Weights":        process.ecalAmplitudeReco = cms.Sequence(process.ecalUncalibHitWeights)
 elif AmplitudeRecoMethod == "AlphaBetaFit": process.ecalAmplitudeReco = cms.Sequence(process.ecalUncalibHitFixedAlphaBetaFit)
-else: print "The AmplitudeRecoMethod: "+AmplitudeRecoMethod+" that you chose is not foreseen. Check the customization of the cfg "
+elif AmplitudeRecoMethod == "AnalyticFit":  process.ecalAmplitudeReco = cms.Sequence(process.ecalUncalibHitAnalFit)
+else: print wrongAlgoMessage
 
 process.ecalTestRecoLocal = cms.Sequence(process.ecalEBunpacker
                                          *process.ecalAmplitudeReco

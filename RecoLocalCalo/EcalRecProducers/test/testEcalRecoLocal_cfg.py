@@ -74,7 +74,10 @@ if AmplitudeRecoMethod == "Weights":
     print "==> Using Weights as amplitude reconstruction"
     process.ecalRecHit.EBuncalibRecHitCollection = 'ecalUncalibHitWeights:EcalUncalibRecHitsEB'
     process.ecalRecHit.EEuncalibRecHitCollection = 'ecalUncalibHitWeights:EcalUncalibRecHitsEE'
-    
+elif AmplitudeRecoMethod == "AlphaBetaFit":
+    print "==> Using AlphaBetaFit as amplitude reconstruction" 
+    process.ecalRecHit.EBuncalibRecHitCollection = 'ecalUncalibHitFixedAlphaBetaFit:EcalUncalibRecHitsEB'
+    process.ecalRecHit.EEuncalibRecHitCollection = 'ecalUncalibHitFixedAlphaBetaFit:EcalUncalibRecHitsEE'    
 
 process.maxEvents = cms.untracked.PSet(  input = cms.untracked.int32(10) )
 process.source = cms.Source("PoolSource",
@@ -90,9 +93,14 @@ process.out = cms.OutputModule("PoolOutputModule",
                                fileName = cms.untracked.string('testEcalLocalRecoA.root')
                                )
 
+
+
+if AmplitudeRecoMethod == "Weights":        process.ecalAmplitudeReco = cms.Sequence(process.ecalUncalibHitWeights)
+elif AmplitudeRecoMethod == "AlphaBetaFit": process.ecalAmplitudeReco = cms.Sequence(process.ecalUncalibHitFixedAlphaBetaFit)
+else: print "The AmplitudeRecoMethod: "+AmplitudeRecoMethod+" that you chose is not foreseen. Check the customization of the cfg "
+
 process.ecalTestRecoLocal = cms.Sequence(process.ecalEBunpacker
-                                         *process.ecalUncalibHitWeights
-                                         *process.ecalUncalibHitFixedAlphaBetaFit
+                                         *process.ecalAmplitudeReco
                                          *process.ecalUncalibHitGlobal
                                          *process.ecalDetIdToBeRecovered
                                          *process.ecalRecHit

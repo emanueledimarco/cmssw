@@ -4,9 +4,19 @@
 #include <iostream>
 
 #include "TFile.h"
+#include "TH1F.h"
 #include "TProfile2D.h"
+#include "TCanvas.h"
+
+#include "RooRealVar.h"
+#include "RooDataHist.h"
+#include "RooLandau.h"
+#include "RooPolynomial.h"
+#include "RooAddPdf.h"
+#include "RooPlot.h"
 
 using namespace std;
+using namespace RooFit;
 
 void templatesFromLaserAllCrystals(const char *dqmfile) {
 
@@ -90,6 +100,47 @@ void templatesFromLaserSingleCrystal(const char *dqmfile) {
 
 }
 
+
+void makePileupTemplates() {
+
+  TFile *tfile = TFile::Open("data/templates.root");
+  // take one representative template, for the moment
+  TH1F *templ = (TH1F*)tfile->Get("EBLT single shape L1 EB+08");
+
+  RooRealVar *amplitude = new RooRealVar("amplitude","time",0,10,"samples");
+  RooArgList vars(*amplitude);
+  RooDataHist *hist = new RooDataHist("pileupTemplate","pileupTemplate",vars,templ);
+
+  //--- Pedestal
+  RooRealVar pedSlope("pedSlope","pedSlope",7,0,100);
+  RooPolynomial pedestal("pedestal","pedestal",*amplitude,pedSlope);
+
+  //--- Landau
+  RooRealVar mean("mean","mean",3,7,"samples") ;
+  RooRealVar sigma("#sigma","width",1,5,"samples"); 
+  RooLandau landau("landau","landau",*amplitude,mean,sigma);
+  
+  //--- sum of the Landau with poly
+  RooRealVar frac("frac","ped. fraction",0,1);
+  RooAddPdf pdf("pulse","pulse",landau,pedestal,frac);
+
+  pdf.fitTo(*hist,SumW2Error(1),RooFit::Range(0.,10.),Strategy(2),NumCPU(8));
+
+  TCanvas *canv = new TCanvas("canv","",600,600);
+
+  RooPlot* xframe = amplitude->frame(0,10,10) ;
+  hist->plotOn(xframe,DataError(RooAbsData::SumW2) );
+  pdf.plotOn(xframe,LineCo);
+  pdf.plotOn(xframe, Components("pedestal"), LineStyle(kDashed));
+  //  pdf.paramOn(xframe);
+
+  xframe->Draw(); gPad->Update(); canv->SaveAs("shapeAnalyticFit.pdf");
+  
+}
+
+void drawExtendedPileupTemplates(int timeShift=-1) {
+  
+}
 
 void makeTemplates(const char *dqmfile="~/Work/data/ecalreco/DQM_V0013_EcalBarrel_R000202299.root") {
   templatesFromLaserAllCrystals(dqmfile);

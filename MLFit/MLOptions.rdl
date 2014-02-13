@@ -1,0 +1,46 @@
+#ifndef ML_OPTIONS
+#define ML_OPTIONS
+
+#include "TNamed.h"
+#include "RooArgList.h"
+#include <iostream>
+
+using namespace std;
+
+class MLOptions : public TNamed
+{
+public:
+  MLOptions();
+  MLOptions(const MLOptions &opts);
+  ~MLOptions();
+
+  MLOptions& operator= (const MLOptions &other);
+
+  void addBoolOption(const char* name, const char* title, Bool_t def);
+  void addStringOption(const char* name, const char* title, const char* def);
+  void addRealOption(const char *name, const char *title, double def);
+  // readEnv in implicit mode changes only values of variable that explicitly
+  // set in the environment.
+  void readEnv(Bool_t explicitMode = kFALSE);
+  Bool_t getBoolVal(const char* opt) const;
+  void setBoolVal(TString opt, Bool_t value);
+  TString getStringVal(const char* opt) const;
+  void setStringVal(TString opt, TString value);
+  double getRealVal(const char *opt) const;
+  void setRealVal(TString opt, double value);
+
+  virtual void Print(Option_t *option = "") const;
+
+  void setOptions(const MLOptions &rhs);
+  
+private:
+
+  RooArgList _boolOptions;
+  RooArgList _stringOptions;
+  RooArgList _realOptions;
+  
+  ClassDef(MLOptions,1)
+};
+
+#endif
+

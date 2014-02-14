@@ -146,7 +146,28 @@ void makePileupTemplates() {
 
 }
 
+float getNPerGeV(bool iseb) {
 
+  float adcToGeV_EB = 0.035;
+  float adcToGeV_EE = 0.060;
+
+  TFile *tfile = TFile::Open("data/templates.root");
+  // take one representative template, for the moment
+  TH1F *templ = (TH1F*)tfile->Get("EBLT single shape L1 EB+08");
+  
+  int ped = (templ->GetBinContent(1)+templ->GetBinContent(2))/2.;
+  float integral=0;
+  for(int i=1;i<11;++i) {
+    integral += templ->GetBinContent(i)-ped;
+  }
+
+  float ampli_1GeV = (iseb) ? 1./adcToGeV_EB : 1./adcToGeV_EE;
+  float scale = ampli_1GeV/templ->GetBinContent(5);
+  float frac_in25ns = 0.80;
+
+  return integral * scale / frac_in25ns;
+
+}
 
 void makeTemplates(const char *dqmfile="~/Work/data/ecalreco/DQM_V0013_EcalBarrel_R000202299.root") {
   templatesFromLaserAllCrystals(dqmfile);

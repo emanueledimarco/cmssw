@@ -122,25 +122,31 @@ void makePileupTemplates() {
   
   //--- sum of the Landau with poly
   RooRealVar frac("frac","ped. fraction",0,1);
-  RooAddPdf pdf("pulse","pulse",landau,pedestal,frac);
+  RooAddPdf *pdf = new RooAddPdf("pulse","pulse",landau,pedestal,frac);
 
-  pdf.fitTo(*hist,SumW2Error(1),RooFit::Range(0.,10.),Strategy(2),NumCPU(8));
+  pdf->fitTo(*hist,SumW2Error(1),RooFit::Range(0.,10.),Strategy(2),NumCPU(8));
 
   TCanvas *canv = new TCanvas("canv","",600,600);
 
   RooPlot* xframe = amplitude->frame(0,10,10) ;
+  xframe->SetTitle("Pulse shape");
   hist->plotOn(xframe,DataError(RooAbsData::SumW2) );
-  pdf.plotOn(xframe,LineCo);
-  pdf.plotOn(xframe, Components("pedestal"), LineStyle(kDashed));
-  //  pdf.paramOn(xframe);
+  pdf->plotOn(xframe,LineColor(kBlack),Range(0.,10.));
+  pdf->plotOn(xframe, Components("pedestal"), LineStyle(kDashed), LineColor(kBlack));
 
-  xframe->Draw(); gPad->Update(); canv->SaveAs("shapeAnalyticFit.pdf");
-  
+  xframe->Draw(); gPad->Update(); canv->SaveAs("shapeAnalyticFit.png");
+
+
+  RooAddPdf *pdfExt = new RooAddPdf("pulseExt","pulseExt",landau,pedestal,frac);
+  amplitude->setRange(0,30);
+
+  RooPlot* xframeExt = amplitude->frame(0,30,30) ;
+  pdfExt->plotOn(xframeExt,LineColor(kBlack));
+  xframeExt->Draw(); gPad->Update(); canv->SaveAs("shapeAnalyticFitExt.png");
+
 }
 
-void drawExtendedPileupTemplates(int timeShift=-1) {
-  
-}
+
 
 void makeTemplates(const char *dqmfile="~/Work/data/ecalreco/DQM_V0013_EcalBarrel_R000202299.root") {
   templatesFromLaserAllCrystals(dqmfile);

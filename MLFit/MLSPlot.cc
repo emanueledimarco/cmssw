@@ -9,6 +9,7 @@
 // with the variable of interest.  (In particular, if you want to make a signal mES sPlot, fix everything but yields,
 // and perform the fit without the mES PDFs.)  Be sure to save the RooFitResult.   Now you can use RooSPlot.
 
+#include <iostream>
 #include <vector>
 #include <map>
 
@@ -53,7 +54,7 @@ RooDataSet* MLSPlot::addSWeightToData(const RooSimultaneous* pdf,
   RooArgSet vars(*data.get());
   vars.remove(projDeps, kTRUE, kTRUE);
 
-  std::cout << "Now printing the original data : " << endl;
+  std::cout << "Now printing the original data : " << std::endl;
   data.tree()->Print();
 
   // Attach data set
@@ -207,7 +208,7 @@ RooDataSet* MLSPlot::addSWeightToData(const RooSimultaneous* pdf,
   
   for(int ievt = 0; ievt < numevents; ++ievt) {
 
-    if(ievt%1000==0) cout << "processing evt " << ievt << "..." << endl;
+    if(ievt%1000==0) std::cout << "processing evt " << ievt << "..." << std::endl;
     
     data.get(ievt) ;
 

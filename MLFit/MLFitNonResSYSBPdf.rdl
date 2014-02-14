@@ -1,0 +1,36 @@
+#ifndef __ROO_MYDIJETPDFB_RDL__
+#define __ROO_MYDIJETPDFB_RDL__
+
+#include "RooAbsPdf.h"
+#include "RooRealProxy.h"
+
+class RooRealVar;
+class RooAbsReal;
+
+class MLFitNonResSYSBPdf : public RooAbsPdf {
+public:
+  MLFitNonResSYSBPdf(const char *name, const char *title, RooAbsReal& _m,
+	RooAbsReal& _sqrtS, RooAbsReal& _p0, RooAbsReal& _p1, RooAbsReal& _p2);
+  
+  MLFitNonResSYSBPdf(const MLFitNonResSYSBPdf& other, const char* name = 0);
+  virtual TObject* clone(const char* newname) const { 
+    return new MLFitNonResSYSBPdf(*this,newname); }
+
+  inline virtual ~MLFitNonResSYSBPdf() { }
+
+protected:
+
+  RooRealProxy m;
+  RooRealProxy p0;
+  RooRealProxy p1;
+  RooRealProxy p2;
+  RooRealProxy sqrtS;
+
+  Double_t evaluate() const;
+
+private:
+  
+  ClassDef(MLFitNonResSYSBPdf,0)
+};
+
+#endif

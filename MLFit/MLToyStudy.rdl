@@ -1,0 +1,66 @@
+#ifndef ML_TOY_STUDY
+#define ML_TOY_STUDY
+
+#include <RooAbsPdf.h>
+#include "MLFit/MLStrList.hh"
+
+class RooDataSet;
+class MLToyFit;
+class MLGenerator;
+
+#include <iostream>
+
+using namespace std;
+
+class MLToyStudy
+{
+public:
+  MLToyStudy(const MLGenerator &theGenerator, const RooArgSet &dependents, const char* genOptions, const char* fitOptions, const RooDataSet *genProtoData, const RooArgSet& projDeps, const RooArgSet &extConstr=RooArgSet());
+  MLToyStudy(const MLGenerator &theGenerator, RooAbsPdf &theFit, const RooArgSet &dependents, const char* genOptions="", const char* fitOptions="", const RooDataSet *genProtoData=0,const RooArgSet& projDeps=RooArgSet(), const RooArgSet &extConstr=RooArgSet());
+  virtual ~MLToyStudy();
+  
+  void addFit(const RooAbsPdf &pdf, const RooArgSet &fixset = RooArgSet(), const RooArgSet &floatset = RooArgSet(), TString extraCuts = "");
+  Bool_t generateAndFit(Int_t nSamples, Int_t nEvtPerSample, TString toy = "",  TString signalFile = "");
+  void fitSample(RooAbsData *data, MLToyFit &toyfit);
+  void mergeFitParData();
+  virtual RooDataSet* generate(Int_t nEvt);
+  void addMockSpecies(const char* sname, const char* sfile, const char* sdataname);
+  
+  // Members...
+  MLGenerator  *_theGenerator;
+  RooArgSet   _dependents;
+  const RooDataSet *_genProtoData;
+  RooArgSet   _projDeps;
+  RooArgSet  *_genParams;
+  RooDataSet *_fitParData;
+  RooArgSet _extConstr;
+  
+  MLStrList _mockList;
+  MLStrList _mockFileList;  
+  MLStrList _mockDatasetNameList;
+
+  TList _fitList;
+  Bool_t _verboseGen;
+  Bool_t _extendedGen;
+  
+  // Options...
+  TString _fitOptions;
+
+protected:
+  // Any class derived from MLToyStudy can override this method
+  // and have its own way to generate events. For example for 
+  // embedded MC toy study one can generate continuum background
+  // and mix in some other types of background using regular MC
+  // dataset.
+   
+   
+private:
+  MLToyStudy(MLToyStudy &other){} // So we can use TList;
+  
+
+
+  ClassDef(MLToyStudy,0)
+
+};
+
+#endif

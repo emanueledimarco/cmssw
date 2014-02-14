@@ -1,0 +1,61 @@
+#ifndef ML_PDF_RECIPE
+#define ML_PDF_RECIPE
+
+#include "TList.h"
+#include "RooArgList.h"
+#include "RooArgSet.h"
+#include "RooAbsCategoryLValue.h"
+#include "RooResolutionModel.h"
+#include "RooSuperCategory.h"
+#include "RooMultiCategory.h"
+#include "RooCategory.h"
+
+class RooAbsPdf;
+class RooSuperCategory;
+
+class MLPdfRecipe : public TNamed
+{
+public:
+  MLPdfRecipe(const char* name, const char* title, const char* type, const RooArgList &obs, const RooArgList &partial, const RooArgList &parameters, const TList &args);
+  MLPdfRecipe(const char* name, const char* title, const char* obs, const RooAbsCategoryLValue &cat);
+  ~MLPdfRecipe();
+
+  void addPdfToSimPdf(MLPdfRecipe &rec) {_simPdfRecipeList.Add(&rec);}
+  Bool_t replace(const char* oldparname, RooAbsArg &newpar, Bool_t verbose = kTRUE);
+  void createMasterSplitCat(const RooArgList &splitCatList) ;
+  Bool_t isSplit() const {return (_masterSplitCat != 0);}
+  Bool_t isConvoluted() const {return (_rf !=0);}
+  Bool_t isPartial() const {return (_partialList.getSize() != 0);}
+  Bool_t isSimultaneous() const {return (_simPdfCat != 0);}
+
+  TString getSplitName() const;
+  RooArgList getObservables() const {return _obs;};
+  RooArgSet getProtoParams();
+  MLPdfRecipe* getSimComponent() const;
+  void setRF(MLPdfRecipe &rf) {_rf = &rf;}
+  
+
+
+  // Members...
+  TString               _type;               // Name of PDF type ("Gaussian" or whatever)
+  RooArgList            _obs;                // List of observables
+  RooArgList            _partialList;        // List of observables to normalize with (Unimplemented feature right now!)
+  //RooArgList            _parameters;         // 
+  RooArgList            _protoParams;        // List of parameters this PDF depends on, before splitting.
+  TList                 _args;               // List of additional arguments to pass to MLPdfFactory
+  RooMultiCategory     *_masterSplitCat;     // Master splitting category ("{Cat1;good}" for example) 
+  TList                 _simPdfRecipeList;   // If this is a simultaneous PDF, a list of PDF components
+  RooAbsCategoryLValue *_simPdfCat;          // Category used for switching between sim pdf components (if this is a sim pdf)
+  RooArgList            _simPdfLabels;       // List of labels of the _simPdfCat (in the same order as the PDFs appear in _simPdfRecipeList)
+  MLPdfRecipe          *_rf;                 // The resolution function, if this is a convoluted PDF.
+  
+  
+private:
+  MLPdfRecipe(MLPdfRecipe&) : TNamed() {} // Needed to let us use TLists...
+  
+  
+  ClassDef(MLPdfRecipe,0)
+
+};
+
+#endif

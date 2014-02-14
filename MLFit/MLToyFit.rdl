@@ -1,0 +1,40 @@
+#ifndef ML_TOY_FIT
+#define ML_TOY_FIT
+
+#include "RooAbsPdf.h"
+class RooDataSet;
+class RooRealVar;
+
+
+class MLToyFit : public TNamed 
+{
+public:
+  MLToyFit(const RooAbsPdf &pdf, const RooArgSet &dependents, const RooArgSet &extraParams = RooArgSet());
+  ~MLToyFit();
+  
+  void setDataSetCut(TString cut) {_datacuts = cut;}
+  TString getDataSetCut() const {return _datacuts;}
+  Bool_t hasExtraDataSetCut() const {return (_datacuts != "");}
+    
+  void initializeParameters();
+  void addErrVars();
+
+  // Members...
+  RooAbsPdf   *_pdf;
+  RooArgSet   *_fitParams;
+  RooArgSet   _extraParams;
+  RooRealVar  *_nllVar;
+  RooRealVar  *_status;
+  RooRealVar  *_covQual;
+  RooArgSet   *_fitInitParams ; // List of initial values of fit parameters
+  RooArgSet   _dependents;
+  RooDataSet *_fitParData;
+
+  RooArgSet _fixSet;
+  RooArgSet _floatSet;
+  TString   _datacuts;          // Extra cuts to make on data set before doing this fit 
+
+  ClassDef(MLToyFit,0)
+    };
+
+#endif

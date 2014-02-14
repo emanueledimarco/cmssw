@@ -1,0 +1,201 @@
+#ifndef RHH_MLFIT
+#define RHH_MLFIT
+
+class RooDataSet;
+class RooStringVar;
+class MLModel;
+class MLStrList;
+
+#include "TList.h"
+#include "RooArgSet.h" 
+#include "RooArgList.h"
+#include "RooList.h"
+#include "RooSimPdfBuilder.h"
+#include "RooRealVar.h" 
+#include "RooSuperCategory.h" 
+#include "MLFit/MLPdfRecipe.hh"
+#include "MLFit/MLSpecies.hh"
+#include <iostream>
+#include "TMatrix.h"
+#include "TArrayD.h"
+
+using namespace std;
+
+class MLFit : public TNamed
+{
+public:
+  enum SpeciesType {kFractions, kYields};
+  
+  //member functions
+  MLFit(const char *name="MLFit", const char* title = "MLFit");
+  ~MLFit();
+
+  // Observables/Datasets...
+  void AddFlatFileColumn(RooAbsArg *obj,int column=0);
+  void addDataSetFormula(const RooAbsArg &arg) {_dataSetFormulas.add(arg);}
+  void addDataSetColumn(const char *dataname, RooAbsArg &argtoadd, Bool_t silent = kFALSE);
+  //void addDataSetColumn(TString dattaname, TString argtoadd);
+  void addObservable(const RooArgSet &args) {_observables.add(args);}
+  RooAbsArg* Observable(const char *obs) const;
+  RooRealVar *RealObservable(const char *obs);
+  RooCategory *CatObservable(const char *obs) const;
+  RooArgList getObsList(const MLStrList &strList) const;
+  RooArgList getObsList(const char* obs1 = 0, const char* obs2 = 0, const char* obs3 = 0, const char* obs4 = 0, const char* obs5 = 0, const char* obs6 = 0, const char* obs7 = 0, const char* obs8 = 0) const;
+  RooArgSet getParSet(const MLStrList &strList) const;
+  RooArgSet getParameters() const;
+  void smearConstantParameters(const MLStrList &strList) const;  
+  void uniformVaryConstantParameters(const MLStrList &strList) const;  
+
+  void addDataSet(TString dataname, RooDataSet &data);
+  void addDataSetFromAsciiFile(TString dataname,const char *file, const char* commonPath="", const char* opt="q");
+  void addDataSetFromRootFile(TString dataname, const char*nameinfile, const char* file);
+  void addDataSetFromRootFile(TString dataname, const char*nameinfile, const char* file, const RooArgSet& vars);
+  RooDataSet* getDataSet(const char* dataname);
+
+  // Species...
+  void addSpecies(const char* model, const char* sname, const char* stitle, RooAbsReal *svar = 0);
+  //void addSpecies(const char* model, const char* sname, const char* stitle);
+  void addSpecies(const char* sname, const char* stitle);
+  void addSpeciesFromModel(const char* model, const char* othermodel);
+  Int_t numSpecies();
+  MLSpecies* getSpecies(const char *sname) const;
+  const TList& getSpeciesList() {return _speciesList;}
+  RooAbsReal* getCoefficient(MLModel &theModel, TString species);
+  RooAbsReal* getCoefficient(const char *model, TString species);
+  void createYieldVariables(MLModel &theModel, Bool_t verbose = kFALSE);
+  void createSingleSpeciesFractions(MLModel &theModel, TString namesuffix="", TString titlesuffix="");
+  void defineYield(const char* species, const char* formula, RooArgList args);
+  void fitAsymmetry(TString species1, TString species2, TString namebase);
+  void fitInclusive(const MLStrList & species, TString namebase, int firstbin=0);
+  void fitInclusiveUnfold(const MLStrList & species, TString namebase, TMatrix unfma);
+  void fitInclusiveRatio(const MLStrList & species, TString namebase, int firstbin=0);
+  void fitInclusiveRatioPoly(const MLStrList & species, TString namebase, int firstbin=0, TArrayD efficiency=TArrayD());
+  void fitInclusiveRatioPolySUSY(const MLStrList & species, TString namebase, int firstbin, RooRealVar* signalyield);
+  void fitInclusiveRatioPolyUnfold(const MLStrList & species, TString namebase, TMatrix unfma, TString firstlabel, TArrayD efficiency=TArrayD());
+  void fitWithEff(TString species1, TString species2, TString namebase);
+
+  // Models...
+  void addModel(const char* name, const char* title);
+  void addNoNormVars(const char* model, MLStrList &vars);
+  RooArgSet getNoNormVars(const char* model = "default") const;
+  RooArgSet getNormVars(TString model = "default") const;
+  MLModel* getModel(const char* model) const;
+  
+  // Recipes...
+  //   addPdf(const char* model, const char* species, const char* obs, TString pdftype, const TList &args, TString pdfbase
+  void addPdf(const char* species, const char* obs, TString pdftype);
+  void addPdf(const char* species, const MLStrList &obs, TString pdftype) ;
+  void addPdf(const char* species, const MLStrList &obs, TString pdftype, const TList &args) ;
+  void addPdf(const char* model, const char* species, const char* obs, TString pdftype);
+  void addPdf(const char* model, const char* species, const MLStrList &obs, TString pdftype) ;
+  void addPdf(const char* model, const char* species, const MLStrList &obs, TString pdftype, const TList &args);
+  void add2DPdf(const char* model, const char* species, const MLStrList &obs, TString pdftype, const TList& args);	
+  void add2DPdfWName(const char* model, const char* species, const MLStrList &obs, TString pdftype, const TList &args, TString pdfbase);
+  void addPdfWName(const char* species, const char* obs, TString pdftype, TString pdfbase);
+  void addPdfWName(const char* species, const MLStrList &obs, TString pdftype, const TList &args, TString pdfbase);
+  void addPdfWName(const char* model, const char* species, const char* obs, TString pdftype, TString pdfbase);
+  void addPdfWName(const char* model, const char* species, const MLStrList &obs, TString pdftype, const TList &args, TString pdfbase);
+  void addConvolutedPdfToSimPdf(const char *model, const char* species, const char* simpdfname, const MLStrList &obs, TString catLabel, TString pdftype, const char *rf, const TList &args, TString pdfbase);
+
+  void addConvolutedPdf(const char *model, const char *species, const MLStrList &obs, TString pdftype, const char *rf, const TList &args = TList(), TString pdfbase = "");
+  void addSimPdf(const char* model, const char* species, const char* obs, const char* cat, TString pdfbase);
+  void addPdfToSimPdf(const char *model, const char* species, const char* simpdfname, const MLStrList &obs, TString catLabel, TString pdftype, const TList &args, TString pdfbase);
+  void addPdfCopy(const char* species, const char* obs, const char* otherspec);
+  void addPdfCopy(const char* model, const char* species, const char* obs, const char* otherspec);
+  void addRF(const MLStrList &obs, TString pdftype, const TList &args = TList(), TString rfbase = "");
+  void addPdfFromModel(const char* model, const char* species, const char* obs, const char* othermodel);
+  void addPdfsFromModel(const char* model, const char* obs, const char* othermodel);
+  //void addPrebuiltPdfWName(const char* model, const char* species, const MLStrList &obs, RooAbsPdf &pdf, const RooArgList &parameters, TString pdfname);
+  void blindUniform(RooRealVar &arg, TString blindstring, Double_t scale);
+  void blindUniform(TString argname, TString blindstring, Double_t scale);
+  void split(const char* cat, const char* splitarg);
+  void split(const char* cat, RooArgSet splitSet);
+  void noSplitFrac(TString catname);
+
+  TList* getRecipeList();
+  //TList* getRecipeListBySpecies(TString species);
+  TList* getRecipeListBySpecies(MLModel &model, TString species);
+  MLPdfRecipe* getRecipe(const char* species, const char* obs);
+  MLPdfRecipe* getRecipe(const char* model, const char* species, const char* obs);
+  void splitPdfRecipe(MLPdfRecipe &theRecipe, Bool_t verbose = kFALSE);
+
+  // PDFs...
+  RooArgList getPdfList() const {return _pdfList;}
+  RooAbsPdf* getPdf(const char* pname) const;
+  RooAbsPdf* getPdfComponent(const char* model, const char* species) const;
+  RooAbsPdf* getPdfComponent(const MLModel &theModel, const char* species) const;
+  RooAbsPdf* getPdfComponent(const MLModel &theModel, const char* species, const char* obs) const;
+  RooAbsPdf* getPdfComponent(const char* model, const char* species, const char* obs) const;
+
+  // RFs...
+  MLPdfRecipe* getRF(const char* rf) const;
+
+  // Parameters...
+  RooArgSet getProtoParams();
+  RooRealVar* getProtoParam(const char* parname, Bool_t verbose = kTRUE);
+  RooRealVar* getSplitParameter(RooAbsReal *arg) const;
+  void getSplitParameters(const MLModel &theModel, const MLPdfRecipe &theRecipe, RooArgList &splitpars) const;
+  TString getSplitParameterName(TString name) const;
+  RooAbsArg* getPar(TString parname) const;
+  RooRealVar *getRealPar(const char* parname) const;
+  void bind(const MLStrList &parList, const char* name, const char* title);
+  void bindFractions(const MLStrList &parList, const char* name, const char* title);
+  void replace(TString oldpar, RooAbsArg &newpar);
+  void replaceFraction(const char *oldpar, RooAbsReal &newpar);
+  void rename(const char* oldname, const char* newname, const char* newtitle);
+
+  // Yields/Fractions...
+  void addYieldVars(RooArgSet &yieldVars);
+  
+  // Datasets...
+  
+  // Models...
+  RooAbsPdf* buildModel(const char* model = "default", Bool_t verbose = kFALSE);
+  RooAbsPdf* buildSinglePdf(const MLModel &theModel, const MLPdfRecipe &theRecipe, Bool_t verbose = kFALSE);
+  RooAbsPdf* buildSimPdf(MLModel &theModel);
+  RooAbsPdf* buildAddPdf(MLModel &theModel);
+  RooAbsPdf* buildProdPdf(MLModel &theModel, const char* species);
+
+  // Misc...
+  void printFloating();
+  void printConstants();
+  virtual void Print(Option_t *option) const;
+  void initialize(const char* fileName);
+  void initializeFlatFileVars(TString fileName);
+  RooArgList getObservables() const {return _observables;}
+  
+  void writeConfigFile(const char* fileName);
+  
+  //Member data...
+
+  // Lists...
+  TList          *DataSets;
+  RooArgList     _flatFileVariables;
+  RooArgSet      _observables;
+  RooArgSet      _dataSetFormulas;
+  TList          _speciesList;
+  RooArgSet      _protoFracSet;
+  RooArgList     _fracList;
+  RooArgSet      _parameterSet;
+  RooArgList     _pdfList;
+  RooArgSet      _rfSet;
+  TList          *_recipeList;
+  TList           _rfRecipeList;
+  TList          _modelList;
+  SpeciesType    _speciesType;
+  RooArgList     _splitArgList;
+  RooArgList     _splitCatList;
+  RooArgSet      _noSplitFracSet;              // Splitting categories that you *don't* want efficiencies for.
+  RooSuperCategory *_masterSplitCat;
+  RooArgSet         _blindParSet;
+  RooArgSet         _blindedYieldNames;
+  Bool_t            _initialized;
+
+private:
+  MLFit(MLFit &other) : TNamed() {} // To allow use of TLists...
+  
+
+  ClassDef(MLFit,0)
+};
+
+#endif

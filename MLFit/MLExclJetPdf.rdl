@@ -1,0 +1,36 @@
+#ifndef __ROO_MLExclJetPdf_RDL__
+#define __ROO_MLExclJetPdf_RDL__
+
+#include "RooAbsPdf.h"
+#include "RooRealProxy.h"
+
+class RooRealVar;
+class RooAbsReal;
+
+class MLExclJetPdf : public RooAbsPdf {
+public:
+  MLExclJetPdf(const char *name, const char *title, RooAbsReal& _m,
+		RooAbsReal& _njets);	
+  
+  MLExclJetPdf(const MLExclJetPdf& other, const char* name = 0);
+  virtual TObject* clone(const char* newname) const { 
+    return new MLExclJetPdf(*this,newname); }
+
+  inline virtual ~MLExclJetPdf() { }
+  Int_t getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName=0) const ;
+  Double_t analyticalIntegral(Int_t code, const char* rangeName=0) const ;
+
+
+
+protected:
+
+  RooRealProxy m;
+  RooRealProxy njets;
+  Double_t evaluate() const;
+
+private:
+  
+  ClassDef(MLExclJetPdf,0)
+};
+
+#endif

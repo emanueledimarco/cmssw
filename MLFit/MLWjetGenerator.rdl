@@ -1,0 +1,22 @@
+#ifndef MLWjet_GENERATOR
+#define MLWjet_GENERATOR
+
+#include "MLFit/MLGenerator.hh"
+
+class MLWjetGenerator : public MLGenerator
+{
+public:
+  MLWjetGenerator(const MLFit &theFit, const char* model, Bool_t doCHARGE = kFALSE, Bool_t doBVETO = kFALSE, Bool_t doTruth = kTRUE);
+  virtual ~MLWjetGenerator(){};
+
+  virtual RooDataSet* generatePrototype(const MLSpecies &spec, RooArgSet &genVars, Int_t ngen, Bool_t verbose = kFALSE);
+
+private:
+  ClassDef(MLWjetGenerator,0);
+  Bool_t _doCHARGE;
+  Bool_t _doBVETO;
+};
+
+#endif
+
+

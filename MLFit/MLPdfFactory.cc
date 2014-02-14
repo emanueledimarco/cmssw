@@ -62,6 +62,7 @@ RooArgList MLPdfFactory::makeParameters(TString pdftype, TString basename, const
   if (pdftype == "DoubleGaussian")     return makeDoubleGaussianParams(basename);
   if (pdftype == "TripleGaussian")     return makeTripleGaussianParams(basename);
   if (pdftype == "DoubleLandau")       return makeDoubleLandauParams(basename);
+  if (pdftype == "Pulse")              return makePulseParams(basename);
   if (pdftype == "CryBall")            return makeCryBallParams(basename);
   if (pdftype == "Voigtian")           return makeVoigtianParams(basename);
   if (pdftype == "DoubleVoigtian")     return makeDoubleVoigtianParams(basename);
@@ -126,6 +127,7 @@ RooAbsPdf* MLPdfFactory::makePdf(TString pdftype, TString pdfname, const RooArgL
   if (pdftype == "DoubleGaussian")     return makeDoubleGaussianPdf(pdfname, obs, parameters, args);
   if (pdftype == "TripleGaussian")     return makeTripleGaussianPdf(pdfname, obs, parameters, args);
   if (pdftype == "DoubleLandau")       return makeDoubleLandauPdf(pdfname, obs, parameters, args);
+  if (pdftype == "Pulse")              return makePulsePdf(pdfname, obs, parameters, args);
   if (pdftype == "CryBall")            return makeCryBallPdf(pdfname, obs, parameters, args);
   if (pdftype == "Voigtian")           return makeVoigtianPdf(pdfname, obs, parameters, args);
   if (pdftype == "DoubleVoigtian")     return makeDoubleVoigtianPdf(pdfname, obs, parameters, args);
@@ -588,6 +590,36 @@ RooAbsPdf* MLPdfFactory::makeDoubleLandauPdf(TString pdfname,
   RooLandau *dau1 = new RooLandau(pdfname+"_dau1",pdfname+"_dau1", *theobs, *m1, *s1);
   RooLandau *dau2 = new RooLandau(pdfname+"_dau2",pdfname+"_dau2", *theobs, *m2, *s2);
   RooAddPdf   *pdf = new RooAddPdf(pdfname, pdfname, RooArgList(*dau1, *dau2), *f1);
+  return pdf;
+
+}
+
+RooArgList MLPdfFactory::makePulseParams(TString basename)
+{
+  RooRealVar *mean = new RooRealVar(basename+"_mean", basename+"_mean", 0);
+  RooRealVar *sigma = new RooRealVar(basename+"_sigma", basename+"sigma", 1);
+  RooRealVar *pedSlope = new RooRealVar(basename+"_pedSlope", basename+"pedSlope", 1);
+  RooRealVar *f1 = new RooRealVar(basename+"_f1", basename+"f1", 1);
+  
+  return RooArgList(*mean,*sigma,*pedSlope,*f1);
+}
+
+RooAbsPdf* MLPdfFactory::makePulsePdf(TString pdfname, 
+				      const RooArgList &obs, 
+				      RooArgList parameters, 
+				      const TList &args)
+{
+  if (!checkArgLength(pdfname, obs, 1, parameters, 4, args, 0)) return 0;
+
+  RooRealVar *theobs   = (RooRealVar*)obs.at(0);
+  RooRealVar *m        = (RooRealVar*)parameters.at(0);
+  RooRealVar *s        = (RooRealVar*)parameters.at(1);
+  RooRealVar *pedSlope = (RooRealVar*)parameters.at(2);
+  RooRealVar *f1       = (RooRealVar*)parameters.at(3);
+  
+  RooLandau *peak = new RooLandau(pdfname+"_peak",pdfname+"_peak", *theobs, *m, *s);
+  RooPolynomial *ped = new RooPolynomial(pdfname+"_ped",pdfname+"_peak", *theobs, *pedSlope);
+  RooAddPdf   *pdf = new RooAddPdf(pdfname, pdfname, RooArgList(*peak, *ped), *f1);
   return pdf;
 
 }

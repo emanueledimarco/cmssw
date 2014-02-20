@@ -65,7 +65,7 @@ void Generate(Int_t nexp = 1, UInt_t iseed = 65539, char* outfile= 0)
   for(int i=1; i<5; ++i) {
     stringstream yieldBkgName;
     yieldBkgName << "N_bkgOoT_minus" << i << "bx";
-    theFit.getRealPar(yieldBkgName.str().c_str())->getVal();
+    ngen += theFit.getRealPar(yieldBkgName.str().c_str())->getVal();
   }
 
   // Generate...
@@ -83,4 +83,52 @@ void Generate(Int_t nexp = 1, UInt_t iseed = 65539, char* outfile= 0)
   variables->setName("variables");
   variables->Write();
   varfile.Close();
+
+  makeToyresultsTuple();
+
 }
+
+void makeToyresultsTuple(TString dir = "./", TString file = "results.dat", 
+			 TString varfile = "variables.root") {
+
+
+  dir.Append("/");
+  file.Prepend(dir);
+  varfile.Prepend(dir);
+
+  cout << "Reading data from:      " << file << endl;
+  cout << "Reading variables from: " << varfile << endl;
+
+
+  TFile f(varfile);
+  RooArgSet *variables = (RooArgSet*)f.Get("variables");
+  RooDataSet *fitResData = RooDataSet::read(file, *variables);
+  TreeFillerFromRooDataSet treeFiller(fitResData);
+  treeFiller.addVar("N_sigIT_0");
+  treeFiller.addVar("N_sigITgen");
+  treeFiller.addVar("N_sigITerr_0");
+
+  treeFiller.addVar("N_bkgOoT_minus1bx_0");
+  treeFiller.addVar("N_bkgOoT_minus1bxgen");
+  treeFiller.addVar("N_bkgOoT_minus1bxerr_0");
+
+  treeFiller.addVar("N_bkgOoT_minus2bx_0");
+  treeFiller.addVar("N_bkgOoT_minus2bxgen");
+  treeFiller.addVar("N_bkgOoT_minus2bxerr_0");
+
+  treeFiller.addVar("N_bkgOoT_minus3bx_0");
+  treeFiller.addVar("N_bkgOoT_minus3bxgen");
+  treeFiller.addVar("N_bkgOoT_minus3bxerr_0");
+
+  treeFiller.addVar("N_bkgOoT_minus4bx_0");
+  treeFiller.addVar("N_bkgOoT_minus4bxgen");
+  treeFiller.addVar("N_bkgOoT_minus4bxerr_0");
+
+  treeFiller.addVar("covQual_0");
+
+  TFile *newfile = TFile::Open("toyresults.root","recreate");
+  TTree *ntp = treeFiller.getTree();
+  ntp->Write();
+  newfile->Close();
+}
+

@@ -23,6 +23,7 @@ TTree* TreeFillerFromRooDataSet::getTree() {
   for(int i=0;i<size;++i) {
     RooRealVar *var = (RooRealVar*)fullSet->find(_variables[i].c_str());
     if(var) {
+      cout << "Adding the branch for variable " << var->GetName() << endl;
       std::string typecol(_variables[i]);
       typecol+="/F";
       _tree->Branch(_variables[i].c_str(), &varsVal[i], typecol.c_str());

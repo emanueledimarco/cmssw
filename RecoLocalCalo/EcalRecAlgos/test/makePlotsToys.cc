@@ -87,21 +87,21 @@ void makeplotstoys(TString dir = "./", TString file = "toyresults.root",
   c1->SaveAs(pullstring);
 
   N_bkgOoT_minus2bx_pull->Fit("gaus");
-  N_bkgOoT_minus2bx_pull->GetXaxis()->SetTitle("Pull N_{bkg -1 bx}");
+  N_bkgOoT_minus2bx_pull->GetXaxis()->SetTitle("Pull N_{bkg -2 bx}");
   pullstring = TString(dir+"/N_bkgOoT_minus2bx_pull_");
   pullstring.Append(suffix);
   pullstring.Append(".pdf");
   c1->SaveAs(pullstring);
 
   N_bkgOoT_minus3bx_pull->Fit("gaus");
-  N_bkgOoT_minus3bx_pull->GetXaxis()->SetTitle("Pull N_{bkg -1 bx}");
+  N_bkgOoT_minus3bx_pull->GetXaxis()->SetTitle("Pull N_{bkg -3 bx}");
   pullstring = TString(dir+"/N_bkgOoT_minus3bx_pull_");
   pullstring.Append(suffix);
   pullstring.Append(".pdf");
   c1->SaveAs(pullstring);
 
   N_bkgOoT_minus4bx_pull->Fit("gaus");
-  N_bkgOoT_minus4bx_pull->GetXaxis()->SetTitle("Pull N_{bkg -1 bx}");
+  N_bkgOoT_minus4bx_pull->GetXaxis()->SetTitle("Pull N_{bkg -4 bx}");
   pullstring = TString(dir+"/N_bkgOoT_minus4bx_pull_");
   pullstring.Append(suffix);
   pullstring.Append(".pdf");

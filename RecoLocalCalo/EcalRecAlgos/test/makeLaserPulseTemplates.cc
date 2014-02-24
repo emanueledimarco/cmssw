@@ -130,7 +130,7 @@ void makePileupTemplates() {
 
   RooPlot* xframe = amplitude->frame(0,10,10) ;
   hist->plotOn(xframe,DataError(RooAbsData::SumW2) );
-  pdf.plotOn(xframe,LineCo);
+  pdf.plotOn(xframe,LineColor(kBlack));
   pdf.plotOn(xframe, Components("pedestal"), LineStyle(kDashed));
   //  pdf.paramOn(xframe);
 

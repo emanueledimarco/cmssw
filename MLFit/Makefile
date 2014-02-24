@@ -7,15 +7,20 @@
 #     clean - delete all intermediate and final build objects             #
 ###########################################################################
 
+ROOTCFLAGS    = $(shell root-config --cflags)
+ROOTLIBS      = $(shell root-config --libs)
+ROOTGLIBS     = $(shell root-config --glibs) -lTMVA
+
 # --- External configuration ----
-CC           = g++ -m32 -fPIC
-CCFLAGS      = -O2 -Wno-deprecated
+CC           = g++
+CCFLAGS      = -g -fPIC -O2 -Wno-deprecated -O -ansi -D_GNU_SOURCE 
 MFLAGS       = -MM -Wno-deprecated
 INCLUDES     = 
 WORKDIR      = workdir
 LIBDIR       = $(WORKDIR)
 # -------------------------------------------------------------
 
+#CCFLAGS  += $(ROOTCFLAGS)
 
 # Internal configuration
 PACKAGE=MLFit
@@ -87,7 +92,7 @@ $(LIBFILE): $(OLIST) $(INCDIR)/$(CINTFILE)) $(patsubst %.cc,%.o,$(OBJDIR)/$(CINT
 $(SHLIBFILE): $(OLIST) $(patsubst %.cc,%.o,$(OBJDIR)/$(CINTFILE))
 	@echo "Making $(SHLIBFILE)"
 	@rm -f $(SHLIBFILE)
-	@$(CC) $(addprefix $(OBJDIR)/,$(OLIST) $(patsubst %.cc,%.o,$(CINTFILE))) -shared -o $(SHLIBFILE)
+	@$(CC) $(addprefix $(OBJDIR)/,$(OLIST) $(patsubst %.cc,%.o,$(CINTFILE))) -bundle -undefined dynamic_lookup -o $(SHLIBFILE)
 
 # Useful build targets
 lib: $(LIBFILE) 

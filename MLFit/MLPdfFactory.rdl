@@ -75,6 +75,9 @@ public:
   static RooArgList makeDoubleLandauParams(TString basename);
   static RooAbsPdf* makeDoubleLandauPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
 
+  static RooArgList makePulseParams(TString basename);
+  static RooAbsPdf* makePulsePdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
   static RooArgList makeVoigtianParams(TString basename);
   static RooAbsPdf* makeVoigtianPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
 

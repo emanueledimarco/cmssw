@@ -25,7 +25,7 @@ void Generate(Int_t nexp = 1, UInt_t iseed = 65539, char* outfile= 0)
   RooRandom::randomGenerator()->SetSeed(seed);
 
   // define the structure of the dataset
-  RooRealVar* time = new RooRealVar("time",  "time" , -50., 20., "samples");
+  RooRealVar* time = new RooRealVar("time",  "time" , 0., 10., "samples");
 
   MLFit theFit;
 

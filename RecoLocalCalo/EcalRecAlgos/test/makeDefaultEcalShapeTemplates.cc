@@ -14,6 +14,8 @@
 #include "TH1F.h"
 #include "TCanvas.h"
 #include "TF1.h"
+#include "TMath.h"
+#include "TFile.h"
 
 int main ()
 {  
@@ -29,6 +31,8 @@ int main ()
   const int tconv = EcalShapeBase::kNBinsPerNSec;
 
   const unsigned int histsiz = nsamp*tconv;
+
+  TFile *fileShape = TFile::Open("EcalShapes.root","recreate");
 
   for( unsigned int i ( 0 ) ; i != 3 ; ++i )
     {  
@@ -80,19 +84,26 @@ int main ()
       double x = tzero ;
 
       const std::string title ( "Computed Ecal " + name + " MGPA shape" ) ;
+      const std::string nameh  ( "Ecal" + name + "Shape" ) ;
 
-      TH1F* shape = new TH1F( "shape", title.c_str(), nsamp, 0., (float) nsamp / 25. ) ;
+      double maxT = ((double)nsamp) / 25.;
+      TH1F* shape = new TH1F( nameh.c_str(), title.c_str(), nsamp, 0., maxT ) ;
       double y = 0.;
-      double dy = 0.;
 
       for( unsigned int i ( 0 ) ; i != histsiz ; ++i ) 
         {
           y  = (*theShape)(x);
-          shape->Fill((float)(x-tzero)/25.,(float)y);
+          double scaledX = ((double)(x-tzero))/25.;
+          shape->Fill(scaledX,(double)y);
           std::cout << " time (ns) = "  << std::fixed    << std::setw(6)         << std::setprecision(2) << x-tzero 
                     << " shape = "      << std::setw(11) << std::setprecision(5) << y << std::endl;
           x = x+1./(double)tconv;
         }
+      
+      // remove the rounding spike
+      for (int i = 2 ; i< shape->GetNbinsX(); ++i) {
+        if(shape->GetBinContent(i)>shape->GetBinContent(i-1)+0.5) shape->SetBinContent(i,(shape->GetBinContent(i-1)+shape->GetBinContent(i+1))/2.);
+      }
 
       for( unsigned int iSample ( 0 ) ; iSample != 10 ; ++iSample ) 
         {
@@ -107,10 +118,15 @@ int main ()
       const std::string fname ( name + "EcalShapeUsed.pdf" ) ;
       showShape->SaveAs( fname.c_str() );
 
+      fileShape->cd();
+      shape->Write();
+
       delete shape;
       delete showShape;
 
     }
+
+  fileShape->Close();
 
   return 0;
 } 

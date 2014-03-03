@@ -98,4 +98,9 @@ void testTemplateFit() {
   float amplitude = val * norm;
   std::cout << "==> amplitude = " << amplitude << std::endl;
 
+  float pedval = extPed->getVal(&obs);
+  RooRealVar *Npedfit = (RooRealVar*)fitResult->floatParsFinal().find("Nped");
+  float pedNorm = Npedfit->getVal();
+  float pedestalVal = pedval * pedNorm;
+  std::cout << "==> pedestal = " << pedestalVal << std::endl;
 }

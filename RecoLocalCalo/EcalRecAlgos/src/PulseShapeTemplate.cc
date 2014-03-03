@@ -26,12 +26,12 @@ ECALShapeConvGaussian::ECALShapeConvGaussian(const char *name, RooRealVar &m, TH
 
 ECALShapeConvGaussian::~ECALShapeConvGaussian()
 {
-  delete mean;
-  delete sigma;
-  delete gaus;
-  delete inHist;
-  delete dataHist;
-  delete histPdf;
+//   delete mean;
+//   delete sigma;
+//   delete gaus;
+//   delete inHist;
+//   delete dataHist;
+//   delete histPdf;
 }
 
   

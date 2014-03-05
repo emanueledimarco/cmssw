@@ -6,8 +6,9 @@
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
-#include<iostream>
-#include<iomanip>
+#include <iostream>
+#include <iomanip>
+#include <vector>
 
 #include "TROOT.h"
 #include "TStyle.h"
@@ -105,6 +106,20 @@ int main ()
         if(shape->GetBinContent(i)>shape->GetBinContent(i-1)+0.5) shape->SetBinContent(i,(shape->GetBinContent(i-1)+shape->GetBinContent(i+1))/2.);
       }
 
+      std::vector<TH1F*> oot_shapes;
+      // replicate it for -10bx +3bx
+      for (int i = -10; i<4; ++i) {
+        if(i==0) continue;
+        char buf[100],titleo[100];
+        char sign[1];
+        if(i>0) sprintf(sign,"+"); else sprintf(sign,"");
+        sprintf(buf,"%s_oot%s%dbx",nameh.c_str(),sign,i);
+        sprintf(titleo,"%s OOT %s%d BX",title.c_str(),sign,i);
+        TH1F *ootshape = new TH1F(buf, titleo, nsamp, i, maxT+i);
+        for(int b=0; b<nsamp; ++b) ootshape->SetBinContent(b,shape->GetBinContent(b));
+        oot_shapes.push_back(ootshape);
+      }
+
       for( unsigned int iSample ( 0 ) ; iSample != 10 ; ++iSample ) 
         {
           std::cout << (*theShape)(tzero + iSample*25.0) << std::endl; 
@@ -120,7 +135,11 @@ int main ()
 
       fileShape->cd();
       shape->Write();
-
+      for(int i=0; i<(int)oot_shapes.size(); ++i) { 
+        oot_shapes[i]->Write();
+        delete oot_shapes[i];
+      }
+        
       delete shape;
       delete showShape;
 

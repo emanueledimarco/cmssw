@@ -39,12 +39,13 @@ template<class C> class EcalUncalibRecHitRecAnalFitAlgo : public EcalUncalibRecH
  private:
   double MinAmpl_;
   bool dyn_pedestal;
-  bool doFit_;
+  TH1D *shape_;
+  std::vector<TH1D*> oot_shapes_;
+  bool savePlot_;
 
  public:
   // constructor
   EcalUncalibRecHitRecAnalFitAlgo<C>(){
-    doFit_ = false;
     MinAmpl_ = 16;
     dyn_pedestal = true;
   }
@@ -57,6 +58,10 @@ template<class C> class EcalUncalibRecHitRecAnalFitAlgo : public EcalUncalibRecH
 
   void SetMinAmpl(double ampl);
   void SetDynamicPedestal(bool dyn_pede);
+  void SetInTimeShape(TH1D* shape);
+  void SetOutOfTimeShapes(std::vector<TH1D*> shapes);
+  void SavePlot(bool saveplot) { savePlot_ = saveplot; }
+
 };
 
 /// Compute parameters
@@ -79,8 +84,6 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitRecAnalFitAlgo<C>::ma
   bool external_pede = false;
   uint32_t flag = 0;
   TH1D histo("histo","",C::MAXSAMPLES,0,C::MAXSAMPLES);
-
-  cout << "digis:" << endl;
 
   // Get time samples checking for Gain Switch and pedestals
   if(pedestals){
@@ -110,9 +113,6 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitRecAnalFitAlgo<C>::ma
         imax = iSample;
       }
       histo.SetBinContent(iSample+1,frame[iSample]);
-      cout << "pedestal = " << pedestal 
-           << "\tadc = " << dataFrame.sample(iSample).adc()
-           << "\tframe[iSample] = " << frame[iSample] << endl;
     }
   }
   else {// pedestal from pre-sample
@@ -137,7 +137,7 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitRecAnalFitAlgo<C>::ma
         imax = iSample;
       }
       histo.SetBinContent(iSample+1,frame[iSample]);
-    } 
+    }
   }
     
   if( (iGainSwitch==1 && external_pede==false) ||  // ... thus you return dummy rechit
@@ -145,93 +145,120 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitRecAnalFitAlgo<C>::ma
     return EcalUncalibratedRecHit( dataFrame.id(), -1., -100., -1. , -1.);
   }
 
-  // Get the default ECAL templates
-  TFile *fileTemplates = TFile::Open("RecoLocalCalo/EcalRecAlgos/data/EcalShapes.root");
-  TH1D *shape = (TH1D*)fileTemplates->Get("EcalBarrelShape");
-
-  RooRealVar time("time","time",0,10);
-  RooDataHist theData("data","data",RooArgList(time),&histo); 
-    
-  //--- pedestal
-/*   RooRealVar pedSlope("pedSlope","pedSlope",0); */
-/*   RooPolynomial pedestalPoly("pedestal","pedestal",time,pedSlope); */
-  
-  // --- real pulse
-  RooRealVar meanGauss("meanGauss","meanGauss", 0, -2.5, 2.5);
-  RooRealVar sigmaGauss("sigmaGauss","sigmaGauss", 0.1, 0, 1);
-  ECALShapeConvGaussian pulse("0T",time,&(*shape),&meanGauss,&sigmaGauss);
-
-  // --- OOT -1 bx pulse
-  RooRealVar meanGauss1m("meanGauss1m","meanGauss1m", -10);
-  RooRealVar sigmaGauss1m("sigmaGauss1m","sigmaGauss1m", 1);
-  ECALShapeConvGaussian pulse1m("1mT",time,&(*shape),&meanGauss1m,&sigmaGauss1m);
-    
-  RooRealVar N0("N0","N0",0,0,5e+6);
-  RooExtendPdf extSigPulse("extSigPulse","extSigPulse",*(pulse.model),N0);
-  
-  RooRealVar N1m("N1m","N1m",0,0,10000);
-  RooExtendPdf ext1mPulse("ext1mPulse","ext1mPulse",*(pulse1m.model),N1m);
-    
-/*   RooRealVar Nped("Nped","Nped",pedestal*C::MAXSAMPLES); */
-/*   RooExtendPdf extPed("extPed","extPed",pedestalPoly,Nped); */
-    
-  RooAddPdf model("model","model",RooArgList(extSigPulse,ext1mPulse));
-    
-  RooFitResult *fitResult=0;
-  fitResult = model.fitTo(theData,
-                          RooFit::Extended(),
-                          RooFit::Strategy(2),
-                          RooFit::Save());
-    
-  RooPlot *plot = time.frame(C::MAXSAMPLES);
-  theData.plotOn(plot);
-  model.plotOn(plot);
-  //  model.plotOn(plot,RooFit::Components("extPed"),RooFit::LineStyle(kDashed),RooFit::LineColor(kRed));
-  model.plotOn(plot,RooFit::Components("ext1mPulse"),RooFit::LineStyle(kDashed),RooFit::LineColor(kBlue));
-  model.plotOn(plot,RooFit::Components("extSigPulse"),RooFit::LineStyle(kDashed),RooFit::LineColor(kBlack));
-    
-  TCanvas c1("c1","c1",600,600);
-  plot->Draw();
-  c1.SaveAs("fit.pdf");
-    
-  // --- get the parameters of interest
-  std::cout << "=== Resulting parameters: ====" << std::endl;
-  RooRealVar *timeBias = (RooRealVar*)fitResult->floatParsFinal().find("meanGauss");
-  float timeMax = timeBias->getVal();
-  float timeMaxErr = timeBias->getError();
-  std::cout << "time bias = " << timeMax * 25. << " +/- " << timeMaxErr * 25. << " ns." << std::endl;
-    
-  RooArgSet obs(time);
-  float val = extSigPulse.getVal(&obs);
-  RooRealVar *N0fit = (RooRealVar*)fitResult->floatParsFinal().find("N0");
-  float norm = N0fit->getVal();
-  float amplitude = val * norm;
-  std::cout << "==> amplitude = " << amplitude << std::endl;
-
-/*   float pedval = extPed.getVal(&obs); */
-/*   RooRealVar *Npedfit = (RooRealVar*)fitResult->floatParsFinal().find("Nped"); */
-/*   float pedNorm = Npedfit->getVal(); */
-/*   float pedestalVal = pedval * pedNorm; */
-/*   std::cout << "==> pedestal = " << pedestalVal << std::endl; */
-
-  //    if ( std::string(gMinuit->fCstatu.Data()) == std::string("CONVERGED ") ) {
-  if(1) {
-
-    amplitude_ = amplitude;
+  // amplitude too low for fit to converge 
+  // timing set correctly is assumed 
+  if(maxsample < MinAmpl_) {
+    amplitude_ = frame[5];
+    double sumA    = frame[5]+frame[4]+frame[6];
+    if(sumA != 0) { jitter_ = 5+(frame[6]-frame[4])/sumA; }
+    else{ jitter_ = -999; }
     pedestal_  = pedestal;
-    jitter_    = timeMax;
-    chi2_ = 1.; // successful fit
-    if (isSaturated) flag = EcalUncalibratedRecHit::kSaturated;
-    /*
-      std::cout << "separate fits\nA: " <<  amplitude_value << ", Ped: " << pedestal_value
-      << ", t0: " << jitter_ << ", tp: " << pulseShape.GetParameter(1)
-      << ", alpha: " << pulseShape.GetParameter(2)
-      << std::endl;
-    */
-
+    chi2_ = -100.;
+    return EcalUncalibratedRecHit( dataFrame.id(), amplitude_, pedestal_, jitter_ - 6, chi2_, flag);
   }
 
-  return EcalUncalibratedRecHit( dataFrame.id(), amplitude_, pedestal_, jitter_ - 6, chi2_, flag);
+  // if timing very badly off, that just use max sample
+  else if(imax <1 || imax > 7) {    
+    amplitude_ = maxsample;
+    pedestal_  = pedestal; 
+    jitter_ = imax;
+    chi2_ = -200.;  
+    return EcalUncalibratedRecHit( dataFrame.id(), amplitude_, pedestal_, jitter_ - 6, chi2_, flag);
+  }
+
+  else {
+    RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
+    RooRealVar time("time","time",0,10);
+    RooDataHist theData("data","data",RooArgList(time),&histo); 
+    
+    // --- real pulse
+    RooRealVar meanGauss("meanGauss","meanGauss", 0, -2.5, 2.5);
+    RooRealVar sigmaGauss("sigmaGauss","sigmaGauss", 0.1, 0, 1);
+    ECALShapeConvGaussian pulse("0T",time,&(*shape_),&meanGauss,&sigmaGauss);
+
+    // --- OOT -1 bx pulse
+    RooDataHist shape1m("shape1m","",RooArgSet(time),oot_shapes_[9]);
+    RooHistPdf pulse1m("1mT","",time,shape1m,8);
+
+    // --- OOT -2 bx pulse
+    RooDataHist shape2m("shape2m","",RooArgSet(time),oot_shapes_[8]);
+    RooHistPdf pulse2m("2mT","",time,shape2m,8);
+
+    // --- OOT -3 bx pulse
+    RooDataHist shape3m("shape3m","",RooArgSet(time),oot_shapes_[7]);
+    RooHistPdf pulse3m("3mT","",time,shape3m,8);
+
+    RooRealVar N0("N0","N0",0,0,5e+6);
+    RooExtendPdf extSigPulse("extSigPulse","extSigPulse",*(pulse.model),N0);
+  
+    RooRealVar N1m("N1m","N1m",10,0,10000);
+    RooExtendPdf ext1mPulse("ext1mPulse","ext1mPulse",pulse1m,N1m);
+
+    RooRealVar N2m("N2m","N2m",1,0,10000);
+    RooExtendPdf ext2mPulse("ext2mPulse","ext2mPulse",pulse2m,N2m);
+
+    RooRealVar N3m("N3m","N3m",1,0,10000);
+    RooExtendPdf ext3mPulse("ext3mPulse","ext3mPulse",pulse3m,N3m);
+    
+    RooAddPdf model("model","model",RooArgList(extSigPulse,ext1mPulse,ext2mPulse,ext3mPulse));
+    
+    RooFitResult *fitResult=0;
+    fitResult = model.fitTo(theData,
+                            RooFit::Extended(),
+                            RooFit::Strategy(0),
+                            RooFit::Verbose(kFALSE),
+                            RooFit::PrintLevel(-1),
+                            RooFit::Warnings(kFALSE),
+                            RooFit::Save());
+    
+    //    if ( std::string(gMinuit->fCstatu.Data()) == std::string("CONVERGED ") ) {
+    if(fitResult->covQual()>1) {
+
+      // --- get the parameters of interest
+      //  std::cout << "=== Resulting parameters: ====" << std::endl;
+      RooRealVar *timeBias = (RooRealVar*)fitResult->floatParsFinal().find("meanGauss");
+      float timeMax = timeBias->getVal();
+      //    float timeMaxErr = timeBias->getError();
+      //  std::cout << "time bias = " << timeMax * 25. << " +/- " << timeMaxErr * 25. << " ns." << std::endl;
+    
+      RooArgSet obs(time);
+      float val = extSigPulse.getVal(&obs);
+      RooRealVar *N0fit = (RooRealVar*)fitResult->floatParsFinal().find("N0");
+      float norm = N0fit->getVal();
+      float amplitude = val * norm;
+      //  std::cout << "==> amplitude = " << amplitude << std::endl;
+
+      amplitude_ = amplitude;
+      pedestal_  = pedestal;
+      jitter_    = timeMax;
+    
+      RooPlot *plot = time.frame(C::MAXSAMPLES);
+      theData.plotOn(plot,RooFit::Name("data"));
+      model.plotOn(plot,RooFit::Name("model"));
+      model.plotOn(plot,RooFit::Components("extSigPulse"),RooFit::LineStyle(kDashed),RooFit::LineColor(kBlack));
+      model.plotOn(plot,RooFit::Components("ext1mPulse"),RooFit::LineStyle(kDashed),RooFit::LineColor(kBlue+2));
+      model.plotOn(plot,RooFit::Components("ext2mPulse"),RooFit::LineStyle(kDashed),RooFit::LineColor(kGreen+2));
+      model.plotOn(plot,RooFit::Components("ext3mPulse"),RooFit::LineStyle(kDashed),RooFit::LineColor(kRed+2));
+    
+      if(savePlot_) {    
+        TCanvas c1("c1","c1",600,600);
+        plot->Draw();
+        c1.SaveAs("fit.pdf");
+      }
+      int ndof=6;
+      chi2_ = plot->chiSquare("model","data",ndof);
+      if (isSaturated) flag = EcalUncalibratedRecHit::kSaturated;
+    } else {
+      amplitude_ = frame[5];
+      double sumA    = frame[5]+frame[4]+frame[6];
+      if(sumA != 0) { jitter_ = 5+(frame[6]-frame[4])/sumA; }
+      else{ jitter_ = -999; }
+      pedestal_  = pedestal;
+      chi2_ = -1.;
+      return EcalUncalibratedRecHit( dataFrame.id(), amplitude_, pedestal_, jitter_ - 6, chi2_, flag);
+    }
+    return EcalUncalibratedRecHit( dataFrame.id(), amplitude_, pedestal_, jitter_ - 6, chi2_, flag);
+  }
 }
 
 template<class C> void EcalUncalibRecHitRecAnalFitAlgo<C>::SetMinAmpl( double ampl){
@@ -239,6 +266,12 @@ template<class C> void EcalUncalibRecHitRecAnalFitAlgo<C>::SetMinAmpl( double am
 }
 template<class C> void EcalUncalibRecHitRecAnalFitAlgo<C>::SetDynamicPedestal (bool p){
   dyn_pedestal = p;
+}
+template<class C> void EcalUncalibRecHitRecAnalFitAlgo<C>::SetInTimeShape(TH1D* shape){
+  shape_ = shape;
+}
+template<class C> void EcalUncalibRecHitRecAnalFitAlgo<C>::SetOutOfTimeShapes(std::vector<TH1D*> shapes){
+  for(unsigned int i=0; i<shapes.size(); ++i) oot_shapes_.push_back(shapes[i]);
 }
 
 #endif

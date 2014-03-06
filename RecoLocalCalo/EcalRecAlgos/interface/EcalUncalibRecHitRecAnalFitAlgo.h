@@ -15,6 +15,7 @@
 #include "CLHEP/Matrix/SymMatrix.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitRecAbsAlgo.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/PulseShapeTemplate.hh"
+#include "HiggsAnalysis/CombinedLimit/interface/CloseCoutSentry.h"
 #include <vector>
 #include <string>
 
@@ -31,6 +32,8 @@
 #include "RooExtendPdf.h"
 #include "RooPolynomial.h"
 #include "RooPlot.h"
+#include "RooNLLVar.h"
+#include "RooMinuit.h"
 
 template<class C> class EcalUncalibRecHitRecAnalFitAlgo : public EcalUncalibRecHitRecAbsAlgo<C>
 {
@@ -169,7 +172,8 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitRecAnalFitAlgo<C>::ma
   else {
     RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
     RooRealVar time("time","time",0,10);
-    RooDataHist theData("data","data",RooArgList(time),&histo); 
+    RooArgSet *varSet = new RooArgSet(time);
+    RooDataHist theData("data","data",*varSet,&histo); 
     
     // --- real pulse
     RooRealVar meanGauss("meanGauss","meanGauss", 0, -2.5, 2.5);
@@ -177,15 +181,15 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitRecAnalFitAlgo<C>::ma
     ECALShapeConvGaussian pulse("0T",time,&(*shape_),&meanGauss,&sigmaGauss);
 
     // --- OOT -1 bx pulse
-    RooDataHist shape1m("shape1m","",RooArgSet(time),oot_shapes_[9]);
+    RooDataHist shape1m("shape1m","",*varSet,oot_shapes_[9]);
     RooHistPdf pulse1m("1mT","",time,shape1m,8);
 
     // --- OOT -2 bx pulse
-    RooDataHist shape2m("shape2m","",RooArgSet(time),oot_shapes_[8]);
+    RooDataHist shape2m("shape2m","",*varSet,oot_shapes_[8]);
     RooHistPdf pulse2m("2mT","",time,shape2m,8);
 
     // --- OOT -3 bx pulse
-    RooDataHist shape3m("shape3m","",RooArgSet(time),oot_shapes_[7]);
+    RooDataHist shape3m("shape3m","",*varSet,oot_shapes_[7]);
     RooHistPdf pulse3m("3mT","",time,shape3m,8);
 
     RooRealVar N0("N0","N0",0,0,5e+6);
@@ -201,17 +205,21 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitRecAnalFitAlgo<C>::ma
     RooExtendPdf ext3mPulse("ext3mPulse","ext3mPulse",pulse3m,N3m);
     
     RooAddPdf model("model","model",RooArgList(extSigPulse,ext1mPulse,ext2mPulse,ext3mPulse));
-    
+
+    //    CloseCoutSentry sentry(true);    
     RooFitResult *fitResult=0;
     fitResult = model.fitTo(theData,
                             RooFit::Extended(),
                             RooFit::Strategy(0),
+                            RooFit::Minimizer("Minuit2","migrad"),
+                            RooFit::Hesse(kFALSE),
                             RooFit::Verbose(kFALSE),
                             RooFit::PrintLevel(-1),
                             RooFit::Warnings(kFALSE),
                             RooFit::Save());
-    
-    //    if ( std::string(gMinuit->fCstatu.Data()) == std::string("CONVERGED ") ) {
+
+    //  sentry.clear();
+
     if(fitResult->covQual()>1) {
 
       // --- get the parameters of interest
@@ -221,8 +229,8 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitRecAnalFitAlgo<C>::ma
       //    float timeMaxErr = timeBias->getError();
       //  std::cout << "time bias = " << timeMax * 25. << " +/- " << timeMaxErr * 25. << " ns." << std::endl;
     
-      RooArgSet obs(time);
-      float val = extSigPulse.getVal(&obs);
+      RooArgSet *obs = new RooArgSet(time);
+      float val = extSigPulse.getVal(obs);
       RooRealVar *N0fit = (RooRealVar*)fitResult->floatParsFinal().find("N0");
       float norm = N0fit->getVal();
       float amplitude = val * norm;
@@ -240,7 +248,7 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitRecAnalFitAlgo<C>::ma
       model.plotOn(plot,RooFit::Components("ext2mPulse"),RooFit::LineStyle(kDashed),RooFit::LineColor(kGreen+2));
       model.plotOn(plot,RooFit::Components("ext3mPulse"),RooFit::LineStyle(kDashed),RooFit::LineColor(kRed+2));
     
-      if(savePlot_) {    
+      if(savePlot_) {
         TCanvas c1("c1","c1",600,600);
         plot->Draw();
         c1.SaveAs("fit.pdf");
@@ -248,6 +256,7 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitRecAnalFitAlgo<C>::ma
       int ndof=6;
       chi2_ = plot->chiSquare("model","data",ndof);
       if (isSaturated) flag = EcalUncalibratedRecHit::kSaturated;
+      delete obs;
     } else {
       amplitude_ = frame[5];
       double sumA    = frame[5]+frame[4]+frame[6];
@@ -257,6 +266,7 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitRecAnalFitAlgo<C>::ma
       chi2_ = -1.;
       return EcalUncalibratedRecHit( dataFrame.id(), amplitude_, pedestal_, jitter_ - 6, chi2_, flag);
     }
+    delete varSet;
     return EcalUncalibratedRecHit( dataFrame.id(), amplitude_, pedestal_, jitter_ - 6, chi2_, flag);
   }
 }

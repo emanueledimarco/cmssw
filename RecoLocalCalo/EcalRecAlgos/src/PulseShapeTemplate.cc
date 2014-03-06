@@ -2,13 +2,8 @@
 
 //--------------------------------------------------------------------------------------------------
 ECALShapeConvGaussian::ECALShapeConvGaussian(const char *name, RooRealVar &m, TH1D* hist,
-					     RooRealVar *mean0, RooRealVar *sigma0) {  
+					     RooRealVar *mean, RooRealVar *sigma) {  
 
-  if(mean0)  { mean  = mean0;  }
-  else       { mean  = new RooRealVar("mean","mean",0,-10,10); }
-  if(sigma0) { sigma = sigma0; }
-  else       { sigma = new RooRealVar("sigma","sigma",1);    }
-  
   char buf[200];
   sprintf(buf,"gaus_%s",name);
   gaus  = new RooGaussian(buf,buf,m,*mean,*sigma);
@@ -26,12 +21,12 @@ ECALShapeConvGaussian::ECALShapeConvGaussian(const char *name, RooRealVar &m, TH
 
 ECALShapeConvGaussian::~ECALShapeConvGaussian()
 {
-//   delete mean;
-//   delete sigma;
-//   delete gaus;
-//   delete inHist;
-//   delete dataHist;
-//   delete histPdf;
+  //delete mean;
+  //delete sigma;
+  delete gaus;
+  delete inHist;
+  delete dataHist;
+  delete histPdf;
 }
 
   

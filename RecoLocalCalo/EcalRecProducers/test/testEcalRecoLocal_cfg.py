@@ -14,9 +14,17 @@ process.load("EventFilter.EcalRawToDigi.EcalUnpackerData_cfi")
 
 #### CONFIGURE IT HERE
 isMC = True
-# methods: Weights, AlphaBetaFit, AnalyticFit
-AmplitudeRecoMethod = "Weights"
+# methods: Weights, AlphaBetaFit, AlphaBetaGammaFit, AnalyticFit
+AmplitudeRecoMethod = "AlphaBetaGammaFit"
+runProfiler = False
 #####################
+
+if runProfiler:
+    process.IgProfService = cms.Service("IgProfService",
+                                        reportFirstEvent            = cms.untracked.int32(0),
+                                        reportEventInterval         = cms.untracked.int32(1),
+                                        reportToFileAtPostEvent     = cms.untracked.string("| gzip -c > XXXX.%I.gz")
+                                        )
 
 if isMC:
     process.ecalEBunpacker.InputLabel = cms.InputTag('rawDataCollector')
@@ -35,11 +43,17 @@ process.ecalUncalibHitWeights = RecoLocalCalo.EcalRecProducers.ecalWeightUncalib
 process.ecalUncalibHitWeights.EBdigiCollection = 'ecalEBunpacker:ebDigis'
 process.ecalUncalibHitWeights.EEdigiCollection = 'ecalEBunpacker:eeDigis'
 
-# get uncalibrechits with fit method
+# get uncalibrechits with alphabeta fit method
 import RecoLocalCalo.EcalRecProducers.ecalFixedAlphaBetaFitUncalibRecHit_cfi
 process.ecalUncalibHitFixedAlphaBetaFit = RecoLocalCalo.EcalRecProducers.ecalFixedAlphaBetaFitUncalibRecHit_cfi.ecalFixedAlphaBetaFitUncalibRecHit.clone()
 process.ecalUncalibHitFixedAlphaBetaFit.EBdigiCollection = 'ecalEBunpacker:ebDigis'
 process.ecalUncalibHitFixedAlphaBetaFit.EEdigiCollection = 'ecalEBunpacker:eeDigis'
+
+# get uncalibrechits with alphabetagamma fit method
+import RecoLocalCalo.EcalRecProducers.ecalFixedAlphaBetaGammaFitUncalibRecHit_cfi
+process.ecalUncalibHitFixedAlphaBetaGammaFit = RecoLocalCalo.EcalRecProducers.ecalFixedAlphaBetaGammaFitUncalibRecHit_cfi.ecalFixedAlphaBetaGammaFitUncalibRecHit.clone()
+process.ecalUncalibHitFixedAlphaBetaGammaFit.EBdigiCollection = 'ecalEBunpacker:ebDigis'
+process.ecalUncalibHitFixedAlphaBetaGammaFit.EEdigiCollection = 'ecalEBunpacker:eeDigis'
 
 # get uncalibrechits with analytic fit method  
 import RecoLocalCalo.EcalRecProducers.ecalAnalFitUncalibRecHit_cfi
@@ -87,16 +101,20 @@ if AmplitudeRecoMethod == "Weights":
 elif AmplitudeRecoMethod == "AlphaBetaFit":
     print "==> Using AlphaBetaFit as amplitude reconstruction" 
     process.ecalRecHit.EBuncalibRecHitCollection = 'ecalUncalibHitFixedAlphaBetaFit:EcalUncalibRecHitsEB'
-    process.ecalRecHit.EEuncalibRecHitCollection = 'ecalUncalibHitFixedAlphaBetaFit:EcalUncalibRecHitsEE'    
+    process.ecalRecHit.EEuncalibRecHitCollection = 'ecalUncalibHitFixedAlphaBetaFit:EcalUncalibRecHitsEE'
+elif AmplitudeRecoMethod == "AlphaBetaGammaFit":
+    print "==> Using AlphaBetaGammaFit as amplitude reconstruction" 
+    process.ecalRecHit.EBuncalibRecHitCollection = 'ecalUncalibHitFixedAlphaBetaGammaFit:EcalUncalibRecHitsEB'
+    process.ecalRecHit.EEuncalibRecHitCollection = 'ecalUncalibHitFixedAlphaBetaGammaFit:EcalUncalibRecHitsEE'    
 elif AmplitudeRecoMethod == "AnalyticFit":
-    print "==> Using AlphaBetaFit as amplitude reconstruction" 
+    print "==> Using AnalyticFit as amplitude reconstruction" 
     process.ecalRecHit.EBuncalibRecHitCollection = 'ecalUncalibHitAnalFit:EcalUncalibRecHitsEB'
     process.ecalRecHit.EEuncalibRecHitCollection = 'ecalUncalibHitAnalFit:EcalUncalibRecHitsEE'        
 else: print wrongAlgoMessage
 
 process.maxEvents = cms.untracked.PSet(  input = cms.untracked.int32(10) )
 process.source = cms.Source("PoolSource",
-            fileNames = cms.untracked.vstring('file:/cmsrm/pc23_2/emanuele/data/Pool/DYToEE_M_20_TuneZ2star_8TeV_pythia6_GEN-SIM-RAW+PU25bx25_START53_V19D-v1.root')
+            fileNames = cms.untracked.vstring('/store/group/phys_egamma/emanuele/ecal/reconstruction/DYToEE_M_20_TuneZ2star_8TeV_pythia6_GEN-SIM-RAW+PU25bx25_START53_V19D-v1.root')
                 )
 
 
@@ -110,9 +128,10 @@ process.out = cms.OutputModule("PoolOutputModule",
 
 
 
-if AmplitudeRecoMethod == "Weights":        process.ecalAmplitudeReco = cms.Sequence(process.ecalUncalibHitWeights)
-elif AmplitudeRecoMethod == "AlphaBetaFit": process.ecalAmplitudeReco = cms.Sequence(process.ecalUncalibHitFixedAlphaBetaFit)
-elif AmplitudeRecoMethod == "AnalyticFit":  process.ecalAmplitudeReco = cms.Sequence(process.ecalUncalibHitAnalFit)
+if AmplitudeRecoMethod == "Weights":             process.ecalAmplitudeReco = cms.Sequence(process.ecalUncalibHitWeights)
+elif AmplitudeRecoMethod == "AlphaBetaFit":      process.ecalAmplitudeReco = cms.Sequence(process.ecalUncalibHitFixedAlphaBetaFit)
+elif AmplitudeRecoMethod == "AlphaBetaGammaFit": process.ecalAmplitudeReco = cms.Sequence(process.ecalUncalibHitFixedAlphaBetaGammaFit)
+elif AmplitudeRecoMethod == "AnalyticFit":       process.ecalAmplitudeReco = cms.Sequence(process.ecalUncalibHitAnalFit)
 else: print wrongAlgoMessage
 
 process.ecalTestRecoLocal = cms.Sequence(process.ecalEBunpacker

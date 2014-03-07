@@ -43,7 +43,7 @@ template<class C> class EcalUncalibRecHitFixedAlphaBetaGammaAlgo : public EcalUn
   double fPed_max_;// pedestal value
   double fAmpOut_; // oot amplitude
   double alfabeta_; 
-
+  double chi2P_;
   
   int fNb_iter_;
   int  fNum_samp_bef_max_ ;
@@ -63,7 +63,7 @@ template<class C> class EcalUncalibRecHitFixedAlphaBetaGammaAlgo : public EcalUn
   CLHEP::HepSymMatrix DM1_ ; CLHEP::HepVector temp_;
    public:
 
-  EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>():fAlpha_(0.),fBeta_(0.),fGamma_(0.),fAmp_max_(-1.),fTim_max_(-1),fPed_max_(0),fAmpOut_(-1.),alfabeta_(0),fNb_iter_(4),fNum_samp_bef_max_(5),fNum_samp_after_max_(3),fSigma_ped(1.1),DM1_(5),temp_(5){
+  EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>():fAlpha_(0.),fBeta_(0.),fGamma_(0.),fAmp_max_(-1.),fTim_max_(-1),fPed_max_(0),fAmpOut_(-1.),alfabeta_(0),chi2P_(-1.),fNb_iter_(4),fNum_samp_bef_max_(5),fNum_samp_after_max_(3),fSigma_ped(1.1),DM1_(5),temp_(5){
     un_sur_sigma = 1./double(fSigma_ped) ;
     for (int i=0;i<36;i++){
       for(int j=0;j<1701;j++){
@@ -75,7 +75,7 @@ template<class C> class EcalUncalibRecHitFixedAlphaBetaGammaAlgo : public EcalUn
     MinAmpl_ = 16;
     dyn_pedestal = true;
   }
-    EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>(int n_iter, int n_bef_max =5, int n_aft_max =3, float sigma_ped = 1.1):fAlpha_(0.),fBeta_(0.),fGamma_(0.),fAmp_max_(-1.),fTim_max_(-1),fPed_max_(0),fAmpOut_(-1.),alfabeta_(0),DM1_(5),temp_(5){
+    EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>(int n_iter, int n_bef_max =5, int n_aft_max =3, float sigma_ped = 1.1):fAlpha_(0.),fBeta_(0.),fGamma_(0.),fAmp_max_(-1.),fTim_max_(-1),fPed_max_(0),fAmpOut_(-1.),alfabeta_(0),chi2P_(-1.),DM1_(5),temp_(5){
     
    fNb_iter_ = n_iter ;
    fNum_samp_bef_max_   = n_bef_max ;
@@ -187,10 +187,16 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitFixedAlphaBetaGammaAl
   uint32_t flags = 0;
   if (isSaturated) flags = EcalUncalibratedRecHit::kSaturated;
 
-  /*    std::cout << "separate fits\nA: " << fAmp_max_  << ", ResidualPed: " <<  fPed_max_
-              <<", pedestal: "<<pedestal << ", tPeak " << fTim_max_ << std::endl;
+  /*
+  std::cout << "separate fits\nA: " << fAmp_max_  << ", ResidualPed: " <<  fPed_max_
+            <<", pedestal: "<<pedestal << ", tPeak " << fTim_max_ 
+            <<", pileup ampli: " << fAmpOut_ << ", chi2 pileup:" << chi2P_ << std::endl;
   */
-  return EcalUncalibratedRecHit( dataFrame.id(),fAmp_max_, pedestal+fPed_max_, fTim_max_ - 5 , chi2_, flags );
+  
+  EcalUncalibratedRecHit theHit( dataFrame.id(),fAmp_max_, pedestal+fPed_max_, fTim_max_ - 5 , chi2_, flags );
+  theHit.setOutOfTimeEnergy(fAmpOut_);
+  theHit.setOutOfTimeChi2(chi2P_);
+  return theHit;
 }
 
 template<class C> double EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::pulseShapeFunction(double t){
@@ -256,7 +262,7 @@ template<class C> float EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::PerformAnal
   //! the out-of-time pileup amplitude (fAmpOut_) 	
   //! the left tail parameter (fGamma_)
 
-  double chi2=-1 , db[5] ;
+  double chi2=-1 , chi2P=-1 , db[5] ;
   
 
   //HepSymMatrix DM1(5) ; CLHEP::HepVector temp(5) ;
@@ -273,13 +279,14 @@ template<class C> float EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::PerformAnal
     return -1;
   }
   
-  double func,delta ;
+  double func,delta,deltaP ;
   double variation_func_max = 0. ;double variation_tim_max = 0. ; double variation_ped_max = 0. ;
   double variation_ampo = 0. ; double variation_gamma = 0. ;
   //!          Loop on iterations
   for (int iter=0 ; iter < fNb_iter_ ; iter ++) {
     //!          initialization inside iteration loop !
     chi2 = 0. ; //PROD.Zero() ;  DM1.Zero() ;
+    chi2P = 0. ;
 
     for(int i1=0 ; i1<5 ; i1++) {
       temp_[i1]=0;
@@ -300,7 +307,7 @@ template<class C> float EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::PerformAnal
       //if(i>fsamp_edge_fit && i<num_fit_min) continue ; // remove front edge samples
       //! calculate function to be fitted
       func = pulseShapeFunction( (double)i  ) ;
-      //  std::cout << "\t\tsample " << i << "\tfunc = " << func << std::endl; // debug
+      // std::cout << "\t\tsample " << i << "\tfunc = " << func << std::endl; // debug
       //! then calculate derivatives of function to be fitted
       double dt =(double)i - fTim_max_ ;
       if(dt > -alfabeta_)  {      
@@ -336,6 +343,11 @@ template<class C> float EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::PerformAnal
       //! compute vector elements PROD
       for(int ii=0 ; ii<5 ;ii++) {temp_[ii] += delta*db[ii] ;}
       chi2 += delta * delta ;
+      //! compute the chi2 for OOT (inverse definition, check consistency with flat pedestal)
+      if(i<3) {
+        deltaP = (samples[i]-fPed_max_)*un_sur_sigma ;
+        chi2P += deltaP * deltaP;
+      }
     }//! end of loop on samples 
     
     // debug
@@ -401,7 +413,7 @@ template<class C> float EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::PerformAnal
     return -104;
   }
   
-
+  chi2P_ = chi2P;
   //std::cout <<"chi2: "<<chi2<<" ampl: "<<fAmp_max_<<" time: "<<fTim_max_<<" pede: "<<fPed_max_<<std::endl;
   return chi2;
 }

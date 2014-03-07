@@ -284,6 +284,7 @@ template<class C> float EcalUncalibRecHitFixedAlphaBetaAlgo<C>::PerformAnalyticF
       //if(i>fsamp_edge_fit && i<num_fit_min) continue ; // remove front edge samples
       //! calculate function to be fitted
       func = pulseShapeFunction( (double)i  ) ;
+      // std::cout << "\t\tsample " << i << "\tfunc = " << func << std::endl; // debug
       //! then calculate derivatives of function to be fitted
       double dt =(double)i - fTim_max_ ;
       if(dt > -alfabeta_)  {      
@@ -312,6 +313,8 @@ template<class C> float EcalUncalibRecHitFixedAlphaBetaAlgo<C>::PerformAnalyticF
       chi2 += delta * delta ;
     }//! end of loop on samples 
     
+    // std::cout << "Iter = " << iter << " Chi2 = " << chi2 << std::endl; // debug
+
     int fail=0 ;
     DM1_.invert(fail) ;
       if(fail != 0.) {
@@ -357,6 +360,9 @@ template<class C> float EcalUncalibRecHitFixedAlphaBetaAlgo<C>::PerformAnalyticF
   fTim_max_ += variation_tim_max ;
   fPed_max_ += variation_ped_max ;
 
+  // debug
+  //  std::cout << "hit fAmp_max_ = " << fAmp_max_ << "\tfTim_max_= " << fTim_max_ 
+  //          << "\tfPed_max_ = " << fPed_max_  << std::endl;
 
   // protection against unphysical results:
   // ampli mismatched to MaxSample, ampli largely negative, time off preselected range

@@ -125,6 +125,8 @@ private:
   bool saveTrackImpactParameters_;
   //! save the calotowers
   bool dumpCaloTowers_;
+  //! save the ECAL rechit collections
+  bool dumpEcalRecHits_;
   //! MVAs
   MuonMVAEstimator *fMuonIsoMVA;
   EGammaMvaEleEstimator *fEleIdMVANonTrig, *fEleIdMVATrig, *fEleIdMVATrigIdIsoCombined;
@@ -169,6 +171,8 @@ private:
   //! calotowers collections
   edm::InputTag calotowerCollection_, hbheLabel_, hoLabel_, hfLabel_;
   std::vector<edm::InputTag> ecalLabels_;
+  //! ECAL rechists collections
+  edm::InputTag ebRHLabel_, eeRHLabel_;
   //! generator-level particle collection in input
   edm::InputTag mcTruthCollection_;
   //! association map between reco and generated particles

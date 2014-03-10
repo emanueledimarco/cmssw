@@ -53,6 +53,7 @@
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsPFJetFiller.h"
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsJPTJetFiller.h"
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsCaloTowerFiller.h"
+#include "HiggsAnalysis/HiggsToWW2e/interface/CmsEcalRecHitFiller.h"
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsV0CandidateFiller.h"
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsTriggerTreeFiller.h"
 #include "HiggsAnalysis/HiggsToWW2e/interface/CmsMcTruthTreeFiller.h"
@@ -128,6 +129,7 @@ HWWTreeDumper::HWWTreeDumper(const edm::ParameterSet& iConfig)
   dumpVertices_       = iConfig.getUntrackedParameter<bool>("dumpVertices", false);
   dumpK0s_            = iConfig.getUntrackedParameter<bool>("dumpK0s", false);
   dumpCaloTowers_     = iConfig.getUntrackedParameter<bool>("dumpCaloTowers", false);
+  dumpEcalRecHits_    = iConfig.getUntrackedParameter<bool>("dumpEcalRecHits", false);
   dumpLogErrorFlags_  = iConfig.getUntrackedParameter<bool>("dumpLogErrorFlags", false); 
   dumpHcalNoiseFlags_ = iConfig.getUntrackedParameter<bool>("dumpHcalNoiseFlags", false);
   aodHcalNoiseFlags_  = iConfig.getUntrackedParameter<bool>("AODHcalNoiseFlags", true);
@@ -204,6 +206,10 @@ HWWTreeDumper::HWWTreeDumper(const edm::ParameterSet& iConfig)
   hoLabel_    = iConfig.getParameter<edm::InputTag>("hoInput");
   hfLabel_    = iConfig.getParameter<edm::InputTag>("hfInput");
   ecalLabels_ = iConfig.getParameter<std::vector<edm::InputTag> >("ecalInputs");
+
+  // ECAL rechits collections
+  ebRHLabel_ = iConfig.getParameter<edm::InputTag>("EBRecHits");
+  eeRHLabel_ = iConfig.getParameter<edm::InputTag>("EERecHits");
 
   // trigger Collections
   dumpTriggerResults_  = iConfig.getUntrackedParameter<bool>("dumpTriggerResults");
@@ -593,6 +599,18 @@ void HWWTreeDumper::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     treeFill.saveCand(dumpCaloTowers_);
     treeFill.saveCaloTowerExtras(dumpCaloTowers_);
     treeFill.writeCollectionToTree(calotowerCollection_, iEvent, iSetup, prefix, suffix, false);
+  }
+
+  // fill ECAL rechits collections
+  if(dumpEcalRecHits_) {
+    CmsEcalRecHitFiller ebFill(tree_);
+    std::string prefix("");
+    std::string suffix("EBRecHits");
+    ebFill.writeCollectionToTree(ebRHLabel_, iEvent, iSetup, prefix, suffix, false);
+
+    CmsEcalRecHitFiller eeFill(tree_);
+    suffix = std::string("EERecHits");
+    ebFill.writeCollectionToTree(eeRHLabel_, iEvent, iSetup, prefix, suffix, false);
   }
 
   // fill MET block

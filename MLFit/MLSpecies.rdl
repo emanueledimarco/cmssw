@@ -1,0 +1,40 @@
+#ifndef ML_SPECIES
+#define ML_SPECIES
+
+#include "TNamed.h"
+#include "RooArgList.h"
+#include "RooArgSet.h"
+#include "RooAbsReal.h"
+
+class RooAbsCategoryLValue;
+class RooRealVar;
+
+#include <iostream>
+
+using namespace std;
+
+
+class MLSpecies : public TNamed
+{
+public:
+  MLSpecies(const char* name, const char* title);
+  ~MLSpecies();
+
+  void setYieldVar(const char* formula, RooArgList args);
+  RooAbsReal* buildYieldVar(const RooArgList &args = RooArgList());
+  RooAbsReal* getFracVar();
+  RooArgSet getProtoParams();
+  Bool_t replace(TString oldparname, RooAbsArg &newpar, Bool_t verbose);
+
+  // Members...
+
+  RooAbsReal *_yieldVar;
+  RooAbsReal *_fracVar;
+  TString _formula;
+  RooArgList _protoParams;
+  
+  ClassDef(MLSpecies,0)
+
+};
+
+#endif

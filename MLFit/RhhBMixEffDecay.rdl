@@ -1,0 +1,67 @@
+#ifndef RHH_BMIXEFF_DECAY
+#define RHH_BMIXEFF_DECAY
+
+#include "RooAbsAnaConvPdf.h"
+#include "RooRealProxy.h"
+#include "RooCategoryProxy.h"
+#include "RooRandom.h"
+#include "RooRealVar.h"
+#include <iostream>
+#include "RooRealIntegral.h"
+
+
+using namespace std;
+
+//class RhhBMixEffDecay : public RooConvolutedPdf {
+class RhhBMixEffDecay : public RooAbsAnaConvPdf {
+public:
+
+  enum DecayType { SingleSided, DoubleSided, Flipped };
+
+  // Constructors, assignment etc
+  inline RhhBMixEffDecay() { }
+  RhhBMixEffDecay(const char *name, const char *title, 
+				 RooRealVar& t, RooAbsCategory& recoFlav,
+				 RooAbsCategory& tagFlav,
+				 RooAbsReal& tau, RooAbsReal& dm,			   
+				 RooAbsReal& mistag, RooAbsReal& delMistag,
+				 RooAbsReal& mu, RooAbsReal& nu,
+				 const RooResolutionModel& model, 
+		                 DecayType type=DoubleSided);
+  RhhBMixEffDecay(const RhhBMixEffDecay& other, const char* name=0);
+  virtual TObject* clone(const char* newname) const { return new RhhBMixEffDecay(*this,newname) ; }
+  virtual ~RhhBMixEffDecay();
+
+  virtual Double_t coefficient(Int_t basisIndex) const ;
+
+  virtual Int_t getCoefAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars) const ;
+  virtual Double_t coefAnalyticalIntegral(Int_t coef, Int_t code, const char* rangeName=0) const ;
+
+  Int_t getGenerator(const RooArgSet& directVars, RooArgSet &generateVars, Bool_t staticInitOK=kTRUE) const;
+  void initGenerator(Int_t code) ;
+  void generateEvent(Int_t code);
+  
+protected:
+
+  RooRealProxy     _mistag ;
+  RooCategoryProxy _recoFlav ;
+  RooRealProxy     _delMistag ;
+  RooCategoryProxy _tagFlav ;
+  RooRealProxy     _mu;
+  RooRealProxy     _nu;
+  DecayType        _type ;
+  RooRealProxy     _tau ;
+  RooRealProxy     _dm ;
+  RooRealProxy     _t ;
+  Int_t _basisExp ;
+  Int_t _basisCos ;
+
+  Double_t _genMixFrac ;   //! do not persist
+  Double_t _genFlavFrac ;  //!
+  Double_t _genFlavFracMix ;   //!
+  Double_t _genFlavFracUnmix ; //!
+
+  ClassDef(RhhBMixEffDecay,1) // B Mixing decay PDF
+};
+
+#endif

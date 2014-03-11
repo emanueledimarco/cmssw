@@ -1,0 +1,26 @@
+#ifndef ML_STRLIST
+#define ML_STRLIST
+
+#include "TList.h"
+#include "TObjString.h"
+#include <iostream>
+using namespace std;
+
+class MLStrList : public TList
+{
+public:
+  MLStrList(const char* s1 = 0, const char* s2 = 0, const char* s3 = 0, const char* s4 = 0, const char* s5 = 0, const char* s6 = 0, const char* s7 = 0, const char* s8 = 0);
+  MLStrList(TObject *obj1, TObject *obj2, TObject *obj3 = 0, TObject *obj4 = 0);
+  MLStrList(const MLStrList &strList);
+  virtual void Add(TObject *obj) { TList::Add(obj) ; }
+  virtual void Add(TObject *obj, const char* option) { TList::Add(obj,option) ; }
+  virtual void Add(const char *s);
+  virtual void Add(const MLStrList &strlist);
+
+private:
+
+  ClassDef(MLStrList,0)
+
+};
+
+#endif

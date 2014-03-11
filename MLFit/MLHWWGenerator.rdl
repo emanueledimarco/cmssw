@@ -1,0 +1,20 @@
+#ifndef MLHWW_GENERATOR
+#define MLHWW_GENERATOR
+
+#include "MLFit/MLGenerator.hh"
+
+class MLHWWGenerator : public MLGenerator
+{
+public:
+  MLHWWGenerator(const MLFit &theFit, const char* model, Bool_t doTruth = kTRUE);
+  virtual ~MLHWWGenerator(){};
+
+  virtual RooDataSet* generatePrototype(const MLSpecies &spec, RooArgSet &genVars, Int_t ngen, Bool_t verbose = kFALSE);
+
+private:
+  ClassDef(MLHWWGenerator,0);
+};
+
+#endif
+
+

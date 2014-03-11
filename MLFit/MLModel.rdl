@@ -1,0 +1,45 @@
+#ifndef ML_MODEL
+#define ML_MODEL
+
+#include "MLFit/MLStrList.hh"
+#include "TList.h"
+#include "TNamed.h"
+#include "RooArgList.h"
+#include "RooSuperCategory.h"
+#include <iostream>
+using namespace std;
+
+class MLModel : public TNamed
+{
+public:
+  MLModel(const char* name, const char* title);
+  ~MLModel();
+  void createMasterSplitCat(const RooArgList &splitCatSet);
+  void addPdf(const char *species, const char *obsLabel, const char* pdfname);
+  void addNoNormVars(RooArgSet vars);
+  RooArgSet getNoNormVars() const {return _noNormVars;}
+  TString getPdfName(const char *species, const char *obs) const;
+  MLStrList getLabelList() const {return _labelList;}
+  //RooArgSet getObservables() const;
+  TList& getSpeciesList()  {return _speciesList;}
+  static TString makeKey(TString species, TString obs) {return species + TString(":") + obs;}
+
+  Int_t numSpecies() const;
+  Bool_t isSplit() const;
+  
+  TList             _speciesList;
+  RooArgList        _pdfLookupTable;
+  RooSuperCategory *_masterSplitCat;
+  RooArgSet         _noNormVars;
+  MLStrList         _labelList;       // List of PDF labels in this model (mes, de, dirc)
+private:
+  
+  //MLStrList _obsList;
+  
+  MLModel(MLModel &other){} // To allow use of TLists...
+  
+
+  ClassDef(MLModel,0)
+};
+
+#endif

@@ -1,0 +1,206 @@
+//      -*- Mode: c++ -*-
+#ifndef MLPDF_FACTORY
+#define MLPDF_FACTORY
+
+#include "TString.h"
+#include "TObjString.h"
+#include "TList.h"
+#include "TH1.h"
+#include "TFile.h"
+#include "RooAbsPdf.h"
+#include "RooArgList.h"
+#include "RooArgSet.h"
+#include "RooResolutionModel.h"
+#include "MLFit/MLFit.hh"
+#include <iostream>
+
+using namespace std;
+
+class MLPdfFactory
+{
+public:
+  //MLPdfFactory();
+  //~MLPdfFactory();
+
+  static RooArgList makeNonResParams(TString basename);
+  static RooAbsPdf* makeNonResPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+  static RooArgList makeNonResParamsSYSA(TString basename);
+  static RooAbsPdf* makeNonResPdfSYSA(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+  static RooArgList makeNonResParamsSYSB(TString basename);
+  static RooAbsPdf* makeNonResPdfSYSB(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+  static RooArgList makeNonResParamsSYSC(TString basename);
+  static RooAbsPdf* makeNonResPdfSYSC(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+
+  static RooArgList makeParameters(TString pdftype, TString basename, const TList &args = TList());
+  static RooAbsPdf* makePdf(TString pdftype, TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+  static RooResolutionModel* makeRF(TString pdftype, TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+  static RooAbsPdf* makeConvolutedPdf(TString pdftype, TString pdfname, const RooArgList &obs, RooArgList parameters, const RooResolutionModel &rf, const TList &args);
+
+  static Bool_t checkArgLength(TString pdfname, const RooArgList &obs, Int_t nobs, RooArgList parameters, Int_t npar, const TList &args, Int_t narg);
+
+  // Pdfs...
+  static RooArgList makeArgusParams(TString basename);
+  static RooAbsPdf* makeArgusPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeBCPGenDecayParams(TString basename);
+  static RooAbsPdf* makeBCPGenDecayPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const RooResolutionModel &rf, const TList &args);
+
+  static RooAbsPdf* makeB0BarCPGenDecayPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const RooResolutionModel &rf, const TList &args);
+
+
+  static RooArgList makeBMixDecayParams(TString basename);
+  static RooAbsPdf* makeBMixDecayPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const RooResolutionModel &rf, const TList &args);
+
+
+  static RooArgList makeBMixEffDecayParams(TString basename);
+  static RooAbsPdf* makeBMixEffDecayPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const RooResolutionModel &rf, const TList &args);
+  static RooArgList makeBMixEffDecayMistagParams(TString basename);
+  static RooAbsPdf* makeBMixEffDecayMistagPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const RooResolutionModel &rf, const TList &args);
+  static RooAbsPdf* makeB0MixEffDecayPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const RooResolutionModel &rf, const TList &args);
+  static RooAbsPdf* makeB0BarMixEffDecayPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const RooResolutionModel &rf, const TList &args);
+
+
+  static RooArgList makeBifurGaussParams(TString basename);
+  static RooAbsPdf* makeBifurGaussPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static TH1F* makeHisto(const char* name, const char* title, const char* file, const char* xlabel, const char* ylabel);
+
+  static RooArgList makeDoubleGaussianParams(TString basename);
+  static RooAbsPdf* makeDoubleGaussianPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeTripleGaussianParams(TString basename);
+  static RooAbsPdf* makeTripleGaussianPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+   
+  static RooArgList makeDoubleLandauParams(TString basename);
+  static RooAbsPdf* makeDoubleLandauPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makePulseParams(TString basename);
+  static RooAbsPdf* makePulsePdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeVoigtianParams(TString basename);
+  static RooAbsPdf* makeVoigtianPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeDoubleVoigtianParams(TString basename);
+  static RooAbsPdf* makeDoubleVoigtianPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeCryBallParams(TString basename);
+  static RooAbsPdf* makeCryBallPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeEffDecayParams(TString basename);
+  static RooAbsPdf* makeEffDecayPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const RooResolutionModel &rf, const TList &args);
+
+  static RooArgList makeEffDecay3GParams(TString basename);
+  static RooAbsPdf* makeEffDecay3GPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeGaussianParams(TString basename);
+  static RooAbsPdf* makeGaussianPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeHhDeGaussianParams(TString basename);
+  static RooAbsPdf* makeHhDeGaussianPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeHhDe2GaussianParams(TString basename);
+  static RooAbsPdf* makeHhDe2GaussianPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeHhDe3GaussianParams(TString basename);
+  static RooAbsPdf* makeHhDe3GaussianPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeDeDoubleGaussianParams(TString basename);
+  static RooAbsPdf* makeDeDoubleGaussianPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeHh0DeCryBallParams(TString basename);
+  static RooAbsPdf* makeHh0DeCryBallPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeHhDeCryBallParams(TString basename);
+  static RooAbsPdf* makeHhDeCryBallPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeHhDeCryBallGParams(TString basename);
+  static RooAbsPdf* makeHhDeCryBallGPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeHhDeCruijffParams(TString basename);
+  static RooAbsPdf* makeHhDeCruijffPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+  
+  static RooAbsPdf* makeInvArgusPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeLandauParams(TString basename);
+  static RooAbsPdf* makeLandauPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeLineParams(TString basename);
+  static RooAbsPdf* makeLinePdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makePoly2Params(TString basename);
+  static RooAbsPdf* makePoly2Pdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeBadSigDTParams(TString basename);
+  static RooAbsPdf* makeBadSigDTPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeBadBkgDTParams(TString basename);
+  static RooAbsPdf* makeBadBkgDTPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooAbsPdf* makeNoPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeExclJetParams(TString basename);
+  static RooAbsPdf* makeExclJetPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeBtagParams(TString basename);
+  static RooAbsPdf* makeBtagPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooAbsPdf* makePrebuiltPdf(const TList &args);
+  
+  // RF...
+
+  static RooArgList makeScaled3GParams(TString basename);
+  static RooResolutionModel* makeScaled3GRF(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeScaled2GParams(TString basename);
+  static RooResolutionModel* makeScaled2GRF(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList make3GRFParams(TString basename);
+  static RooResolutionModel* make3GRF(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList make2GRFParams(TString basename);
+  static RooResolutionModel* make2GRF(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+   
+  // new pdfs 
+  static RooArgList makeCruijffParams(TString basename);
+  static RooAbsPdf* makeCruijffPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args); 
+  static RooArgList makeDoubleCruijffParams(TString basename);
+  static RooAbsPdf* makeDoubleCruijffPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+  static RooArgList makeCrystalCruijffParams(TString basename);
+  static RooAbsPdf* makeCrystalCruijffPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeTottiParams(TString basename);
+  static RooAbsPdf* makeTottiPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args); 
+  
+  static RooArgList makeStepFunctionParams(TString basename, const TList &args);
+  static RooAbsPdf* makeStepFunctionPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+  static RooArgList makeBinnedPdfParams(TString basename, const TList &args);
+  static RooAbsPdf* makeBinnedPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+  static RooArgList makeBreitWignerParams(TString basename);
+  static RooAbsPdf* makeBreitWignerPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+  static RooArgList makeBreitWignerAndPolyParams(TString basename);
+  static RooAbsPdf* makeBreitWignerAndPolyPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+  static RooArgList makeBreitWignerAndExpoParams(TString basename);
+  static RooAbsPdf* makeBreitWignerAndExpoPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeKeysParams(TString basename, const TList &args);
+  static RooAbsPdf* makeKeysPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+  static RooArgList make2DKeysParams(TString basename, const TList &args);
+  static RooAbsPdf* make2DKeysPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+
+  static RooArgList makeExpoParams(TString basename, const TList &args);
+  static RooAbsPdf* makeExpoPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+  static RooArgList makeModExpParams(TString basename, const TList &args);
+  static RooAbsPdf* makeModExpPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+ 
+  // this works for any dimension
+  static RooArgList makeHistParams(TString basename, const TList &args);
+  static RooAbsPdf* makeHistPdf(TString pdfname, const RooArgList &obs, RooArgList parameters, const TList &args);
+ 
+  // Members...
+  
+  ClassDef(MLPdfFactory,0)
+
+};
+
+#endif

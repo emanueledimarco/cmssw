@@ -1,0 +1,50 @@
+#ifndef ML_GENERATOR
+#define ML_GENERATOR
+
+class MLModel;
+class MLSpecies;
+
+#include "MLFit/MLFit.hh"
+#include "MLFit/MLStrList.hh"
+#include <RooDataSet.h>
+#include <RooArgList.h>
+#include <iostream>
+#include <map>
+
+using namespace std;
+
+class MLGenerator
+{
+public:
+  MLGenerator(const MLFit &theFit, const char* model = "default", Bool_t doTruth = kTRUE);
+  virtual ~MLGenerator(); 
+  
+  RooDataSet* generate(const RooArgSet &whatVars, Int_t ngen, Bool_t verbose = kFALSE, TString species = "");
+  RooAbsPdf* getMasterPdf() const {return _masterPdf;}
+    
+  virtual void initializeRandomSC();      
+  virtual void setActualNsig(int actualNsig);
+  void generateComponent(TString species, const RooArgSet &whatVars, Int_t ngen, RooDataSet &theData, Bool_t verbose = kFALSE);
+  virtual void generateComponent(MLSpecies &spec, const RooArgSet &whatVars, Int_t ngen, RooDataSet &theData, Bool_t verbose);
+  virtual void mockComponent(TString filename, TString dataname, MLSpecies &spec, const RooArgSet &whatVars, Int_t ngen, RooDataSet &theData, Bool_t verbose);
+  virtual RooDataSet* generatePrototype(const MLSpecies &spec, RooArgSet &genVars, Int_t ngen, Bool_t verbose = kFALSE);
+  virtual RooArgSet getExtraParams() const {_extraParams.Print("V");return _extraParams;}
+  virtual void calculateYields(Int_t ngen, map<string,int> &yieldSet, Bool_t verbose = kFALSE, TString species = "");
+  virtual void setMockSpecies(MLStrList specList, MLStrList specFileList, MLStrList specDatasetNameList);
+
+protected:
+  
+  MLFit        *_theFit;
+  MLModel      *_theModel;
+  RooAbsPdf    *_masterPdf;
+  Bool_t        _doTruth;
+  RooCategory  *_truth;
+  RooArgSet     _extraParams;
+  MLStrList    _mockSpecies;
+  MLStrList    _mockFiles;
+  MLStrList    _mockDatasetNames;
+
+  ClassDef(MLGenerator,0)
+};
+
+#endif

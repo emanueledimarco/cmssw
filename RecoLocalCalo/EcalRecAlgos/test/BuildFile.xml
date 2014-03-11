@@ -6,6 +6,19 @@
 
 </bin>
 
+<bin   name="makeDefaultEcalShape" file="makeDefaultEcalShapeTemplates.cc">
+ 
+  <use   name="DataFormats/EcalRecHit"/>
+  <use   name="cppunit"/>
+  <use   name="RecoLocalCalo/EcalRecAlgos"/>
+  <use   name="SimCalorimetry/EcalSimAlgos"/>
+  <use   name="SimCalorimetry/CaloSimAlgos"/>
+  <use   name="SimDataFormats/RandomEngine"/>
+  <use   name="rootgraphics"/>
+
+
+</bin>
+
 
 <library   file="stubs/testEcalSeverityLevelAlgo.cc" name="testEcalSeverityLevelAlgo">
 

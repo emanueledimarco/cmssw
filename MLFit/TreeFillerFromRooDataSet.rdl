@@ -1,0 +1,23 @@
+#include <string>
+#include <vector>
+
+#include "RooDataSet.h"
+#include "TTree.h"
+
+class TreeFillerFromRooDataSet {
+public:
+  // constructor
+  TreeFillerFromRooDataSet(RooDataSet *dataset) { _dataset = dataset; }
+  // destructor
+  ~TreeFillerFromRooDataSet() {}
+  // add a variable to the tree that is going to be saved
+  void addVar(const char *name) { _variables.push_back(std::string(name)); }
+  TTree* getTree();
+
+private:
+  
+  RooDataSet *_dataset;
+  TTree *_tree;
+  std::vector<std::string> _variables;
+
+};

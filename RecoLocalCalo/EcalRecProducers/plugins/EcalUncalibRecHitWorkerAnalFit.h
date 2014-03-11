@@ -18,26 +18,29 @@
 #include "CondFormats/EcalObjects/interface/EcalPedestals.h"
 
 namespace edm {
-        class Event;
-        class EventSetup;
-        class ParameterSet;
+  class Event;
+  class EventSetup;
+  class ParameterSet;
 }
 
 class EcalUncalibRecHitWorkerAnalFit : public EcalUncalibRecHitWorkerBaseClass {
 
-        public:
-                EcalUncalibRecHitWorkerAnalFit(const edm::ParameterSet& ps);
-                ~EcalUncalibRecHitWorkerAnalFit() {};
+ public:
+  EcalUncalibRecHitWorkerAnalFit(const edm::ParameterSet& ps);
+  ~EcalUncalibRecHitWorkerAnalFit() {};
 
-                void set(const edm::EventSetup& es);
-                bool run(const edm::Event& evt, const EcalDigiCollection::const_iterator & digi, EcalUncalibratedRecHitCollection & result);
+  void set(const edm::EventSetup& es);
+  bool run(const edm::Event& evt, const EcalDigiCollection::const_iterator & digi, EcalUncalibratedRecHitCollection & result);
 
-        private:
-                EcalUncalibRecHitRecAnalFitAlgo<EBDataFrame> algoEB_;
-                EcalUncalibRecHitRecAnalFitAlgo<EEDataFrame> algoEE_;
-
+ private:
+  EcalUncalibRecHitRecAnalFitAlgo<EBDataFrame> algoEB_;
+  EcalUncalibRecHitRecAnalFitAlgo<EEDataFrame> algoEE_;
                 
-                edm::ESHandle<EcalGainRatios> pRatio;
-                edm::ESHandle<EcalPedestals> pedHandle;
+  edm::ESHandle<EcalGainRatios> pRatio;
+  edm::ESHandle<EcalPedestals> pedHandle;
+
+  std::string shapesFileName_;
+  bool savePlot_;
+
 };
 #endif

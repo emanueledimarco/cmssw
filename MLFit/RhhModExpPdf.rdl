@@ -1,0 +1,35 @@
+#ifndef __ROO_MODEXP_RDL__
+#define __ROO_MODEXP_RDL__
+
+#include "RooAbsPdf.h"
+#include "RooRealProxy.h"
+
+class RooRealVar;
+class RooAbsReal;
+
+class RhhModExpPdf : public RooAbsPdf {
+public:
+  RhhModExpPdf(const char *name, const char *title, RooAbsReal& _m,
+		RooAbsReal& _slope, 
+		RooAbsReal& _shape) ;
+  
+  RhhModExpPdf(const RhhModExpPdf& other, const char* name = 0);
+  virtual TObject* clone(const char* newname) const { 
+    return new RhhModExpPdf(*this,newname); }
+
+  inline virtual ~RhhModExpPdf() { }
+
+protected:
+
+  RooRealProxy m;
+  RooRealProxy slope;
+  RooRealProxy shape;
+
+  Double_t evaluate() const;
+
+private:
+  
+  ClassDef(RhhModExpPdf,0)
+};
+
+#endif

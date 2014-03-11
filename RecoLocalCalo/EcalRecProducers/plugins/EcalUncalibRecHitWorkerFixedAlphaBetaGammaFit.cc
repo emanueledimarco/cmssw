@@ -48,6 +48,10 @@ EcalUncalibRecHitWorkerFixedAlphaBetaGammaFit::EcalUncalibRecHitWorkerFixedAlpha
         bool dyn_pede = ps.getParameter<bool>("UseDynamicPedestal");
         algoEB_.SetDynamicPedestal(dyn_pede);
         algoEE_.SetDynamicPedestal(dyn_pede);
+
+        algoEB_.SetPedestalRMS( ps.getParameter<double> ("PedRMSBarrel") );
+        algoEE_.SetPedestalRMS( ps.getParameter<double> ("PedRMSEndcap") );        
+
 }
 
 

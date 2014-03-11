@@ -40,7 +40,6 @@ template<class C> class EcalUncalibRecHitFixedAlphaBetaGammaAlgo : public EcalUn
   double fGamma_;//parameter of the oot average shape
   double fAmp_max_;// peak amplitude 
   double fTim_max_ ;// time of the peak (in 25ns units)
-  double fPed_max_;// pedestal value
   double fAmpOut_; // oot amplitude
   double alfabeta_; 
   double chi2P_;
@@ -63,7 +62,7 @@ template<class C> class EcalUncalibRecHitFixedAlphaBetaGammaAlgo : public EcalUn
   CLHEP::HepSymMatrix DM1_ ; CLHEP::HepVector temp_;
    public:
 
-  EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>():fAlpha_(0.),fBeta_(0.),fGamma_(0.),fAmp_max_(-1.),fTim_max_(-1),fPed_max_(0),fAmpOut_(-1.),alfabeta_(0),chi2P_(-1.),fNb_iter_(4),fNum_samp_bef_max_(5),fNum_samp_after_max_(3),fSigma_ped(1.1),DM1_(5),temp_(5){
+  EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>():fAlpha_(0.),fBeta_(0.),fGamma_(0.),fAmp_max_(-1.),fTim_max_(-1),fAmpOut_(-1.),alfabeta_(0),chi2P_(-1.),fNb_iter_(4),fNum_samp_bef_max_(5),fNum_samp_after_max_(3),fSigma_ped(1.1),DM1_(4),temp_(4){
     un_sur_sigma = 1./double(fSigma_ped) ;
     for (int i=0;i<36;i++){
       for(int j=0;j<1701;j++){
@@ -75,7 +74,7 @@ template<class C> class EcalUncalibRecHitFixedAlphaBetaGammaAlgo : public EcalUn
     MinAmpl_ = 16;
     dyn_pedestal = true;
   }
-    EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>(int n_iter, int n_bef_max =5, int n_aft_max =3, float sigma_ped = 1.1):fAlpha_(0.),fBeta_(0.),fGamma_(0.),fAmp_max_(-1.),fTim_max_(-1),fPed_max_(0),fAmpOut_(-1.),alfabeta_(0),chi2P_(-1.),DM1_(5),temp_(5){
+    EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>(int n_iter, int n_bef_max =5, int n_aft_max =3, float sigma_ped = 1.1):fAlpha_(0.),fBeta_(0.),fGamma_(0.),fAmp_max_(-1.),fTim_max_(-1),fAmpOut_(-1.),alfabeta_(0),chi2P_(-1.),DM1_(4),temp_(4){
     
    fNb_iter_ = n_iter ;
    fNum_samp_bef_max_   = n_bef_max ;
@@ -100,6 +99,7 @@ template<class C> class EcalUncalibRecHitFixedAlphaBetaGammaAlgo : public EcalUn
 					    const EcalWeightSet::EcalChi2WeightMatrix** chi2Matrix); 
   void SetAlphaBeta( double alpha, double beta);
   void SetMinAmpl(double ampl);
+  void SetPedestalRMS(double rms) { fSigma_ped = rms; }
   void SetDynamicPedestal(bool dyn_pede);
 };
 
@@ -188,12 +188,12 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitFixedAlphaBetaGammaAl
   if (isSaturated) flags = EcalUncalibratedRecHit::kSaturated;
 
   /*
-  std::cout << "separate fits\nA: " << fAmp_max_  << ", ResidualPed: " <<  fPed_max_
+  std::cout << "separate fits\nA: " << fAmp_max_  
             <<", pedestal: "<<pedestal << ", tPeak " << fTim_max_ 
             <<", pileup ampli: " << fAmpOut_ << ", chi2 pileup:" << chi2P_ << std::endl;
   */
   
-  EcalUncalibratedRecHit theHit( dataFrame.id(),fAmp_max_, pedestal+fPed_max_, fTim_max_ - 5 , chi2_, flags );
+  EcalUncalibratedRecHit theHit( dataFrame.id(),fAmp_max_, pedestal, fTim_max_ - 5 , chi2_, flags );
   theHit.setOutOfTimeEnergy(fAmpOut_);
   theHit.setOutOfTimeChi2(chi2P_);
   return theHit;
@@ -208,9 +208,9 @@ template<class C> double EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::pulseShape
     dtsbeta=dt/fBeta_ ;
     variable=1.+dt/alfabeta_ ;
     puiss=pow(variable,fAlpha_);
-    return fAmp_max_*puiss*exp(-dtsbeta)+fAmpOut_*ootdecay+fPed_max_ ;
+    return fAmp_max_*puiss*exp(-dtsbeta)+fAmpOut_*ootdecay ;
   }
-  return  fPed_max_+fAmpOut_*ootdecay;
+  return  fAmpOut_*ootdecay;
 }
 
 template<class C> void  EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::InitFitParameters(double* samples, int max_sample){
@@ -218,9 +218,8 @@ template<class C> void  EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::InitFitPara
   // in a first attempt just use the value of the maximum sample 
   fAmp_max_ = samples[max_sample];
   fTim_max_ = max_sample;
-  fPed_max_ = 0;
   fAmpOut_  = 1.; // in 2012 in EB ~40 MeV/channel
-  fGamma_   = 100.; // almost flat in the first 10 samples
+  fGamma_   = 1.; // almost flat in the first 10 samples
 
   // amplitude too low for fit to converge
   // timing set correctly is assumed
@@ -231,7 +230,7 @@ template<class C> void  EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::InitFitPara
     if(sumA != 0) { fTim_max_ = 5+(samples[6]-samples[4])/sumA; }
     else{ fTim_max_ = -993; }//-999+6
     fAmpOut_       = (samples[0]+samples[1])/2.;
-    fGamma_        = 10000.; // flat
+    fGamma_        = 100.; // flat
     doFit_ = false;
   }
   // if timing very badly off, that just use max sample
@@ -258,11 +257,10 @@ template<class C> float EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::PerformAnal
   //! parameters fAlpha_ and fBeta_ are fixed and fit is providing the 5 following parameters
   //! the maximum amplitude ( fAmp_max_ ) 
   //! the time of the maximum  ( fTim_max_)
-  //! the pedestal (fPed_max_) 	
   //! the out-of-time pileup amplitude (fAmpOut_) 	
   //! the left tail parameter (fGamma_)
 
-  double chi2=-1 , chi2P=-1 , db[5] ;
+  double chi2=-1 , chi2P=-1 , db[4] ;
   
 
   //HepSymMatrix DM1(5) ; CLHEP::HepVector temp(5) ;
@@ -280,7 +278,7 @@ template<class C> float EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::PerformAnal
   }
   
   double func,delta,deltaP ;
-  double variation_func_max = 0. ;double variation_tim_max = 0. ; double variation_ped_max = 0. ;
+  double variation_func_max = 0. ;double variation_tim_max = 0. ;
   double variation_ampo = 0. ; double variation_gamma = 0. ;
   //!          Loop on iterations
   for (int iter=0 ; iter < fNb_iter_ ; iter ++) {
@@ -288,19 +286,22 @@ template<class C> float EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::PerformAnal
     chi2 = 0. ; //PROD.Zero() ;  DM1.Zero() ;
     chi2P = 0. ;
 
-    for(int i1=0 ; i1<5 ; i1++) {
+    for(int i1=0 ; i1<4 ; i1++) {
       temp_[i1]=0;
-      for(int j1=i1 ; j1<5 ; j1++) { 
+      for(int j1=i1 ; j1<4 ; j1++) { 
         DM1_.fast(j1+1,i1+1) = 0; }
     }
 
     fAmp_max_ += variation_func_max ;
     fTim_max_ += variation_tim_max ;
-    fPed_max_ += variation_ped_max ;
-    //! bind the PU amplitude to positive values
-    if(variation_ampo>0) fAmpOut_  += variation_ampo ;
-    else fAmpOut_ = 0.;
+    fAmpOut_  += variation_ampo ;
+    //! limit the largely negative oot aplitude
+    if(fAmpOut_< -5*fSigma_ped) fAmpOut_ = -5*fSigma_ped;
     fGamma_   += variation_gamma ;
+    //! limit the exponent decay (assume only < 0 OOT PU)
+    if(fGamma_<0.5) fGamma_ = 0.5;
+    //! limit gamma to 1000 (flat distribution already)
+    if(fGamma_>1000.) fGamma_ = 1000.;
     
     //! Then we loop on samples to be fitted
     for( int i = num_fit_min ; i <= num_fit_max ; i++) {
@@ -322,30 +323,29 @@ template<class C> float EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::PerformAnal
       else {
 	db[0]=0. ; db[1]=0. ; 
       }
-      db[2]=un_sur_sigma ;
       if(i<3) {
         double t(i);
         double ootdecay = exp(-t/fGamma_);
-        db[3]=ootdecay;
-        db[4]=t/fGamma_/fGamma_*ootdecay;
+        db[2]=ootdecay;
+        db[3]=t/fGamma_/fGamma_*ootdecay;
       }
       else {
-        db[3]=0. ; db[4]=0. ;
+        db[2]=0. ; db[3]=0. ;
       }
       //! compute matrix elements DM1
-      for(int i1=0 ; i1<5 ; i1++) {
-	for(int j1=i1 ; j1<5 ; j1++) { 
+      for(int i1=0 ; i1<4 ; i1++) {
+	for(int j1=i1 ; j1<4 ; j1++) { 
 	  //double & fast(int row, int col);
 	  DM1_.fast(j1+1,i1+1) += db[i1]*db[j1]; }
       }
       //! compute delta
       delta = (samples[i]-func)*un_sur_sigma ;
       //! compute vector elements PROD
-      for(int ii=0 ; ii<5 ;ii++) {temp_[ii] += delta*db[ii] ;}
+      for(int ii=0 ; ii<4 ;ii++) {temp_[ii] += delta*db[ii] ;}
       chi2 += delta * delta ;
       //! compute the chi2 for OOT (inverse definition, check consistency with flat pedestal)
       if(i<3) {
-        deltaP = (samples[i]-fPed_max_)*un_sur_sigma ;
+        deltaP = samples[i]*un_sur_sigma ;
         chi2P += deltaP * deltaP;
       }
     }//! end of loop on samples 
@@ -383,9 +383,8 @@ template<class C> float EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::PerformAnal
 
     variation_func_max = PROD[0] ;
     variation_tim_max = PROD[1] ;
-    variation_ped_max = PROD[2] ;
-    variation_ampo    = PROD[3] ;
-    variation_gamma   = PROD[4] ;
+    variation_ampo    = PROD[2] ;
+    variation_gamma   = PROD[3] ;
     //chi2 = chi2/((double)nsamp_used - 3.) ;
   }//!end of loop on iterations       
   
@@ -398,13 +397,20 @@ template<class C> float EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::PerformAnal
   //!      results of the fit are calculated
   fAmp_max_ += variation_func_max ;
   fTim_max_ += variation_tim_max ;
-  fPed_max_ += variation_ped_max ;
-  fAmpOut_  += variation_ampo ;
   fGamma_   += variation_gamma ;
+  fAmpOut_  += variation_ampo ; // normalization of the full tail
+
+  //! limit the largely negative oot aplitude
+  if(fAmpOut_< -5*fSigma_ped) fAmpOut_ = -5*fSigma_ped;
+  fGamma_   += variation_gamma ;
+  //! limit the exponent decay (assume only < 0 OOT PU)
+  if(fGamma_<0.5) fGamma_ = 0.5;
+  //! limit gamma to 1000 (flat distribution already)
+  if(fGamma_>1000.) fGamma_ = 1000.;
 
   // debug
   // std::cout << "hit fAmp_max_ = " << fAmp_max_ << "\tfTim_max_= " << fTim_max_ 
-  //          << "\tfPed_max_ = " << fPed_max_ << "\tfAmpOut_ = " << fAmpOut_ << "\tfGamma_ = " << fGamma_ << std::endl;
+  //          << "\tfAmpOut_ = " << fAmpOut_ << "\tfGamma_ = " << fGamma_ << std::endl;
  
   // protection against unphysical results:
   // ampli mismatched to MaxSample, ampli largely negative, time off preselected range
@@ -414,7 +420,7 @@ template<class C> float EcalUncalibRecHitFixedAlphaBetaGammaAlgo<C>::PerformAnal
   }
   
   chi2P_ = chi2P;
-  //std::cout <<"chi2: "<<chi2<<" ampl: "<<fAmp_max_<<" time: "<<fTim_max_<<" pede: "<<fPed_max_<<std::endl;
+  //std::cout <<"chi2: "<<chi2<<" ampl: "<<fAmp_max_<<" time: "<<fTim_max_<<std::endl;
   return chi2;
 }
 

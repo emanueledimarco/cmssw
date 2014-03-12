@@ -15,7 +15,6 @@
 #include "CLHEP/Matrix/SymMatrix.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitRecAbsAlgo.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/PulseShapeTemplate.hh"
-#include "HiggsAnalysis/CombinedLimit/interface/CloseCoutSentry.h"
 #include <vector>
 #include <string>
 
@@ -206,7 +205,6 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitRecAnalFitAlgo<C>::ma
     
     RooAddPdf model("model","model",RooArgList(extSigPulse,ext1mPulse,ext2mPulse,ext3mPulse));
 
-    //    CloseCoutSentry sentry(true);    
     RooFitResult *fitResult=0;
     fitResult = model.fitTo(theData,
                             RooFit::Extended(),
@@ -217,8 +215,6 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitRecAnalFitAlgo<C>::ma
                             RooFit::PrintLevel(-1),
                             RooFit::Warnings(kFALSE),
                             RooFit::Save());
-
-    //  sentry.clear();
 
     if(fitResult->covQual()>1) {
 

@@ -108,17 +108,17 @@ elif AmplitudeRecoMethod == "AnalyticFit":
     process.ecalRecHit.EEuncalibRecHitCollection = 'ecalUncalibHitAnalFit:EcalUncalibRecHitsEE'        
 else: print wrongAlgoMessage
 
-process.maxEvents = cms.untracked.PSet(  input = cms.untracked.int32(10) )
+process.maxEvents = cms.untracked.PSet(  input = cms.untracked.int32(1000) )
 process.source = cms.Source("PoolSource",
 #            fileNames = cms.untracked.vstring('/store/group/phys_egamma/emanuele/ecal/reconstruction/DYToEE_M_20_TuneZ2star_8TeV_pythia6_GEN-SIM-RAW+PU25bx25_START53_V19D-v1.root')
              fileNames = cms.untracked.vstring('file:/cmsrm/pc24_2/emanuele/data/ZEE_14TeV_DR61SLHCx_GENSIMRECO.root')
-                )
+                ) 
 
 
 process.out = cms.OutputModule("PoolOutputModule",
                                outputCommands = cms.untracked.vstring('drop *',
-                                                                      'keep *_ecalUncalibHit*_*_*',
-                                                                      'keep *_ecalRecHit_*_*'
+                                                                      'keep *_ecalUncalibHit*_*_testEcalRecoLocal',
+                                                                      'keep *_ecalRecHit_*_testEcalRecoLocal'
                                                                       ),
                                fileName = cms.untracked.string('testEcalLocalRecoA.root')
                                )

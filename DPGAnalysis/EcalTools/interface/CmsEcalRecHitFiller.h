@@ -33,7 +33,6 @@ struct CmsEcalRecHitFillerData {
   
   std::vector<float> *energy, *time, *eta, *phi;
   std::vector<float> *swissX, *r9;
-  int *nRecHit;
 
 public:
   void initialise();

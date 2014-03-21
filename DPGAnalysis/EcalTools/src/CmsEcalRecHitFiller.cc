@@ -58,7 +58,6 @@ CmsEcalRecHitFiller::CmsEcalRecHitFiller(CmsTree *cmsTree, int maxHits):  privat
 CmsEcalRecHitFiller::~CmsEcalRecHitFiller() 
 {
   // delete here the vector ptr's  
-  delete privateData_->nRecHit;
   delete privateData_->eta;
   delete privateData_->phi;
   delete privateData_->energy;
@@ -114,8 +113,6 @@ void CmsEcalRecHitFiller::writeCollectionToTree(edm::InputTag collectionTag,
 						 << ". Collection will be truncated ";
 	}
       
-      *(privateData_->nRecHit) = collection->size();
-      
       EcalRecHitCollection::const_iterator cand;
       for(cand=collection->begin(); cand!=collection->end(); cand++) 
 	{
@@ -123,15 +120,11 @@ void CmsEcalRecHitFiller::writeCollectionToTree(edm::InputTag collectionTag,
 	  writeEcalRecHitInfo(&(*cand),collection,isEB,theSubdetTopology,theSubdetGeometry);
 	}
     }
-  else 
-    {
-      *(privateData_->nRecHit) = 0;
-    }
   
   // The class member vectors containing the relevant quantities 
   // have all been filled. Now transfer those we want into the 
   // tree 
-    int blockSize = (collection) ? collection->size() : 0;
+  int blockSize = (collection) ? collection->size() : 0;
   std::string nCandString = columnPrefix+(*trkIndexName_)+columnSuffix; 
   cmstree->column(nCandString.c_str(),blockSize,0,"Reco");
 
@@ -157,7 +150,7 @@ void CmsEcalRecHitFiller::writeEcalRecHitInfo(const EcalRecHit *cand,
     if(cell != 0)   {
       CaloNavigator<DetId> cursorE = CaloNavigator<DetId>(cand->detid(), pTopology );
       
-      float s4 = 0;
+      float s4 = 0; 
       float s8 = 0;
       float swissX = 0.;
       float recR9 = 0.;
@@ -213,6 +206,13 @@ void CmsEcalRecHitFiller::writeEcalRecHitInfo(const EcalRecHit *cand,
       
       privateData_->eta->push_back(position.eta());
       privateData_->phi->push_back(position.phi());
+    } else {
+      privateData_->energy ->push_back ( 999 );
+      privateData_->time   ->push_back ( 999 );
+      privateData_->swissX ->push_back ( 999 );
+      privateData_->r9     ->push_back ( 999 );
+      privateData_->eta->push_back( 999 );
+      privateData_->phi->push_back( 999 );
     }
 }
 
@@ -236,7 +236,6 @@ void CmsEcalRecHitFillerData::initialise()
   time = new vector<float>;
   swissX = new vector<float>;
   r9 = new vector<float>;
-  nRecHit =  new int;
 }
 
 void CmsEcalRecHitFillerData::clear() 

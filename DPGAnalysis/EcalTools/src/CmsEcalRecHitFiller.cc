@@ -60,6 +60,8 @@ CmsEcalRecHitFiller::~CmsEcalRecHitFiller()
   // delete here the vector ptr's  
   delete privateData_->eta;
   delete privateData_->phi;
+  delete privateData_->ix;
+  delete privateData_->iy;
   delete privateData_->energy;
   delete privateData_->time;
   delete privateData_->swissX;
@@ -108,9 +110,9 @@ void CmsEcalRecHitFiller::writeCollectionToTree(edm::InputTag collectionTag,
       if((int)collection->size() > maxHits_)
 	{
 	  edm::LogError("CmsEcalRecHitFiller") << "Track length " << collection->size() 
-						 << " is too long for declared max length for tree "
-						 << maxHits_ 
-						 << ". Collection will be truncated ";
+                                               << " is too long for declared max length for tree "
+                                               << maxHits_ 
+                                               << ". Collection will be truncated ";
 	}
       
       EcalRecHitCollection::const_iterator cand;
@@ -147,73 +149,78 @@ void CmsEcalRecHitFiller::writeEcalRecHitInfo(const EcalRecHit *cand,
 
   const CaloCellGeometry* cell = pGeometry->getGeometry(cand->detid());
     
-    if(cell != 0)   {
-      CaloNavigator<DetId> cursorE = CaloNavigator<DetId>(cand->detid(), pTopology );
+  CaloNavigator<DetId> cursorE = CaloNavigator<DetId>(cand->detid(), pTopology );
       
-      float s4 = 0; 
-      float s8 = 0;
-      float swissX = 0.;
-      float recR9 = 0.;
+  float s4 = 0; 
+  float s8 = 0;
+  float swissX = 0.;
+  float recR9 = 0.;
       
-      cursorE.home();
-      float e1 = recHitEnergyECAL( *cursorE, collection );
+  cursorE.home();
+  float e1 = recHitEnergyECAL( *cursorE, collection );
       
-      cursorE.offsetBy( 1, 0 );
-      s4 += recHitEnergyECAL( *cursorE, collection ) ;
+  cursorE.offsetBy( 1, 0 );
+  s4 += recHitEnergyECAL( *cursorE, collection ) ;
       
-      cursorE.home();
-      cursorE.offsetBy( -1, 0 );
-      s4 += recHitEnergyECAL( *cursorE, collection ) ;
+  cursorE.home();
+  cursorE.offsetBy( -1, 0 );
+  s4 += recHitEnergyECAL( *cursorE, collection ) ;
       
-      cursorE.home();
-      cursorE.offsetBy( 0, 1 );   
-      s4 += recHitEnergyECAL( *cursorE, collection ) ;
+  cursorE.home();
+  cursorE.offsetBy( 0, 1 );   
+  s4 += recHitEnergyECAL( *cursorE, collection ) ;
       
-      cursorE.home();
-      cursorE.offsetBy( 0, -1 );
-      s4 += recHitEnergyECAL( *cursorE, collection ) ;
+  cursorE.home();
+  cursorE.offsetBy( 0, -1 );
+  s4 += recHitEnergyECAL( *cursorE, collection ) ;
       
-      if ( e1 == 0 ) swissX = 0;
-      else swissX = 1 - s4 / e1;
+  if ( e1 == 0 ) swissX = 0;
+  else swissX = 1 - s4 / e1;
       
-      // make rechit R9
-      s8 = s4;
-      cursorE.home();
-      cursorE.offsetBy( 1, 1 );
-      s8 += recHitEnergyECAL( *cursorE, collection ) ;
+  // make rechit R9
+  s8 = s4;
+  cursorE.home();
+  cursorE.offsetBy( 1, 1 );
+  s8 += recHitEnergyECAL( *cursorE, collection ) ;
       
-      cursorE.home();
-      cursorE.offsetBy( 1, -1 );
-      s8 += recHitEnergyECAL( *cursorE, collection ) ;
+  cursorE.home();
+  cursorE.offsetBy( 1, -1 );
+  s8 += recHitEnergyECAL( *cursorE, collection ) ;
       
-      cursorE.home();
-      cursorE.offsetBy( -1, 1 );
-      s8 += recHitEnergyECAL( *cursorE, collection ) ;
+  cursorE.home();
+  cursorE.offsetBy( -1, 1 );
+  s8 += recHitEnergyECAL( *cursorE, collection ) ;
       
-      cursorE.home();
-      cursorE.offsetBy( -1, -1 );
-      s8 += recHitEnergyECAL( *cursorE, collection ) ;
+  cursorE.home();
+  cursorE.offsetBy( -1, -1 );
+  s8 += recHitEnergyECAL( *cursorE, collection ) ;
       
-      if ( e1 == 0 ) recR9 = 0;
-      else recR9 = 1-s8/e1;
+  if ( e1 == 0 ) recR9 = 0;
+  else recR9 = 1-s8/e1;
 
-      privateData_->energy ->push_back ( cand->energy() );
-      privateData_->time   ->push_back ( cand->time() );
-      privateData_->swissX ->push_back ( swissX );
-      privateData_->r9     ->push_back ( recR9 );
+  privateData_->energy ->push_back ( cand->energy() );
+  privateData_->time   ->push_back ( cand->time() );
+  privateData_->swissX ->push_back ( swissX );
+  privateData_->r9     ->push_back ( recR9 );
       
-      GlobalPoint position = cell->getPosition();
-      
-      privateData_->eta->push_back(position.eta());
-      privateData_->phi->push_back(position.phi());
-    } else {
-      privateData_->energy ->push_back ( 999 );
-      privateData_->time   ->push_back ( 999 );
-      privateData_->swissX ->push_back ( 999 );
-      privateData_->r9     ->push_back ( 999 );
-      privateData_->eta->push_back( 999 );
-      privateData_->phi->push_back( 999 );
-    }
+  if(isEB) {
+    EBDetId detId = cand->id();
+    privateData_->ix->push_back( detId.ieta() );
+    privateData_->iy->push_back( detId.iphi() );
+  } else {
+    EEDetId detId = cand->id();
+    privateData_->ix->push_back( detId.ix() );
+    privateData_->iy->push_back( detId.iy() );
+  }
+
+  if(cell != 0)   {
+    GlobalPoint position = cell->getPosition();
+    privateData_->eta->push_back(position.eta());
+    privateData_->phi->push_back(position.phi());
+  } else {
+    privateData_->eta->push_back( 999 );
+    privateData_->phi->push_back( 999 );
+  }
 }
 
 
@@ -222,6 +229,8 @@ void CmsEcalRecHitFiller::treeEcalRecHitInfo(const std::string colPrefix, const 
   std::string nCandString = colPrefix+(*trkIndexName_)+colSuffix;
   cmstree->column((colPrefix+"eta"+colSuffix).c_str(), *privateData_->eta, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"phi"+colSuffix).c_str(), *privateData_->phi, nCandString.c_str(), 0, "Reco");
+  cmstree->column((colPrefix+"ix"+colSuffix).c_str(), *privateData_->ix, nCandString.c_str(), 0, "Reco");
+  cmstree->column((colPrefix+"iy"+colSuffix).c_str(), *privateData_->iy, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"energy"+colSuffix).c_str(), *privateData_->energy, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"time"+colSuffix).c_str(), *privateData_->time, nCandString.c_str(), 0, "Reco");
   cmstree->column((colPrefix+"swissX"+colSuffix).c_str(), *privateData_->swissX, nCandString.c_str(), 0, "Reco");
@@ -230,6 +239,8 @@ void CmsEcalRecHitFiller::treeEcalRecHitInfo(const std::string colPrefix, const 
 
 void CmsEcalRecHitFillerData::initialise() 
 {
+  ix = new vector<float>; 
+  iy = new vector<float>;
   eta = new vector<float>; 
   phi = new vector<float>;
   energy = new vector<float>;
@@ -240,6 +251,8 @@ void CmsEcalRecHitFillerData::initialise()
 
 void CmsEcalRecHitFillerData::clear() 
 {
+  ix->clear(); 
+  iy->clear();
   eta->clear(); 
   phi->clear();
   energy->clear();

@@ -8,7 +8,7 @@ process = cms.Process("ECALRecHitAnalysis")
 
 process.load('Configuration.StandardSequences.Services_cff')
 process.load("Configuration.StandardSequences.MagneticField_38T_cff")
-process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
+process.load('Configuration.Geometry.GeometryExtended2016Reco_cff')
 process.load("Configuration.StandardSequences.Reconstruction_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.es_prefer_GlobalTag = cms.ESPrefer('PoolDBESSource','GlobalTag')
@@ -26,7 +26,7 @@ process.source = cms.Source("PoolSource",
                             )
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(500) )
-process.MessageLogger.cerr.FwkReport.reportEvery = 100
+process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
 process.load("DPGAnalysis.EcalTools.rechit_dumper_cfi")
 

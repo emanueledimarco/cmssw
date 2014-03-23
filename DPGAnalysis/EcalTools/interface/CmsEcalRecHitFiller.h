@@ -31,7 +31,7 @@
 struct CmsEcalRecHitFillerData {
 
   
-  std::vector<float> *energy, *time, *eta, *phi;
+  std::vector<float> *energy, *time, *eta, *phi, *ix, *iy;
   std::vector<float> *swissX, *r9;
 
 public:

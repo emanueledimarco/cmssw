@@ -8,14 +8,14 @@ process = cms.Process("ECALRecHitAnalysis")
 
 process.load('Configuration.StandardSequences.Services_cff')
 process.load("Configuration.StandardSequences.MagneticField_38T_cff")
-process.load('Configuration.Geometry.GeometryExtended2016Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2017Reco_cff')
 process.load("Configuration.StandardSequences.Reconstruction_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.es_prefer_GlobalTag = cms.ESPrefer('PoolDBESSource','GlobalTag')
 
 if isMC:
-    process.GlobalTag.globaltag = 'START17_61_V5::All'
-    inputfile =  cms.untracked.vstring('file:testEcalLocalRecoA.root')
+    process.GlobalTag.globaltag = 'DES17_61_V5::All'
+    inputfile =  cms.untracked.vstring('/store/group/phys_egamma/emanuele/ecal/reconstruction/ZEE_14TeV_PU140_DR61SLHCx_GENSIMRECO.root')
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 

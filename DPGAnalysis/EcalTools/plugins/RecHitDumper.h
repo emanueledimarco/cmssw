@@ -31,6 +31,7 @@ class RecHitDumper : public edm::EDAnalyzer {
   edm::InputTag ecalBarrelRecHits_, ecalEndcapRecHits_;
   //! output
   std::string nameFile_, nameTree_;
+  bool isMC_;
   //! ROOT file with the plain ROOT tree inside
   TFile *fileOut_;
   //! the tree with the events

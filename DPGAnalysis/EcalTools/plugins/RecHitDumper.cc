@@ -1,6 +1,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "DPGAnalysis/EcalTools/interface/CmsEcalRecHitFiller.h"
+#include "DPGAnalysis/EcalTools/interface/CmsRunInfoFiller.h"
 #include "DPGAnalysis/EcalTools/plugins/RecHitDumper.h"
 
 using namespace edm;
@@ -11,6 +12,7 @@ RecHitDumper::RecHitDumper(const edm::ParameterSet& iConfig)
   
   nameFile_      = iConfig.getUntrackedParameter<std::string>("nameFile", "RootOutput.root");
   nameTree_      = iConfig.getUntrackedParameter<std::string>("nameTree", "BaseTree");
+  isMC_          = iConfig.getUntrackedParameter<bool>("isMC",false);
   // ECAL rechits collections
   ecalBarrelRecHits_ = iConfig.getParameter<edm::InputTag>("EBRecHits");
   ecalEndcapRecHits_ = iConfig.getParameter<edm::InputTag>("EERecHits");
@@ -21,6 +23,9 @@ RecHitDumper::~RecHitDumper() { }
 // ------------ method called to for each event  ------------
 void RecHitDumper::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 { 
+
+  CmsRunInfoFiller runFiller( tree_, isMC_ );
+  runFiller.writeRunInfoToTree(iEvent,iSetup,false);
 
   CmsEcalRecHitFiller ebFill(tree_);
   std::string prefix("");

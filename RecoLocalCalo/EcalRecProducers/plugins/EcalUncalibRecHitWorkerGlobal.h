@@ -14,6 +14,7 @@
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitRecChi2Algo.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitRatioMethodAlgo.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitLeadingEdgeAlgo.h"
+#include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitOutOfTimeSubtractionAlgo.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "CondFormats/EcalObjects/interface/EcalTimeCalibConstants.h"
 #include "CondFormats/EcalObjects/interface/EcalTimeOffsetConstant.h"
@@ -25,6 +26,8 @@
 #include "CondFormats/EcalObjects/interface/EcalTimeBiasCorrections.h"
 #include "SimCalorimetry/EcalSimAlgos/interface/EBShape.h"
 #include "SimCalorimetry/EcalSimAlgos/interface/EEShape.h"
+#include "Geometry/CaloTopology/interface/CaloTopology.h"
+#include "Geometry/CaloTopology/interface/CaloSubdetectorTopology.h"
 
 
 namespace edm {
@@ -41,7 +44,7 @@ class EcalUncalibRecHitWorkerGlobal : public EcalUncalibRecHitWorkerBaseClass {
                 virtual ~EcalUncalibRecHitWorkerGlobal() {};
 
                 void set(const edm::EventSetup& es);
-                bool run(const edm::Event& evt, const EcalDigiCollection::const_iterator & digi, EcalUncalibratedRecHitCollection & result);
+                bool run(const edm::Event& evt, const EcalDigiCollection::const_iterator & digi, const EcalDigiCollection & digis, EcalUncalibratedRecHitCollection & result);
 
         protected:
 
@@ -114,6 +117,15 @@ class EcalUncalibRecHitWorkerGlobal : public EcalUncalibRecHitWorkerBaseClass {
 		double chi2ThreshEE_;
                 std::vector<double> EBchi2Parameters_;
                 std::vector<double> EEchi2Parameters_;
+
+                // for OOT pu subtraction
+                const CaloSubdetectorTopology* theSubdetTopologyEB_;
+                const CaloSubdetectorTopology* theSubdetTopologyEE_;
+                std::vector<double> EBpuSubtractionLimits_;
+                std::vector<double> EEpuSubtractionLimits_;
+                EcalUncalibRecHitOutOfTimeSubtractionAlgo<EBDataFrame> ootSubtraction_barrel_;
+                EcalUncalibRecHitOutOfTimeSubtractionAlgo<EEDataFrame> ootSubtraction_endcap_;
+
 };
 
 #endif

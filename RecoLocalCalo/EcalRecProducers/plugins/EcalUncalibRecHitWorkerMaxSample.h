@@ -20,7 +20,7 @@ class EcalUncalibRecHitWorkerMaxSample : public EcalUncalibRecHitWorkerBaseClass
                 virtual ~EcalUncalibRecHitWorkerMaxSample() {};
 
                 void set(const edm::EventSetup& es);
-                bool run(const edm::Event& evt, const EcalDigiCollection::const_iterator & digi, EcalUncalibratedRecHitCollection & result);
+                bool run(const edm::Event& evt, const EcalDigiCollection::const_iterator & digi, const EcalDigiCollection & digis, EcalUncalibratedRecHitCollection & result);
 
         private:
 

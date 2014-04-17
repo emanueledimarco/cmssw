@@ -14,6 +14,9 @@
 #include "CondFormats/DataRecord/interface/EcalTimeOffsetConstantRcd.h"
 #include "CondFormats/DataRecord/interface/EcalTimeBiasCorrectionsRcd.h"
 
+#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
+#include "RecoCaloTools/Navigation/interface/CaloNavigator.h"
+
 EcalUncalibRecHitWorkerGlobal::EcalUncalibRecHitWorkerGlobal(const edm::ParameterSet&ps,edm::ConsumesCollector& c) :
   EcalUncalibRecHitWorkerBaseClass(ps,c)
 {
@@ -43,6 +46,9 @@ EcalUncalibRecHitWorkerGlobal::EcalUncalibRecHitWorkerGlobal(const edm::Paramete
 
 	// spike threshold
         ebSpikeThresh_ = ps.getParameter<double>("ebSpikeThreshold");
+        // pu subtraction
+        EBpuSubtractionLimits_ = ps.getParameter<std::vector<double> >("EBpuSubtractionLimits");
+        EEpuSubtractionLimits_ = ps.getParameter<std::vector<double> >("EEpuSubtractionLimits");
         // leading edge parameters
         ebPulseShape_ = ps.getParameter<std::vector<double> >("ebPulseShape");
         eePulseShape_ = ps.getParameter<std::vector<double> >("eePulseShape");
@@ -86,6 +92,9 @@ EcalUncalibRecHitWorkerGlobal::EcalUncalibRecHitWorkerGlobal(const edm::Paramete
 
 	// spike threshold
         ebSpikeThresh_ = ps.getParameter<double>("ebSpikeThreshold");
+        // pu subtraction
+        EBpuSubtractionLimits_ = ps.getParameter<std::vector<double> >("EBpuSubtractionLimits");
+        EEpuSubtractionLimits_ = ps.getParameter<std::vector<double> >("EEpuSubtractionLimits");
         // leading edge parameters
         ebPulseShape_ = ps.getParameter<std::vector<double> >("ebPulseShape");
         eePulseShape_ = ps.getParameter<std::vector<double> >("eePulseShape");
@@ -130,8 +139,14 @@ EcalUncalibRecHitWorkerGlobal::set(const edm::EventSetup& es)
         es.get<EcalTimeCalibConstantsRcd>().get(itime);
         es.get<EcalTimeOffsetConstantRcd>().get(offtime);
 
-		// for the time correction methods
-		es.get<EcalTimeBiasCorrectionsRcd>().get(timeCorrBias_);
+        // for the time correction methods
+        es.get<EcalTimeBiasCorrectionsRcd>().get(timeCorrBias_);
+
+        // to subtract the OOT
+        edm::ESHandle<CaloTopology> theCaloTopology;
+        es.get<CaloTopologyRecord>().get(theCaloTopology); 
+        theSubdetTopologyEB_ = theCaloTopology->getSubdetectorTopology(DetId::Ecal,EcalBarrel);
+        theSubdetTopologyEE_ = theCaloTopology->getSubdetectorTopology(DetId::Ecal,EcalEndcap);
 }
 
 
@@ -219,6 +234,7 @@ double EcalUncalibRecHitWorkerGlobal::timeCorrection(
 bool
 EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                 const EcalDigiCollection::const_iterator & itdg,
+                const EcalDigiCollection & digis,
                 EcalUncalibratedRecHitCollection & result )
 {
         DetId detid(itdg->id());
@@ -359,7 +375,7 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
 
                                 uncalibRecHit.setJitter( crh.timeMax - 5 + theTimeCorrectionEE);
                                 uncalibRecHit.setJitterError( std::sqrt(pow(crh.timeError,2) + std::pow(EEtimeConstantTerm_,2)/std::pow(clockToNsConstant,2)) );
-                                uncalibRecHit.setOutOfTimeEnergy( crh.amplitudeMax );
+                                // uncalibRecHit.setOutOfTimeEnergy( crh.amplitudeMax );
 				// consider flagging as kOutOfTime only if above noise
 				if (uncalibRecHit.amplitude() > pedRMSVec[0] * amplitudeThreshEE_){
 				  float outOfTimeThreshP = outOfTimeThreshG12pEE_;
@@ -399,7 +415,7 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
 				uncalibRecHit.setJitter( crh.timeMax - 5 + theTimeCorrectionEB);
 
                                 uncalibRecHit.setJitterError( std::sqrt(std::pow(crh.timeError,2) + std::pow(EBtimeConstantTerm_,2)/std::pow(clockToNsConstant,2)) );
-                                uncalibRecHit.setOutOfTimeEnergy( crh.amplitudeMax );
+                                // uncalibRecHit.setOutOfTimeEnergy( crh.amplitudeMax );
 				// consider flagging as kOutOfTime only if above noise
 				if (uncalibRecHit.amplitude() > pedRMSVec[0] * amplitudeThreshEB_){
 				  float outOfTimeThreshP = outOfTimeThreshG12pEB_;
@@ -425,6 +441,42 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
 				    {   uncalibRecHit.setFlagBit( EcalUncalibratedRecHit::kOutOfTime );  }
 				}
 		}
+
+                // === oot energy ===
+                if (detid.subdetId()==EcalEndcap) {
+                  CaloNavigator<DetId> cursorE = CaloNavigator<DetId>(detid, theSubdetTopologyEE_ );
+                  cursorE.home();
+                  std::vector<EEDataFrame> neighbors;
+                  for(int ix=-2; ix<3; ++ix) {
+                    for(int iy=-2; iy<3; ++iy) {
+                      if(ix==0 || iy==0) continue;
+                      cursorE.offsetBy( ix, iy );
+                      EcalDigiCollection::const_iterator itneigh = digis.find( detid );
+                      if( itneigh != digis.end() ) neighbors.push_back(*itneigh);
+                    }
+                  }
+                  ootSubtraction_endcap_.init( *itdg, *sampleMask_, pedVec, pedRMSVec, gainRatios, neighbors, EEtimeNconst_, EEtimeConstantTerm_ );
+                  ootSubtraction_endcap_.computeAmplitudeOOT( EEamplitudeFitParameters_, EEpuSubtractionLimits_, uncalibRecHit.jitter() + 5 );
+                  EcalUncalibRecHitOutOfTimeSubtractionAlgo<EEDataFrame>::CalculatedExtraHit ceh = ootSubtraction_endcap_.getCalculatedExtraHit();
+                  uncalibRecHit.setOutOfTimeEnergy( ceh.amplitudeExtapolated );
+                } else {
+                  CaloNavigator<DetId> cursorE = CaloNavigator<DetId>(detid, theSubdetTopologyEB_ );
+                  cursorE.home();
+                  std::vector<EBDataFrame> neighbors;
+                  for(int ix=-2; ix<3; ++ix) {
+                    for(int iy=-2; iy<3; ++iy) {
+                      if(ix==0 || iy==0) continue;
+                      cursorE.offsetBy( ix, iy );
+                      EcalDigiCollection::const_iterator itneigh = digis.find( detid );
+                      if( itneigh != digis.end() ) neighbors.push_back(*itneigh);
+                    }
+                  }
+                  ootSubtraction_barrel_.init( *itdg, *sampleMask_, pedVec, pedRMSVec, gainRatios, neighbors, EBtimeNconst_, EBtimeConstantTerm_ );
+                  ootSubtraction_barrel_.computeAmplitudeOOT( EBamplitudeFitParameters_, EBpuSubtractionLimits_, uncalibRecHit.jitter() + 5 );
+                  EcalUncalibRecHitOutOfTimeSubtractionAlgo<EBDataFrame>::CalculatedExtraHit ceh = ootSubtraction_barrel_.getCalculatedExtraHit();
+                  uncalibRecHit.setOutOfTimeEnergy( ceh.amplitudeExtapolated );                  
+                }
+
 		
 		// === chi2express ===
 		if (detid.subdetId()==EcalEndcap) {

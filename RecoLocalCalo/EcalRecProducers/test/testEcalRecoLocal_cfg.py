@@ -113,7 +113,8 @@ else: print wrongAlgoMessage
 
 process.maxEvents = cms.untracked.PSet(  input = cms.untracked.int32(1000) )
 process.source = cms.Source("PoolSource",
-             fileNames = cms.untracked.vstring('/store/cmst3/user/bendavid/photongun_nopu/photongun_nopu_1000_1_POT.root')
+#             fileNames = cms.untracked.vstring('/store/cmst3/user/bendavid/photongun_nopu/photongun_nopu_1000_1_POT.root')
+              fileNames = cms.untracked.vstring('/store/cmst3/user/bendavid/photongun_pu25/photongun_pu25_988_1_AV6.root')
                 ) 
 
 

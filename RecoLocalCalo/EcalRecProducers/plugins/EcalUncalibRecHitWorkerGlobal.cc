@@ -449,10 +449,10 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                   std::vector<EEDataFrame> neighbors;
                   for(int ix=-2; ix<3; ++ix) {
                     for(int iy=-2; iy<3; ++iy) {
-                      if(ix==0 || iy==0) continue;
+                      if(abs(ix)<2 && abs(iy)<2 ) continue; // exclude the 3x3 polluted by the em shower
                       cursorE.offsetBy( ix, iy );
                       EcalDigiCollection::const_iterator itneigh = digis.find( detid );
-                      if( itneigh != digis.end() ) neighbors.push_back(*itneigh);
+                      if( itneigh != digis.end() ) neighbors.push_back(*itneigh);                       
                     }
                   }
                   ootSubtraction_endcap_.init( *itdg, *sampleMask_, pedVec, pedRMSVec, gainRatios, neighbors, EEtimeNconst_, EEtimeConstantTerm_ );
@@ -465,7 +465,7 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                   std::vector<EBDataFrame> neighbors;
                   for(int ix=-2; ix<3; ++ix) {
                     for(int iy=-2; iy<3; ++iy) {
-                      if(ix==0 || iy==0) continue;
+                      if(abs(ix)<2 && abs(iy)<2 ) continue; // exclude the 3x3 polluted by the em shower
                       cursorE.offsetBy( ix, iy );
                       EcalDigiCollection::const_iterator itneigh = digis.find( detid );
                       if( itneigh != digis.end() ) neighbors.push_back(*itneigh);

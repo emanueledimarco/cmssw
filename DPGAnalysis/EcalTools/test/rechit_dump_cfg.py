@@ -14,7 +14,7 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.es_prefer_GlobalTag = cms.ESPrefer('PoolDBESSource','GlobalTag')
 
 if isMC:
-    process.GlobalTag.globaltag = 'DES17_61_V5::All'
+    process.GlobalTag.globaltag = 'START71_V1::All'
     #inputfile =  cms.untracked.vstring('/store/group/phys_egamma/emanuele/ecal/reconstruction/ZEE_14TeV_PU140_DR61SLHCx_GENSIMRECO.root')
     inputfile = cms.untracked.vstring('file:testEcalLocalRecoA.root')
 

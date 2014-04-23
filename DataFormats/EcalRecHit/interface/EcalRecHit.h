@@ -4,6 +4,7 @@
 #include "DataFormats/DetId/interface/DetId.h"
 #include "DataFormats/CaloRecHit/interface/CaloRecHit.h"
 
+#include <iostream>
 #include <vector>
 #include <math.h>
 
@@ -100,7 +101,7 @@ public:
   static inline uint32_t setMasked(uint32_t value, uint32_t x, uint32_t offset, uint32_t width) {
     const uint32_t mask = ((1 << width) - 1) << offset;
     value &= ~mask;
-    value |= x & ((1U << width) - 1) << offset;
+    value |= (x & ((1 << width) - 1)) << offset;
     return value;
   }
 
@@ -142,8 +143,7 @@ public:
       // use 13 bits (3 exponent, 10 significand)
       rawEnergy = exponent << 10 | significand;
     }
-
-    extra_ = setMasked(extra_, rawEnergy, 8, 16);
+    extra_ = setMasked(extra_, rawEnergy, 8, 13);
   }
   
   float timeError() const {

@@ -181,9 +181,9 @@ void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::computeAmplitudeOOT( std::vec
   // --> there is a hope to fit for the out-of-time contributions
   // -> not, return 0
   double amplitudeExtapolated_= -1.0;
-  if (calculatedExtrahit_.amplitudeMax == -100) amplitudeExtapolated_ = -9999.;
-  else if (calculatedExtrahit_.timeMax > maxSampleOutOfTime_ ) amplitudeExtapolated_ = -999.;
-  else if (calculatedExtrahit_.amplitudeMax < minAmplitudeOutOfTime_) amplitudeExtapolated_ = -99.0;
+  if (calculatedExtrahit_.amplitudeMax == -100) amplitudeExtapolated_ = 0.0;
+  else if (calculatedExtrahit_.timeMax > maxSampleOutOfTime_ ) amplitudeExtapolated_ = 0.0;
+  else if (calculatedExtrahit_.amplitudeMax < minAmplitudeOutOfTime_) amplitudeExtapolated_ = 0.0;
   else {
 
     /*

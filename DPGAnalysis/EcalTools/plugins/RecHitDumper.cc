@@ -10,12 +10,14 @@ using namespace reco;
 RecHitDumper::RecHitDumper(const edm::ParameterSet& iConfig)
 {
   
-  nameFile_      = iConfig.getUntrackedParameter<std::string>("nameFile", "RootOutput.root");
+  fileName_      = iConfig.getUntrackedParameter<std::string>("fileName", "RootOutput.root");
   nameTree_      = iConfig.getUntrackedParameter<std::string>("nameTree", "BaseTree");
   isMC_          = iConfig.getUntrackedParameter<bool>("isMC",false);
   // ECAL rechits collections
-  ecalBarrelRecHits_ = iConfig.getParameter<edm::InputTag>("EBRecHits");
-  ecalEndcapRecHits_ = iConfig.getParameter<edm::InputTag>("EERecHits");
+  ecalBarrelRecHits1_ = iConfig.getParameter<edm::InputTag>("EBRecHits1");
+  ecalEndcapRecHits1_ = iConfig.getParameter<edm::InputTag>("EERecHits1");
+  ecalBarrelRecHits2_ = iConfig.getParameter<edm::InputTag>("EBRecHits2");
+  ecalEndcapRecHits2_ = iConfig.getParameter<edm::InputTag>("EERecHits2");
 }
 
 RecHitDumper::~RecHitDumper() { }
@@ -30,11 +32,23 @@ void RecHitDumper::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   CmsEcalRecHitFiller ebFill(tree_);
   std::string prefix("");
   std::string suffix("EBRecHits");
-  ebFill.writeCollectionToTree(ecalBarrelRecHits_, iEvent, iSetup, prefix, suffix, false);
+  ebFill.writeCollectionToTree(ecalBarrelRecHits1_, iEvent, iSetup, prefix, suffix, false);
 
   CmsEcalRecHitFiller eeFill(tree_);
   suffix = std::string("EERecHits");
-  ebFill.writeCollectionToTree(ecalEndcapRecHits_, iEvent, iSetup, prefix, suffix, false);
+  ebFill.writeCollectionToTree(ecalEndcapRecHits1_, iEvent, iSetup, prefix, suffix, false);
+
+  if(ecalBarrelRecHits2_.instance().compare("")!=0) {
+    CmsEcalRecHitFiller ebFill2(tree_);
+    std::string suffix("EBRecHits2");
+    ebFill2.writeCollectionToTree(ecalBarrelRecHits2_, iEvent, iSetup, prefix, suffix, false);
+  }
+
+  if(ecalEndcapRecHits2_.instance().compare("")!=0) {
+    CmsEcalRecHitFiller eeFill2(tree_);
+    std::string suffix("EERecHits2");
+    eeFill2.writeCollectionToTree(ecalEndcapRecHits2_, iEvent, iSetup, prefix, suffix, false);
+  }
 
   tree_->dumpData();
   
@@ -44,7 +58,7 @@ void RecHitDumper::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 // ------------ method called once each job just before starting event loop  ------------
 void RecHitDumper::beginJob() {
   
-  fileOut_ = TFile::Open(nameFile_.c_str(), "RECREATE");
+  fileOut_ = TFile::Open(fileName_.c_str(), "RECREATE");
 
   tree_  = new  CmsTree(nameTree_.c_str(),nameTree_.c_str());
 }

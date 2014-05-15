@@ -27,10 +27,11 @@ class RecHitDumper : public edm::EDAnalyzer {
 
  private:
 
-  //! ECAL rechits to compute the cluster shapes on the fly
-  edm::InputTag ecalBarrelRecHits_, ecalEndcapRecHits_;
+  //! ECAL rechits
+  edm::InputTag ecalBarrelRecHits1_, ecalEndcapRecHits1_;
+  edm::InputTag ecalBarrelRecHits2_, ecalEndcapRecHits2_;
   //! output
-  std::string nameFile_, nameTree_;
+  std::string fileName_, nameTree_;
   bool isMC_;
   //! ROOT file with the plain ROOT tree inside
   TFile *fileOut_;

@@ -1,9 +1,11 @@
 import FWCore.ParameterSet.Config as cms
 rechitDumper = cms.EDAnalyzer("RecHitDumper",
-                              EBRecHits = cms.InputTag("ecalRecHit:EcalRecHitsEB"),
-                              EERecHits = cms.InputTag("ecalRecHit:EcalRecHitsEE"),
+                              EBRecHits1 = cms.InputTag("ecalRecHit:EcalRecHitsEB"),
+                              EERecHits1 = cms.InputTag("ecalRecHit:EcalRecHitsEE"),
+                              EBRecHits2 = cms.InputTag(""),
+                              EERecHits2 = cms.InputTag(""),
                               isMC = cms.untracked.bool(True),
-                              nameFile = cms.untracked.string('tree.root'),
+                              fileName = cms.untracked.string('tree.root'),
                               nameTree = cms.untracked.string('ntp0')
                               )
 

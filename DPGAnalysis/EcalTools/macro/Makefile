@@ -39,4 +39,4 @@ $(OUTLIB)ecaltree.o: $(INCLUDEDIR)/ecaltree.C
 
 clean:
 	rm -f lib/*o
-	rm -f VecbosApp
+	rm -f ecalhitana

@@ -28,19 +28,17 @@ template < class C > class EcalUncalibRecHitOutOfTimeSubtractionAlgo {
   virtual ~ EcalUncalibRecHitOutOfTimeSubtractionAlgo < C > () { };
   // function to be able to compute
   // amplitude and time of the OOT pileup
-  void init( const C &dataFrame, const EcalSampleMask &sampleMask, const double * pedestals, const double * pedestalRMSes, const double * gainRatios, std::vector<C> neighbors, double Nconst, double Cconst );
+  void init( const C &dataFrame, const double * pedestals, const double * pedestalRMSes, const double * gainRatios, std::vector<C> neighbors, double Nconst, double Cconst );
   double pulseShapeFunction(double t);
   void computeAmplitudeOOT( std::vector< double > &amplitudeFitParameters, std::vector< double > &subtractionLimits, double time );
   CalculatedExtraHit getCalculatedExtraHit() { return calculatedExtrahit_; };
   
  protected:
   
-  EcalSampleMask sampleMask_;
   DetId          theDetId_;
   std::vector < double > amplitudes_;
   double pedestal_;
   double alpha_, beta_, alphabeta_;
-  double maxSampleOutOfTime_, minAmplitudeOutOfTime_;
 
   CalculatedExtraHit calculatedExtrahit_;
 };
@@ -66,7 +64,7 @@ template<class C> double EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::pulseShap
 }
 
 template <class C>
-void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::init( const C &dataFrame, const EcalSampleMask &sampleMask,
+void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::init( const C &dataFrame,
                                                          const double * pedestals, const double * pedestalRMSes, const double * gainRatios, 
                                                          std::vector<C> neighbors, double Nconst, double Cconst ) {
     
@@ -119,15 +117,13 @@ void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::init( const C &dataFrame, con
   // -> else use pedestal from database
   pedestal_ = 0;
   int num_  = 0;
-  if (dataFrame.sample(0).gainId() == 1 &&
-      sampleMask_.useSample(0, theDetId_ ) 
-      ) {
+  if (dataFrame.sample(0).gainId() == 1 )
+    {
     pedestal_ += double (dataFrame.sample(0).adc());
     num_++;
   }
   if (num_!=0 &&
       dataFrame.sample(1).gainId() == 1 && 
-      sampleMask_.useSample(1, theDetId_) &&
       fabs(dataFrame.sample(1).adc()-dataFrame.sample(0).adc())<3*pedestalRMSes[0]) {
     pedestal_ += double (dataFrame.sample(1).adc());
     num_++;
@@ -149,9 +145,7 @@ void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::init( const C &dataFrame, con
     
     // only use normally samples which are desired; if sample not to be used
     // inflate error so won't generate ratio considered for the measurement
-    if (!sampleMask_.useSample(iSample, theDetId_ ) ) 
-      sample      = 1e-9;
-    else if (GainId == 1) 
+    if (GainId == 1) 
       sample      = double (dataFrame.sample(iSample).adc() - pedestal_);
     else if (GainId == 2 || GainId == 3) 
       sample      = (double (dataFrame.sample(iSample).adc() - pedestals[GainId - 1])) *gainRatios[GainId - 1];
@@ -173,8 +167,7 @@ void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::computeAmplitudeOOT( std::vec
   beta_ = amplitudeFitParameters[1];
 
   // these are the limits of the subtraction algorithm
-  maxSampleOutOfTime_ = subtractionLimits[0];
-  minAmplitudeOutOfTime_ = subtractionLimits[1];
+  float minAmplitudeOutOfTime = subtractionLimits[1];
 
   // if the max sample of the max of the neighbors is 
   // in the pre-samples, and the amplitude is above noise, 
@@ -182,8 +175,8 @@ void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::computeAmplitudeOOT( std::vec
   // -> not, return 0
   double amplitudeExtapolated_= -1.0;
   if (calculatedExtrahit_.amplitudeMax == -100) amplitudeExtapolated_ = 0.0;
-  else if (calculatedExtrahit_.timeMax > maxSampleOutOfTime_ ) amplitudeExtapolated_ = 0.0;
-  else if (calculatedExtrahit_.amplitudeMax < minAmplitudeOutOfTime_) amplitudeExtapolated_ = 0.0;
+  else if (fabs(calculatedExtrahit_.timeMax - 5.0) < subtractionLimits[0]) amplitudeExtapolated_ = 0.0;
+  else if (calculatedExtrahit_.amplitudeMax < minAmplitudeOutOfTime) amplitudeExtapolated_ = 0.0;
   else {
 
     /*
@@ -196,6 +189,7 @@ void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::computeAmplitudeOOT( std::vec
     */
 
     amplitudeExtapolated_ = pulseShapeFunction(time);
+
     //    std::cout << "==> AMPLITUDE EXTRAP = " << amplitudeExtapolated_ << std::endl;
   }
 

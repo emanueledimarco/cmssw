@@ -455,7 +455,7 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                       if( itneigh != digis.end() ) neighbors.push_back(*itneigh);                       
                     }
                   }
-                  ootSubtraction_endcap_.init( *itdg, *sampleMask_, pedVec, pedRMSVec, gainRatios, neighbors, EEtimeNconst_, EEtimeConstantTerm_ );
+                  ootSubtraction_endcap_.init( *itdg, pedVec, pedRMSVec, gainRatios, neighbors, EEtimeNconst_, EEtimeConstantTerm_ );
                   ootSubtraction_endcap_.computeAmplitudeOOT( EEamplitudeFitParameters_, EEpuSubtractionLimits_, uncalibRecHit.jitter() + 5 );
                   EcalUncalibRecHitOutOfTimeSubtractionAlgo<EEDataFrame>::CalculatedExtraHit ceh = ootSubtraction_endcap_.getCalculatedExtraHit();
                   uncalibRecHit.setOutOfTimeEnergy( ceh.amplitudeExtapolated );
@@ -471,7 +471,7 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                       if( itneigh != digis.end() ) neighbors.push_back(*itneigh);
                     }
                   }
-                  ootSubtraction_barrel_.init( *itdg, *sampleMask_, pedVec, pedRMSVec, gainRatios, neighbors, EBtimeNconst_, EBtimeConstantTerm_ );
+                  ootSubtraction_barrel_.init( *itdg, pedVec, pedRMSVec, gainRatios, neighbors, EBtimeNconst_, EBtimeConstantTerm_ );
                   ootSubtraction_barrel_.computeAmplitudeOOT( EBamplitudeFitParameters_, EBpuSubtractionLimits_, uncalibRecHit.jitter() + 5 );
                   EcalUncalibRecHitOutOfTimeSubtractionAlgo<EBDataFrame>::CalculatedExtraHit ceh = ootSubtraction_barrel_.getCalculatedExtraHit();
                   uncalibRecHit.setOutOfTimeEnergy( ceh.amplitudeExtapolated );                  

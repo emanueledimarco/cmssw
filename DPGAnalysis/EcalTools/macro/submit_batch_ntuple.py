@@ -76,7 +76,7 @@ def main():
         outputfile.write('eval `scramv1 runtime -sh`\n')
         outputfile.write('cd $WORKDIR\n')
         outputfile.write(pwd+'/'+opt.application+' '+inputfilename+" "+output+"_"+str(ijob)+".root \n")
-        if(opt.download=='pccmsrm'): outputfile.write('ls *.root | xargs -i scp -o BatchMode=yes -o StrictHostKeyChecking=no {} pccmsrm24:'+diskoutputmain+'/{}\n') 
+        if(opt.download=='pccmsrm'): outputfile.write('ls *.root *.txt | xargs -i scp -o BatchMode=yes -o StrictHostKeyChecking=no {} pccmsrm24:'+diskoutputmain+'/{}\n') 
         outputfile.close
         logfile = opt.prefix+"/"+output+"/log/"+output+"_"+str(ijob)+".log"
         os.system("echo bsub -q "+opt.queue+" -o "+logfile+" source "+pwd+"/"+outputname)

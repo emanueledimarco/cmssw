@@ -52,7 +52,7 @@ void makePulls(const char* filein, const char *fileout) {
   if (myfile.is_open()) {
     while ( !myfile.eof() ) {
       myfile >> ev1 >> ix1 >> iy1 >> npu1 >> a1 >> t1;
-      if(ih%100000==0) std::cout << "Hit # " << ih << std::endl;
+      if(ih%1000000==0) std::cout << "Hit # " << ih << std::endl;
 
       if(npu1==0) { npu0=npu1; ev0=ev1; ix0=ix1; iy0=iy1; a0=a1; t0=t1; continue;}
       else if(ev1==ev0 && ix1==ix0 && iy1==iy0) {

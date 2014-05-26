@@ -5,6 +5,7 @@
 <use   name="Geometry/CaloGeometry"/>
 <use   name="Geometry/Records"/>
 <use   name="DataFormats/EcalRecHit"/>
+<use   name="RecoEcal/EgammaCoreTools"/>
 <use   name="root"/>
 <use   name="rootcore"/>
 <use   name="clhep"/>

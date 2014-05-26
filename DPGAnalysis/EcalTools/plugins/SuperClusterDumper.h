@@ -32,6 +32,8 @@ class SuperClusterDumper : public edm::EDAnalyzer {
   edm::InputTag ecalBarrelSuperClusters2_, ecalEndcapSuperClusters2_;
   //! ECAL rechits to compute the cluster shapes on the fly
   edm::InputTag ecalBarrelRecHits_, ecalEndcapRecHits_;
+  //! generator-level particle collection in input
+  edm::InputTag mcTruthCollection_;
   //! output
   std::string fileName_, nameTree_;
   bool isMC_;

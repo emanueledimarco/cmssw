@@ -2,6 +2,7 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "DPGAnalysis/EcalTools/interface/CmsSuperClusterFiller.h"
 #include "DPGAnalysis/EcalTools/interface/CmsRunInfoFiller.h"
+#include "DPGAnalysis/EcalTools/interface/CmsMcTruthTreeFiller.h"
 #include "DPGAnalysis/EcalTools/plugins/SuperClusterDumper.h"
 
 using namespace edm;
@@ -21,6 +22,8 @@ SuperClusterDumper::SuperClusterDumper(const edm::ParameterSet& iConfig)
   // rechits (used for the clusters shapes)
   ecalBarrelRecHits_       = iConfig.getParameter<edm::InputTag>("ecalBarrelRecHits");
   ecalEndcapRecHits_       = iConfig.getParameter<edm::InputTag>("ecalEndcapRecHits");
+  // MC truth
+  mcTruthCollection_       = iConfig.getParameter<edm::InputTag>("mcTruthCollection");
 
 }
 
@@ -57,6 +60,11 @@ void SuperClusterDumper::analyze(const edm::Event& iEvent, const edm::EventSetup
     eeFill2.setEcalHits(ecalEndcapRecHits_);
     eeFill2.writeCollectionToTree(ecalEndcapSuperClusters2_, iEvent, iSetup, prefix, suffix, false);
   }
+
+  // to compare with the MC truth
+  // get MC truth
+  CmsMcTruthTreeFiller treeFill(tree_);
+  treeFill.writeCollectionToTree( mcTruthCollection_, iEvent, 100 );
 
   tree_->dumpData();
   

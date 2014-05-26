@@ -6,6 +6,7 @@ superclusterDumper = cms.EDAnalyzer("SuperClusterDumper",
                                     EESuperClusters2 = cms.InputTag("particleFlowSuperClusterECAL:particleFlowSuperClusterECALEndcapWithPreshower"),
                                     ecalBarrelRecHits = cms.InputTag("ecalRecHit:EcalRecHitsEB"),
                                     ecalEndcapRecHits = cms.InputTag("ecalRecHit:EcalRecHitsEE"),
+                                    mcTruthCollection = cms.InputTag("genParticles"),
                                     isMC = cms.untracked.bool(True),
                                     fileName = cms.untracked.string('tree.root'),
                                     nameTree = cms.untracked.string('ntp1')

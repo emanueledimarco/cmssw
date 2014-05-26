@@ -5,6 +5,10 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <iostream>
+#include <fstream>
+
+#define ANALYSIS 1
+
 
 void ecaltree::Loop(const char* outputfilename)
 {
@@ -34,6 +38,9 @@ void ecaltree::Loop(const char* outputfilename)
    if (fChain == 0) return;
 
    std::cout << "Output file is " << outputfilename << std::endl;
+
+#if ANALYSIS == 1
+
    TFile *fileo = TFile::Open(outputfilename,"recreate");
 
    // correlation plots
@@ -144,5 +151,40 @@ void ecaltree::Loop(const char* outputfilename)
    for(int i=0; i<(int) time1Dplots.size(); ++i)  time1Dplots[i]->Write();
 
    fileo->Close();
+
+#endif
+
+#if ANALYSIS == 2
+
+   ofstream txtfile;
+   txtfile.open(outputfilename,std::ios::trunc);
+
+   Long64_t nentries = fChain->GetEntries();
+
+   std::cout << "Total entries = " << nentries << std::endl;
+
+   Long64_t nbytes = 0, nb = 0;
+   for (Long64_t jentry=0; jentry<nentries;jentry++) {
+     Long64_t ientry = LoadTree(jentry);
+     if (ientry < 0) break;
+     nb = fChain->GetEntry(jentry);   nbytes += nb;
+     if(jentry%1000==0) std::cout << "Processing entry " << jentry << "..." << std::endl;
+     for(int h=0; h<std::min(nEERecHits,10000); ++h) {
+       if(energyEERecHits[h]>5.0)
+         txtfile << eventNumber << "\t"
+                 << ixEERecHits[h] << "\t"
+                 << iyEERecHits[h] << "\t"
+                 << nTruePU[12] << "\t" // the bx = 0
+                 << energyEERecHits[h] << "\t"
+                 << timeEERecHits[h] << "\t"
+                 << chi2EERecHits[h] << "\t"
+                 << ootenergyEERecHits[h] << std::endl;
+     }
+     // if (Cut(ientry) < 0) continue;
+   }
+   txtfile.close();
+
+#endif
+
 
 }

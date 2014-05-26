@@ -47,7 +47,7 @@ process.load("RecoEcal.Configuration.RecoEcal_cff")
 process.load("RecoParticleFlow.PFClusterProducer.particleFlowCluster_cff")
 process.particleFlowSuperClusterECAL.useRegression = False
 
-process.maxEvents = cms.untracked.PSet(  input = cms.untracked.int32(1000) )
+process.maxEvents = cms.untracked.PSet(  input = cms.untracked.int32(100) )
 process.source = cms.Source("PoolSource",
               fileNames = cms.untracked.vstring('/store/cmst3/user/bendavid/photongun_pu25/photongun_pu25_988_1_AV6.root')
                 ) 
@@ -60,7 +60,7 @@ process.out = cms.OutputModule("PoolOutputModule",
                                                                       'keep *_addPileupInfo_*_*',
                                                                       'keep *_genParticles_*_*'
                                                                       ),
-                               fileName = cms.untracked.string('testEcalLocalRecoA.root')
+                               fileName = cms.untracked.string('testEcalFullReco.root')
                                )
 
 

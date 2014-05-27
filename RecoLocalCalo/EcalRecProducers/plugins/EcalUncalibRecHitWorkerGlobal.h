@@ -125,7 +125,7 @@ class EcalUncalibRecHitWorkerGlobal : public EcalUncalibRecHitWorkerBaseClass {
                 std::vector<double> EEpuSubtractionLimits_;
                 EcalUncalibRecHitOutOfTimeSubtractionAlgo<EBDataFrame> ootSubtraction_barrel_;
                 EcalUncalibRecHitOutOfTimeSubtractionAlgo<EEDataFrame> ootSubtraction_endcap_;
-
+                bool subtractPU_;
 };
 
 #endif

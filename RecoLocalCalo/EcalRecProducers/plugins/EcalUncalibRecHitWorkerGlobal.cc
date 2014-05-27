@@ -49,12 +49,13 @@ EcalUncalibRecHitWorkerGlobal::EcalUncalibRecHitWorkerGlobal(const edm::Paramete
         // pu subtraction
         EBpuSubtractionLimits_ = ps.getParameter<std::vector<double> >("EBpuSubtractionLimits");
         EEpuSubtractionLimits_ = ps.getParameter<std::vector<double> >("EEpuSubtractionLimits");
+        subtractPU_ = ps.getParameter<bool>("subtractPU");
         // leading edge parameters
         ebPulseShape_ = ps.getParameter<std::vector<double> >("ebPulseShape");
         eePulseShape_ = ps.getParameter<std::vector<double> >("eePulseShape");
 	// chi2 parameters
         kPoorRecoFlagEB_ = ps.getParameter<bool>("kPoorRecoFlagEB");
-	kPoorRecoFlagEE_ = ps.getParameter<bool>("kPoorRecoFlagEE");;
+	kPoorRecoFlagEE_ = ps.getParameter<bool>("kPoorRecoFlagEE");
         chi2ThreshEB_=ps.getParameter<double>("chi2ThreshEB_");
 	chi2ThreshEE_=ps.getParameter<double>("chi2ThreshEE_");
         EBchi2Parameters_ = ps.getParameter<std::vector<double> >("EBchi2Parameters");
@@ -98,9 +99,10 @@ EcalUncalibRecHitWorkerGlobal::EcalUncalibRecHitWorkerGlobal(const edm::Paramete
         // leading edge parameters
         ebPulseShape_ = ps.getParameter<std::vector<double> >("ebPulseShape");
         eePulseShape_ = ps.getParameter<std::vector<double> >("eePulseShape");
+        subtractPU_ = ps.getParameter<bool>("subtractPU");
 	// chi2 parameters
         kPoorRecoFlagEB_ = ps.getParameter<bool>("kPoorRecoFlagEB");
-	kPoorRecoFlagEE_ = ps.getParameter<bool>("kPoorRecoFlagEE");;
+	kPoorRecoFlagEE_ = ps.getParameter<bool>("kPoorRecoFlagEE");
         chi2ThreshEB_=ps.getParameter<double>("chi2ThreshEB_");
 	chi2ThreshEE_=ps.getParameter<double>("chi2ThreshEE_");
         EBchi2Parameters_ = ps.getParameter<std::vector<double> >("EBchi2Parameters");
@@ -476,7 +478,8 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                   EcalUncalibRecHitOutOfTimeSubtractionAlgo<EBDataFrame>::CalculatedExtraHit ceh = ootSubtraction_barrel_.getCalculatedExtraHit();
                   uncalibRecHit.setOutOfTimeEnergy( ceh.amplitudeExtapolated );                  
                 }
-
+                
+                if(subtractPU_) uncalibRecHit.setAmplitude(uncalibRecHit.amplitude() - uncalibRecHit.outOfTimeEnergy());
 		
 		// === chi2express ===
 		if (detid.subdetId()==EcalEndcap) {

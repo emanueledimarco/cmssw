@@ -24,6 +24,7 @@ process.options = cms.untracked.PSet(
 
 # get uncalib rechits from global method (weights for ampli, time from ratio, etc)
 import RecoLocalCalo.EcalRecProducers.ecalGlobalUncalibRecHit_cfi
+process.ecalGlobalUncalibRecHit.subtractPU = cms.bool(True)
 
 # get calibrated rechits
 process.load("CalibCalorimetry.EcalLaserCorrection.ecalLaserCorrectionService_cfi")

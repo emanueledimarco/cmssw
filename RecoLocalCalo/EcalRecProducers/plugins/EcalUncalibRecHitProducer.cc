@@ -64,7 +64,7 @@ EcalUncalibRecHitProducer::produce(edm::Event& evt, const edm::EventSetup& es) {
         {
                 ebUncalibRechits->reserve(ebDigis->size());
                 for(EBDigiCollection::const_iterator itdg = ebDigis->begin(); itdg != ebDigis->end(); ++itdg) {
-                        worker_->run(evt, itdg, *ebUncalibRechits);
+                  worker_->run(evt, itdg, *ebDigis, *ebUncalibRechits);
                 }
         }
 
@@ -73,7 +73,7 @@ EcalUncalibRecHitProducer::produce(edm::Event& evt, const edm::EventSetup& es) {
         {
                 eeUncalibRechits->reserve(eeDigis->size());
                 for(EEDigiCollection::const_iterator itdg = eeDigis->begin(); itdg != eeDigis->end(); ++itdg) {
-                        worker_->run(evt, itdg, *eeUncalibRechits);
+                  worker_->run(evt, itdg, *eeDigis, *eeUncalibRechits);
                 }
         }
 

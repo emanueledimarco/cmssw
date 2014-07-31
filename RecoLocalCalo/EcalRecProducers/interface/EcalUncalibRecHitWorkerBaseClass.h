@@ -18,7 +18,7 @@ class EcalUncalibRecHitWorkerBaseClass {
                 virtual ~EcalUncalibRecHitWorkerBaseClass(){}
 
                 virtual void set(const edm::EventSetup& es) = 0;
-                virtual bool run(const edm::Event& evt, const EcalDigiCollection::const_iterator & digi, EcalUncalibratedRecHitCollection & result) = 0;
+                virtual bool run(const edm::Event& evt, const EcalDigiCollection::const_iterator & digi, const EcalDigiCollection & digis, EcalUncalibratedRecHitCollection & result) = 0;
 };
 
 #endif

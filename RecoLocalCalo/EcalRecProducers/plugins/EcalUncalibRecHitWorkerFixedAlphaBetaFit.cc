@@ -103,6 +103,7 @@ EcalUncalibRecHitWorkerFixedAlphaBetaFit::setAlphaBeta(){
 bool
 EcalUncalibRecHitWorkerFixedAlphaBetaFit::run(const edm::Event& evt, 
                 const EcalDigiCollection::const_iterator & itdg, 
+                const EcalDigiCollection & digis,
                 EcalUncalibratedRecHitCollection & result)
 {
 

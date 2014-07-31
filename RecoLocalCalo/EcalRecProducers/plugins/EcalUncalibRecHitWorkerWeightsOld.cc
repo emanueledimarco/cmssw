@@ -27,6 +27,7 @@ EcalUncalibRecHitWorkerWeightsOld::set(const edm::EventSetup& es)
 bool
 EcalUncalibRecHitWorkerWeightsOld::run( const edm::Event & evt,
                 const EcalDigiCollection::const_iterator & itdg,
+                const EcalDigiCollection & digis, 
                 EcalUncalibratedRecHitCollection & result )
 {
         DetId detid(itdg->id());

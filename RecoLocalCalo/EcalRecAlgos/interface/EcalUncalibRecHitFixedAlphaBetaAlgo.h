@@ -16,6 +16,9 @@
 //#include "CLHEP/Matrix/Matrix.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitRecAbsAlgo.h"
 
+#include "CondFormats/EcalObjects/interface/EcalPedestals.h"
+#include "CondFormats/EcalObjects/interface/EcalGainRatios.h"
+
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Utilities/interface/isFinite.h"
 
@@ -93,10 +96,11 @@ template<class C> class EcalUncalibRecHitFixedAlphaBetaAlgo : public EcalUncalib
   };
 
   virtual ~EcalUncalibRecHitFixedAlphaBetaAlgo<C>() { };
+  virtual EcalUncalibratedRecHit makeRecHit(const C& dataFrame, const EcalPedestals::Item * aped, const EcalMGPAGainRatio * aGain);
   virtual EcalUncalibratedRecHit makeRecHit(const C& dataFrame, const double* pedestals,
 					    const double* gainRatios,
 					    const EcalWeightSet::EcalWeightMatrix** weights, 
-					    const EcalWeightSet::EcalChi2WeightMatrix** chi2Matrix); 
+					    const EcalWeightSet::EcalChi2WeightMatrix** chi2Matrix) { return EcalUncalibratedRecHit(); }
   void SetAlphaBeta( double alpha, double beta);
   void SetMinAmpl(double ampl);
   void SetDynamicPedestal(bool dyn_pede);
@@ -105,90 +109,76 @@ template<class C> class EcalUncalibRecHitFixedAlphaBetaAlgo : public EcalUncalib
 
 
   /// Compute parameters
-template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitFixedAlphaBetaAlgo<C>::makeRecHit(const C& dataFrame, const double* pedestals,
-											     const double* gainRatios,
-											     const EcalWeightSet::EcalWeightMatrix** weights, 
-											     const EcalWeightSet::EcalChi2WeightMatrix** chi2Matrix){
+template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitFixedAlphaBetaAlgo<C>::makeRecHit(const C& dataFrame, const EcalPedestals::Item * aped, const EcalMGPAGainRatio * aGain) {
+
   double chi2_(-1.);
   
   //  double Gain12Equivalent[4]={0,1,2,12};
   double frame[C::MAXSAMPLES];// will contain the ADC values
   double pedestal =0;     // carries pedestal for gain12 i.e. gainId==1
-  
-  int gainId0 = 1;        // expected gainId at the beginning of dataFrame 
-  int iGainSwitch = 0;    // flags whether there's any gainId other than gainId0
-  int GainId= 0;          // stores gainId at every sample
-  double maxsample(-1);   // ADC value of maximal ped-subtracted sample
-  int imax(-1);           // sample number of maximal ped-subtracted sample
-  bool external_pede = false;
-  bool isSaturated = 0;   // flag reporting whether gain0 has been found
+
+  double maxamplitude = -std::numeric_limits<double>::max();
+  double maxpedestal  = 4095;
+  double maxjitter    = -1;
+  double maxchi2      = -1;
+  bool isSaturated = 0;
+  uint32_t maxflags = 0;  
 
   // Get time samples checking for Gain Switch and pedestals
-  if(pedestals){
-    external_pede = true;
-    if(dyn_pedestal) { pedestal = (double(dataFrame.sample(0).adc()) + double(dataFrame.sample(1).adc()))/2.;}
-    else{ pedestal  = pedestals[0];}
-    for(int iSample = 0; iSample < C::MAXSAMPLES; iSample++) {
-	//create frame in adc gain 12 equivalent
-	GainId = dataFrame.sample(iSample).gainId();
+  for(int iSample = 0; iSample < C::MAXSAMPLES; iSample++) {
 
-	// FIX-ME: warning: the vector pedestal is supposed to have in the order G12, G6 and G1
-        // if GainId is zero treat it as 3 temporarily to protect against undefined
-	// frame will be set to ~max of gain1
-	if ( GainId == 0 )
-	  { 
-	    GainId = 3;
-	    isSaturated = 1;
-	  }
+    const EcalMGPASample &sample = dataFrame.sample(iSample);
 
-	if (GainId != gainId0) iGainSwitch = 1;
+    double amplitude = 0.;
+    int gainId = sample.gainId();
 
-	if(GainId==gainId0){frame[iSample] = double(dataFrame.sample(iSample).adc())-pedestal ;}
-	else {frame[iSample] = (double(dataFrame.sample(iSample).adc())-pedestals[GainId-1])*gainRatios[GainId-1];}
+    double pedestal = 0.;
+    double gainratio = 1.;
+    
+    uint32_t flags = 0;
 
-	if( frame[iSample]>maxsample ) {
-          maxsample = frame[iSample];
-          imax = iSample;
-	}
-      }
-  }
-  else {// pedestal from pre-sample
-    external_pede = false;
-    pedestal = (double(dataFrame.sample(0).adc()) + double(dataFrame.sample(1).adc()))/2.;
+    if (gainId==0 || gainId==3) {
+      pedestal = aped->mean_x1;
+      gainratio = aGain->gain6Over1()*aGain->gain12Over6();
+    }
+    else if (gainId==1) {
+      pedestal = aped->mean_x12;
+      gainratio = 1.;
+    }
+    else if (gainId==2) {
+      pedestal = aped->mean_x6;
+      gainratio = aGain->gain12Over6();
+    }
 
-    for(int iSample = 0; iSample < C::MAXSAMPLES; iSample++) {
-      //create frame in adc gain 12 equivalent
-      GainId = dataFrame.sample(iSample).gainId();
-      //no gain switch forseen if there is no external pedestal
-      if ( GainId == 0 ) 
-	{
-	  GainId = 3;
-	  isSaturated = 1;
-	}
+    amplitude = double(((double)(sample.adc()) - pedestal) * gainratio);
+    
+    if (gainId == 0) {
+      flags = EcalUncalibratedRecHit::kSaturated;
+      amplitude = double((4095. - pedestal) * gainratio);
+    }
 
-      frame[iSample] = double(dataFrame.sample(iSample).adc())-pedestal ;
-      // if gain has switched but no pedestals are available, no much good you can do...
-      if (GainId > gainId0) iGainSwitch = 1;
-      if( frame[iSample]>maxsample ) {
-	maxsample = frame[iSample];
-	imax = iSample;
-      }
-    } 
-  }
+    if (amplitude>maxamplitude) {
+      maxamplitude = amplitude;
+      maxpedestal = pedestal;
+      maxjitter = (iSample-5);
+      maxflags = flags;
+    }
 
-  if( (iGainSwitch==1 && external_pede==false) ||  // ... thus you return dummy rechit
-      imax ==-1 ){                                 // protect against all frames being <-1
-    return EcalUncalibratedRecHit( dataFrame.id(), -1., -100., -1. , -1.);
-  }
-  
-  InitFitParameters(frame, imax);
-  chi2_ = PerformAnalyticFit(frame,imax);
+  } // loop on samples
+
+  // if amplitude is too small, just give the max sample
+  if(maxamplitude < MinAmpl_)  return EcalUncalibratedRecHit( dataFrame.id(), maxamplitude , maxpedestal, maxjitter, maxchi2, maxflags );
+
+   InitFitParameters(frame, maxjitter+5);
+  chi2_ = PerformAnalyticFit(frame,maxjitter+5);
   uint32_t flags = 0;
   if (isSaturated) flags = EcalUncalibratedRecHit::kSaturated;
 
-  /*    std::cout << "separate fits\nA: " << fAmp_max_  << ", ResidualPed: " <<  fPed_max_
+  /*
+  std::cout << "separate fits\nA: " << fAmp_max_  << ", ResidualPed: " <<  fPed_max_
               <<", pedestal: "<<pedestal << ", tPeak " << fTim_max_ << std::endl;
   */
+
   return EcalUncalibratedRecHit( dataFrame.id(),fAmp_max_, pedestal+fPed_max_, fTim_max_ - 5 , chi2_, flags );
 }
 

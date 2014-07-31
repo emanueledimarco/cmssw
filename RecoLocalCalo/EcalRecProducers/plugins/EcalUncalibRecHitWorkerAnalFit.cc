@@ -57,6 +57,7 @@ EcalUncalibRecHitWorkerAnalFit::set(const edm::EventSetup& es)
 bool
 EcalUncalibRecHitWorkerAnalFit::run( const edm::Event& evt,
                 const EcalDigiCollection::const_iterator & itdg,
+                const EcalDigiCollection & digis,
                 EcalUncalibratedRecHitCollection & result)
 {
         using namespace edm;

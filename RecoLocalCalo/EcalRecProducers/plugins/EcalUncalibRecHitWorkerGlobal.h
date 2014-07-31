@@ -14,6 +14,8 @@
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitRecChi2Algo.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitRatioMethodAlgo.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitLeadingEdgeAlgo.h"
+#include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitFixedAlphaBetaAlgo.h"
+#include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitOutOfTimeSubtractionAlgo.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "CondFormats/EcalObjects/interface/EcalTimeCalibConstants.h"
 #include "CondFormats/EcalObjects/interface/EcalTimeOffsetConstant.h"
@@ -25,6 +27,8 @@
 #include "CondFormats/EcalObjects/interface/EcalTimeBiasCorrections.h"
 #include "SimCalorimetry/EcalSimAlgos/interface/EBShape.h"
 #include "SimCalorimetry/EcalSimAlgos/interface/EEShape.h"
+#include "Geometry/CaloTopology/interface/CaloTopology.h"
+#include "Geometry/CaloTopology/interface/CaloSubdetectorTopology.h"
 
 
 namespace edm {
@@ -41,7 +45,7 @@ class EcalUncalibRecHitWorkerGlobal : public EcalUncalibRecHitWorkerBaseClass {
                 virtual ~EcalUncalibRecHitWorkerGlobal() {};
 
                 void set(const edm::EventSetup& es);
-                bool run(const edm::Event& evt, const EcalDigiCollection::const_iterator & digi, EcalUncalibratedRecHitCollection & result);
+                bool run(const edm::Event& evt, const EcalDigiCollection::const_iterator & digi, const EcalDigiCollection & digis, EcalUncalibratedRecHitCollection & result);
 
         protected:
 
@@ -64,6 +68,8 @@ class EcalUncalibRecHitWorkerGlobal : public EcalUncalibRecHitWorkerBaseClass {
                 const EcalWeightSet::EcalChi2WeightMatrix* chi2mat[2];
                 EcalUncalibRecHitRecWeightsAlgo<EBDataFrame> weightsMethod_barrel_;
                 EcalUncalibRecHitRecWeightsAlgo<EEDataFrame> weightsMethod_endcap_;
+                EcalUncalibRecHitFixedAlphaBetaAlgo<EBDataFrame> fitMethod_barrel_;
+                EcalUncalibRecHitFixedAlphaBetaAlgo<EEDataFrame> fitMethod_endcap_;
                 const EEShape testbeamEEShape; // used in the chi2
                 const EBShape testbeamEBShape; // can be replaced by simple shape arrays of float in the future
 
@@ -114,6 +120,15 @@ class EcalUncalibRecHitWorkerGlobal : public EcalUncalibRecHitWorkerBaseClass {
 		double chi2ThreshEE_;
                 std::vector<double> EBchi2Parameters_;
                 std::vector<double> EEchi2Parameters_;
+
+                // for OOT pu subtraction
+                const CaloSubdetectorTopology* theSubdetTopologyEB_;
+                const CaloSubdetectorTopology* theSubdetTopologyEE_;
+                std::vector<double> EBpuSubtractionLimits_;
+                std::vector<double> EEpuSubtractionLimits_;
+                EcalUncalibRecHitOutOfTimeSubtractionAlgo<EBDataFrame> ootSubtraction_barrel_;
+                EcalUncalibRecHitOutOfTimeSubtractionAlgo<EEDataFrame> ootSubtraction_endcap_;
+                bool subtractPU_;
 };
 
 #endif

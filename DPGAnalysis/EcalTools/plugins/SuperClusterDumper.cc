@@ -49,30 +49,30 @@ void SuperClusterDumper::analyze(const edm::Event& iEvent, const edm::EventSetup
   eeFill.setEcalHits(ecalEndcapRecHits_);
   eeFill.writeCollectionToTree(ecalEndcapSuperClusters1_, iEvent, iSetup, prefix, suffix, false);
 
-  if(ecalBarrelSuperClusters2_.instance().compare("")!=0) {
+  if(ecalBarrelSuperClusters2_.label().size()>0) {
     CmsSuperClusterFiller ebFill2(tree_);
-    std::string suffix("EBSuperClusters2");
+    suffix = std::string("EBSuperClusters2");
     ebFill2.setEcalHits(ecalBarrelRecHits_);
     ebFill2.writeCollectionToTree(ecalBarrelSuperClusters2_, iEvent, iSetup, prefix, suffix, false);
   }
 
-  if(ecalEndcapSuperClusters2_.instance().compare("")!=0) {
+  if(ecalEndcapSuperClusters2_.label().size()>0) {
     CmsSuperClusterFiller eeFill2(tree_);
-    std::string suffix("EESuperClusters2");
+    suffix = std::string("EESuperClusters2");
     eeFill2.setEcalHits(ecalEndcapRecHits_);
     eeFill2.writeCollectionToTree(ecalEndcapSuperClusters2_, iEvent, iSetup, prefix, suffix, false);
   }
 
-  if(ecalBarrelSuperClusters3_.instance().compare("")!=0) {
+  if(ecalBarrelSuperClusters3_.label().size()>0) {
     CmsSuperClusterFiller ebFill3(tree_);
-    std::string suffix("EBSuperClusters3");
+    suffix = std::string("EBSuperClusters3");
     ebFill3.setEcalHits(ecalBarrelRecHits_);
     ebFill3.writeCollectionToTree(ecalBarrelSuperClusters3_, iEvent, iSetup, prefix, suffix, false);
   }
 
-  if(ecalEndcapSuperClusters3_.instance().compare("")!=0) {
+  if(ecalEndcapSuperClusters3_.label().size()>0) {
     CmsSuperClusterFiller eeFill3(tree_);
-    std::string suffix("EESuperClusters3");
+    suffix = std::string("EESuperClusters3");
     eeFill3.setEcalHits(ecalEndcapRecHits_);
     eeFill3.writeCollectionToTree(ecalEndcapSuperClusters3_, iEvent, iSetup, prefix, suffix, false);
   }

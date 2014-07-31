@@ -1,0 +1,41 @@
+Sender: LSF System <lsfadmin@lxbsu2911>
+Subject: Job 530530083: <merge> in cluster batch Done
+
+Job <merge> was submitted from host <lxplus407> by user <emanuele> in cluster <batch>.
+Job was executed on host(s) <lxbsu2911>, in queue <cmscaf1nh>, as user <emanuele> in cluster <batch>.
+</afs/cern.ch/user/e/emanuele> was used as the home directory.
+</afs/cern.ch/user/e/emanuele/workspace/ecalreco/swisscross/CMSSW_7_1_0_pre5/src/DPGAnalysis/EcalTools/macro> was used as the working directory.
+Started at Tue May 20 15:22:33 2014
+Results reported at Tue May 20 15:25:37 2014
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+source mergeTwoRecos.sh /afs/cern.ch/user/e/emanuele/workspace/ecalreco/swisscross/CMSSW_7_1_0_pre5/src/DPGAnalysis/EcalTools/macro/reco_nopu.txt /afs/cern.ch/user/e/emanuele/workspace/ecalreco/swisscross/CMSSW_7_1_0_pre5/src/DPGAnalysis/EcalTools/macro/reco_pu25.txt /afs/cern.ch/user/e/emanuele/workspace/ecalreco/swisscross/CMSSW_7_1_0_pre5/src/DPGAnalysis/EcalTools/macro/analysis_matrix.txt
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time   :     88.78 sec.
+    Max Memory :      1261 MB
+    Max Swap   :     12344 MB
+
+    Max Processes  :         6
+    Max Threads    :         7
+
+The output (if any) follows:
+
+@(#)CERN job starter $Date: 2010/06/23 14:22:16 $
+Working directory is </pool/lsf/emanuele/530530083> on <lxbsu2911.cern.ch>
+
+merging std reco:  /afs/cern.ch/user/e/emanuele/workspace/ecalreco/swisscross/CMSSW_7_1_0_pre5/src/DPGAnalysis/EcalTools/macro/reco_nopu.txt  and mod reco  /afs/cern.ch/user/e/emanuele/workspace/ecalreco/swisscross/CMSSW_7_1_0_pre5/src/DPGAnalysis/EcalTools/macro/reco_pu25.txt  in  /afs/cern.ch/user/e/emanuele/workspace/ecalreco/swisscross/CMSSW_7_1_0_pre5/src/DPGAnalysis/EcalTools/macro/analysis_matrix.txt
+DONE. Final file is  /afs/cern.ch/user/e/emanuele/workspace/ecalreco/swisscross/CMSSW_7_1_0_pre5/src/DPGAnalysis/EcalTools/macro/analysis_matrix.txt
+
+Job finished at Tue May 20 15:25:34 CEST 2014 on node 
+ under linux version Scientific Linux CERN SLC release 5.10 (Boron)
+
+CERN statistics: This process used approximately : 0:02:40 KSI2K hours (160 KSI2K seconds)
+                 This process corresponds to     : 0:10:27 HS06  hours (627 HS06  seconds)

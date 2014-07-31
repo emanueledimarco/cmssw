@@ -1,0 +1,4 @@
+<use   name="DPGAnalysis/EcalTools"/>
+<library   file="*.cc" name="DPGAnalysisEcalToolsPlugins">
+  <flags   EDM_PLUGIN="1"/>
+</library>

@@ -61,6 +61,44 @@ process.ecalLocalReco = cms.Sequence( process.ecalGlobalUncalibRecHit * process.
 
 
 # modify the clustering sequence to use the PU-subtracted rechits
+
+# barrel:
+process.load("RecoEcal.EgammaClusterProducers.correctedHybridSuperClusters_cfi")
+process.correctedHybridSuperClustersNoPU = process.correctedHybridSuperClusters.clone()
+process.correctedHybridSuperClustersNoPU.recHitProducer = cms.InputTag("ecalRecHitNoPU","EcalRecHitsEB")
+
+# endcap:
+process.load("RecoEcal.EgammaClusterProducers.multi5x5BasicClusters_cfi")
+process.multi5x5BasicClustersCleanedNoPU = process.multi5x5BasicClustersCleaned.clone()
+process.multi5x5BasicClustersCleanedNoPU.endcapHitTag = cms.InputTag('ecalRecHitNoPU','EcalRecHitsEE')
+process.load("RecoEcal.EgammaClusterProducers.multi5x5SuperClusters_cfi")
+process.multi5x5SuperClustersCleanedNoPU = process.multi5x5SuperClustersCleaned.clone()
+process.multi5x5SuperClustersCleanedNoPU.endcapClusterTag = cms.InputTag('multi5x5BasicClustersCleanedNoPU', 'multi5x5EndcapBasicClusters')
+process.load("RecoEcal.EgammaClusterProducers.multi5x5SuperClustersWithPreshower_cfi")
+process.multi5x5SuperClustersWithPreshowerNoPU = process.multi5x5SuperClustersWithPreshower.clone()
+endcapSClusterProducer = cms.InputTag("multi5x5SuperClustersNoPU","multi5x5EndcapSuperClusters")
+process.correctedMulti5x5SuperClustersWithPreshowerNoPU = process.correctedMulti5x5SuperClustersWithPreshower.clone()
+process.correctedMulti5x5SuperClustersWithPreshowerNoPU.rawSuperClusterProducer = cms.InputTag("multi5x5SuperClustersWithPreshowerNoPU")
+process.correctedMulti5x5SuperClustersWithPreshowerNoPU.recHitProducer = cms.InputTag("ecalRecHitNoPU","EcalRecHitsEE")
+
+process.ClusterECALSequence = cms.Sequence(process.correctedHybridSuperClusters
+                                           * process.multi5x5BasicClustersCleaned
+                                           * process.multi5x5SuperClustersCleaned
+                                           * process.multi5x5SuperClustersWithPreshower
+                                           * process.correctedMulti5x5SuperClustersWithPreshower )
+
+process.ClusterECALSequenceNoPU = cms.Sequence(process.correctedHybridSuperClustersNoPU
+                                               * process.multi5x5BasicClustersCleanedNoPU
+                                               * process.multi5x5SuperClustersCleanedNoPU
+                                               * process.multi5x5SuperClustersWithPreshowerNoPU
+                                               * process.correctedMulti5x5SuperClustersWithPreshowerNoPU )
+
+process.ClusteringSequence = cms.Sequence(process.ClusterECALSequence # the one with the new hits, no PU-sub
+                                          * process.ClusterECALSequenceNoPU # the one with the new hits, yes PU-sub
+                                          )
+
+
+# PFlow clustering (barrel and endcap in one go):
 process.load("RecoParticleFlow/PFClusterProducer/particleFlowRecHitECALNoPU_cfi")
 process.particleFlowClusterECALUncorrectedNoPU = process.particleFlowClusterECALUncorrected.clone()
 process.particleFlowClusterECALUncorrectedNoPU.recHitsSource = cms.InputTag("particleFlowRecHitECALNoPU")
@@ -71,17 +109,6 @@ process.particleFlowSuperClusterECALNoPU = process.particleFlowSuperClusterECAL.
 process.particleFlowSuperClusterECALNoPU.PFClusters = cms.InputTag("particleFlowClusterECALNoPU")
 process.particleFlowSuperClusterECALNoPU.ESAssociation = cms.InputTag("particleFlowClusterECALNoPU")
 
-#just to be sure to have the same config, rerun the clustering using the precomputed std rechits
-process.particleFlowClusterECALUncorrectedStd = process.particleFlowClusterECALUncorrected.clone()
-process.particleFlowClusterECALUncorrectedStd.recHitsSource = cms.InputTag("particleFlowRecHitECAL","Cleaned","RECO")
-process.particleFlowClusterECALStd = process.particleFlowClusterECAL.clone()
-process.particleFlowClusterECALStd.inputECAL = cms.InputTag("particleFlowClusterECALUncorrectedStd")
-process.particleFlowSuperClusterECALStd = process.particleFlowSuperClusterECAL.clone()
-process.particleFlowSuperClusterECALStd.PFClusters = cms.InputTag("particleFlowClusterECALStd")
-process.particleFlowSuperClusterECALStd.ESAssociation = cms.InputTag("particleFlowClusterECALStd")
-
-process.particleFlowClusterECALSequenceStd = cms.Sequence(process.particleFlowClusterECALUncorrectedStd * process.particleFlowClusterECALStd
-                                                          * process.particleFlowSuperClusterECALStd )
 
 process.particleFlowClusterECALSequence = cms.Sequence(process.particleFlowRecHitECAL
                                                        * process.particleFlowClusterECALUncorrected * process.particleFlowClusterECAL
@@ -91,39 +118,35 @@ process.particleFlowClusterECALSequenceNoPU = cms.Sequence(process.particleFlowR
                                                            * process.particleFlowClusterECALUncorrectedNoPU * process.particleFlowClusterECALNoPU
                                                            * process.particleFlowSuperClusterECALNoPU )
 
-process.clusteringSequence = cms.Sequence(process.particleFlowClusterECALSequenceStd # the one with the old hits
-                                          * process.particleFlowClusterECALSequence # the one with the new hits, no PU-sub
-                                          * process.particleFlowClusterECALSequenceNoPU # the one with the new hits, yes PU-sub
-                                           )
+process.particleFlowClusteringSequence = cms.Sequence(process.particleFlowClusterECALSequence # the one with the new hits, no PU-sub
+                                                      * process.particleFlowClusterECALSequenceNoPU # the one with the new hits, yes PU-sub
+                                                      )
 
-process.p = cms.Path( process.ecalLocalReco * process.clusteringSequence )
+process.p = cms.Path( process.ecalLocalReco
+                      * process.ClusteringSequence
+                      * process.particleFlowClusteringSequence )
 
 
 process.out = cms.OutputModule("PoolOutputModule",
-                               outputCommands = cms.untracked.vstring('keep *'
+                               outputCommands = cms.untracked.vstring('drop *',
+                                                                      'keep *_*SuperClusters*_*_*',
+                                                                      'keep *_offlineBeamSpot_*_*',
+                                                                      'keep *_addPileupInfo_*_*',
+                                                                      'keep *_genParticles_*_*'
                                                                       ),
                                fileName = cms.untracked.string('testEcalFullReco.root')
                                )
+
 process.outpath = cms.EndPath(process.out)
 
-# process.out = cms.OutputModule("PoolOutputModule",
-#                                outputCommands = cms.untracked.vstring('drop *',
-#                                                                       'keep *_particleFlowSuperClusterECAL_particleFlowSuperClusterECAL*_*',
-#                                                                       'keep *_particleFlowSuperClusterECALNoPU_particleFlowSuperClusterECAL*_*',
-#                                                                       'keep *_offlineBeamSpot_*_*',
-#                                                                       'keep *_addPileupInfo_*_*',
-#                                                                       'keep *_genParticles_*_*'
-#                                                                       ),
-#                                fileName = cms.untracked.string('testEcalFullReco.root')
-#                                )
 
 
 process.GlobalTag.globaltag = 'START71_V1::All'
 
-# process.GlobalTag.toGet = cms.VPSet(
-#     cms.PSet(record = cms.string("EcalTBWeightsRcd"),
-#              tag = cms.string("EcalTBWeights_3p5_time_mc"),
-#              connect = cms.untracked.string("frontier://FrontierPrep/CMS_COND_ECAL")
-#              )
-#     )
+process.GlobalTag.toGet = cms.VPSet(
+    cms.PSet(record = cms.string("EcalTBWeightsRcd"),
+             tag = cms.string("EcalTBWeights_3p5_time_mc"),
+             connect = cms.untracked.string("frontier://FrontierPrep/CMS_COND_ECAL")
+             )
+    )
 

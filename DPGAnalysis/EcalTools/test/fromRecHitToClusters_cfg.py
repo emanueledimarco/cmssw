@@ -130,6 +130,8 @@ process.p = cms.Path( process.ecalLocalReco
 process.out = cms.OutputModule("PoolOutputModule",
                                outputCommands = cms.untracked.vstring('drop *',
                                                                       'keep *_*SuperClusters*_*_*',
+                                                                      'drop *_*_preshower*Clusters_*',
+                                                                      'drop *_*_*Basic*_*',
                                                                       'keep *_offlineBeamSpot_*_*',
                                                                       'keep *_addPileupInfo_*_*',
                                                                       'keep *_genParticles_*_*'

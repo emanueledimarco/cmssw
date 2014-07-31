@@ -21,7 +21,7 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.source = cms.Source("PoolSource",
                             noEventSort = cms.untracked.bool(True),
                             duplicateCheckMode = cms.untracked.string('noDuplicateCheck'),
-                            fileNames = cms.untracked.vstring('/store/cmst3/user/emanuele/ecal/amplireco/rereco/photongun_pu25_0.root')
+                            fileNames = cms.untracked.vstring('file:testEcalFullReco.root')
                             )
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(500) )

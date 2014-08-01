@@ -61,77 +61,45 @@ process.ecalLocalReco = cms.Sequence( process.ecalGlobalUncalibRecHit * process.
 
 
 # modify the clustering sequence to use the PU-subtracted rechits
-
-# barrel:
-process.load("RecoEcal.EgammaClusterProducers.correctedHybridSuperClusters_cfi")
-process.correctedHybridSuperClustersNoPU = process.correctedHybridSuperClusters.clone()
-process.correctedHybridSuperClustersNoPU.recHitProducer = cms.InputTag("ecalRecHitNoPU","EcalRecHitsEB")
-
-# endcap:
+# do just the 5x5 clusters
+# with the RECO rechits
 process.load("RecoEcal.EgammaClusterProducers.multi5x5BasicClusters_cfi")
-process.multi5x5BasicClustersCleanedNoPU = process.multi5x5BasicClustersCleaned.clone()
-process.multi5x5BasicClustersCleanedNoPU.endcapHitTag = cms.InputTag('ecalRecHitNoPU','EcalRecHitsEE')
-process.load("RecoEcal.EgammaClusterProducers.multi5x5SuperClusters_cfi")
-process.multi5x5SuperClustersCleanedNoPU = process.multi5x5SuperClustersCleaned.clone()
-process.multi5x5SuperClustersCleanedNoPU.endcapClusterTag = cms.InputTag('multi5x5BasicClustersCleanedNoPU', 'multi5x5EndcapBasicClusters')
-process.load("RecoEcal.EgammaClusterProducers.multi5x5SuperClustersWithPreshower_cfi")
-process.multi5x5SuperClustersWithPreshowerNoPU = process.multi5x5SuperClustersWithPreshower.clone()
-endcapSClusterProducer = cms.InputTag("multi5x5SuperClustersNoPU","multi5x5EndcapSuperClusters")
-process.correctedMulti5x5SuperClustersWithPreshowerNoPU = process.correctedMulti5x5SuperClustersWithPreshower.clone()
-process.correctedMulti5x5SuperClustersWithPreshowerNoPU.rawSuperClusterProducer = cms.InputTag("multi5x5SuperClustersWithPreshowerNoPU")
-process.correctedMulti5x5SuperClustersWithPreshowerNoPU.recHitProducer = cms.InputTag("ecalRecHitNoPU","EcalRecHitsEE")
+process.fixed5x5ClustersReco = process.multi5x5BasicClustersCleaned.clone()
+process.fixed5x5ClustersReco.doBarrel = True
+process.fixed5x5ClustersReco.barrelHitTag = cms.InputTag('ecalRecHit','EcalRecHitsEB','RECO')
+process.fixed5x5ClustersReco.endcapHitTag = cms.InputTag('ecalRecHit','EcalRecHitsEE','RECO')
+process.fixed5x5ClustersReco.barrelClusterCollection = 'Barrel5x5Clusters'
+process.fixed5x5ClustersReco.endcapClusterCollection = 'Endcap5x5Clusters'
 
-process.ClusterECALSequence = cms.Sequence(process.correctedHybridSuperClusters
-                                           * process.multi5x5BasicClustersCleaned
-                                           * process.multi5x5SuperClustersCleaned
-                                           * process.multi5x5SuperClustersWithPreshower
-                                           * process.correctedMulti5x5SuperClustersWithPreshower )
+# with the new rechits 
+process.fixed5x5ClustersFit = process.multi5x5BasicClustersCleaned.clone()
+process.fixed5x5ClustersFit.doBarrel = True
+process.fixed5x5ClustersFit.barrelHitTag = cms.InputTag('ecalRecHit','EcalRecHitsEB','HitsToClusters')
+process.fixed5x5ClustersFit.endcapHitTag = cms.InputTag('ecalRecHit','EcalRecHitsEE','HitsToClusters')
+process.fixed5x5ClustersFit.barrelClusterCollection = 'Barrel5x5Clusters'
+process.fixed5x5ClustersFit.endcapClusterCollection = 'Endcap5x5Clusters'
 
-process.ClusterECALSequenceNoPU = cms.Sequence(process.correctedHybridSuperClustersNoPU
-                                               * process.multi5x5BasicClustersCleanedNoPU
-                                               * process.multi5x5SuperClustersCleanedNoPU
-                                               * process.multi5x5SuperClustersWithPreshowerNoPU
-                                               * process.correctedMulti5x5SuperClustersWithPreshowerNoPU )
-
-process.ClusteringSequence = cms.Sequence(process.ClusterECALSequence # the one with the new hits, no PU-sub
-                                          * process.ClusterECALSequenceNoPU # the one with the new hits, yes PU-sub
-                                          )
+# with the new rechits 
+process.fixed5x5ClustersFitNoPU = process.multi5x5BasicClustersCleaned.clone()
+process.fixed5x5ClustersFitNoPU.doBarrel = True
+process.fixed5x5ClustersFitNoPU.barrelHitTag = cms.InputTag('ecalRecHitNoPU','EcalRecHitsEB','HitsToClusters')
+process.fixed5x5ClustersFitNoPU.endcapHitTag = cms.InputTag('ecalRecHitNoPU','EcalRecHitsEE','HitsToClusters')
+process.fixed5x5ClustersFitNoPU.barrelClusterCollection = 'Barrel5x5Clusters'
+process.fixed5x5ClustersFitNoPU.endcapClusterCollection = 'Endcap5x5Clusters'
 
 
-# PFlow clustering (barrel and endcap in one go):
-process.load("RecoParticleFlow/PFClusterProducer/particleFlowRecHitECALNoPU_cfi")
-process.particleFlowClusterECALUncorrectedNoPU = process.particleFlowClusterECALUncorrected.clone()
-process.particleFlowClusterECALUncorrectedNoPU.recHitsSource = cms.InputTag("particleFlowRecHitECALNoPU")
-process.particleFlowClusterECALNoPU = process.particleFlowClusterECAL.clone()
-process.particleFlowClusterECALNoPU.inputECAL = cms.InputTag("particleFlowClusterECALUncorrectedNoPU")
-process.load("RecoEcal.EgammaClusterProducers.particleFlowSuperClusterECAL_cfi")
-process.particleFlowSuperClusterECALNoPU = process.particleFlowSuperClusterECAL.clone()
-process.particleFlowSuperClusterECALNoPU.PFClusters = cms.InputTag("particleFlowClusterECALNoPU")
-process.particleFlowSuperClusterECALNoPU.ESAssociation = cms.InputTag("particleFlowClusterECALNoPU")
-
-
-process.particleFlowClusterECALSequence = cms.Sequence(process.particleFlowRecHitECAL
-                                                       * process.particleFlowClusterECALUncorrected * process.particleFlowClusterECAL
-                                                       * process.particleFlowSuperClusterECAL )
-
-process.particleFlowClusterECALSequenceNoPU = cms.Sequence(process.particleFlowRecHitECALNoPU
-                                                           * process.particleFlowClusterECALUncorrectedNoPU * process.particleFlowClusterECALNoPU
-                                                           * process.particleFlowSuperClusterECALNoPU )
-
-process.particleFlowClusteringSequence = cms.Sequence(process.particleFlowClusterECALSequence # the one with the new hits, no PU-sub
-                                                      * process.particleFlowClusterECALSequenceNoPU # the one with the new hits, yes PU-sub
-                                                      )
+process.ClusterECALSequence = cms.Sequence(process.fixed5x5ClustersReco
+                                           * process.fixed5x5ClustersFit
+                                           * process.fixed5x5ClustersFitNoPU )
 
 process.p = cms.Path( process.ecalLocalReco
-                      * process.ClusteringSequence
-                      * process.particleFlowClusteringSequence )
-
+                      * process.ClusterECALSequence )
 
 process.out = cms.OutputModule("PoolOutputModule",
                                outputCommands = cms.untracked.vstring('drop *',
-                                                                      'keep *_*SuperClusters*_*_*',
-                                                                      'drop *_*_preshower*Clusters_*',
-                                                                      'drop *_*_*Basic*_*',
+#                                                                      'keep *_ecalRecHit*_*_*',
+#                                                                      'keep *_ecalGlobalUncalibRecHit*_*_*',
+                                                                      'keep *_fixed5x5Clusters*_*_*',
                                                                       'keep *_offlineBeamSpot_*_*',
                                                                       'keep *_addPileupInfo_*_*',
                                                                       'keep *_genParticles_*_*'

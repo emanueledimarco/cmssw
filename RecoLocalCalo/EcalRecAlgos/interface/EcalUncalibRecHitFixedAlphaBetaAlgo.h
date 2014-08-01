@@ -157,6 +157,8 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitFixedAlphaBetaAlgo<C>
       amplitude = double((4095. - pedestal) * gainratio);
     }
 
+    frame[iSample] = amplitude;
+
     if (amplitude>maxamplitude) {
       maxamplitude = amplitude;
       maxpedestal = pedestal;
@@ -166,10 +168,9 @@ template<class C> EcalUncalibratedRecHit  EcalUncalibRecHitFixedAlphaBetaAlgo<C>
 
   } // loop on samples
 
-  // if amplitude is too small, just give the max sample
-  if(maxamplitude < MinAmpl_)  return EcalUncalibratedRecHit( dataFrame.id(), maxamplitude , maxpedestal, maxjitter, maxchi2, maxflags );
+  InitFitParameters(frame, maxjitter+5);
+  if(!doFit_) return EcalUncalibratedRecHit( dataFrame.id(), maxamplitude , maxpedestal, maxjitter, maxchi2, maxflags );
 
-   InitFitParameters(frame, maxjitter+5);
   chi2_ = PerformAnalyticFit(frame,maxjitter+5);
   uint32_t flags = 0;
   if (isSaturated) flags = EcalUncalibratedRecHit::kSaturated;

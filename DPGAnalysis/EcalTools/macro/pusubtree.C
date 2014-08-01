@@ -69,7 +69,7 @@ void pusubtree::Loop(const char *outputfilename)
       if(fabs(etaMc[0])<1.479) {
         for(int isc=0; isc<nEBSuperClusters; ++isc) {
           TVector3 scdir;
-          scdir.SetMagThetaPhi(energyEBSuperClusters[isc],
+          scdir.SetMagThetaPhi(rawEnergyEBSuperClusters[isc],
                                thetaEBSuperClusters[isc],
                                phiEBSuperClusters[isc]);
           if(mcmatch(scdir,pGamma,0.3)) {
@@ -79,13 +79,13 @@ void pusubtree::Loop(const char *outputfilename)
                 ptbin=ipt; break;
               }
             }
-            resolutions_EB[ptbin]->Fill((energyEBSuperClusters[isc]-energyMc[isc])/energyMc[isc]);
+            resolutions_EB[ptbin]->Fill((rawEnergyEBSuperClusters[isc]-energyMc[isc])/energyMc[isc]);
           }
         }
       } else {
         for(int isc=0; isc<nEESuperClusters; ++isc) {
           TVector3 scdir;
-          scdir.SetMagThetaPhi(energyEESuperClusters[isc],
+          scdir.SetMagThetaPhi(rawEnergyEESuperClusters[isc],
                                thetaEESuperClusters[isc],
                                phiEESuperClusters[isc]);
           if(mcmatch(scdir,pGamma,0.3)) {
@@ -95,7 +95,7 @@ void pusubtree::Loop(const char *outputfilename)
                 ptbin=ipt; break;
               }
             }
-            resolutions_EE[ptbin]->Fill((energyEESuperClusters[isc]-energyMc[isc])/energyMc[isc]);
+            resolutions_EE[ptbin]->Fill((rawEnergyEESuperClusters[isc]-energyMc[isc])/energyMc[isc]);
           }
         }
       }

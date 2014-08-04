@@ -18,9 +18,12 @@
 #include <TLegend.h>
 #include <TPaveStats.h>
 #include <TLatex.h>
+#include <TString.h>
 #include <TBinomialEfficiencyFitter.h>
 
 #include "RooHZZStyle.C"
+
+double effectiveSigma(TH1 *histo);
 
 void plotResolutions(const char *file) {
 
@@ -44,7 +47,7 @@ void plotResolutions(const char *file) {
   }
 
   // plot
-  gStyle->SetOptStat(1100);
+  gStyle->SetOptStat(0);
 
   int ptbins[7] = {1,10,20,30,50,100,300};
 
@@ -71,6 +74,16 @@ void plotResolutions(const char *file) {
       ptr->SetTextSize(0.040);
       ptr->Draw();
 
+      TPaveText *results = new TPaveText(.15,.2,.55,.4,"NDC");
+      results->SetBorderSize(0);
+      results->SetFillColor (0);
+      results->SetTextAlign(12);
+      results->SetTextFont(42);
+      results->AddText(Form("weights: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[0][idet][p])));
+      results->AddText(Form("fit: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[1][idet][p])));
+      results->AddText(Form("fit+NoPU: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[2][idet][p])));
+      results->Draw();
+
       c1->Update();
 
       TLegend *legend = new TLegend(0.15,0.75,0.40,0.85,NULL,"brNDC");
@@ -83,29 +96,29 @@ void plotResolutions(const char *file) {
       legend->AddEntry(resolutions[1][idet][p], "fit");
       legend->AddEntry(resolutions[2][idet][p], "fit + NoPU");
 
-      TPaveStats *p1 = (TPaveStats*)resolutions[0][idet][p]->GetListOfFunctions()->FindObject("stats");
-      p1->SetTextColor(kBlack);
-      p1->SetX1NDC(0.7);
-      p1->SetX2NDC(0.9);
-      p1->SetY1NDC(0.7);
-      p1->SetY2NDC(0.9);
-      p1->Draw();
+//       TPaveStats *p1 = (TPaveStats*)resolutions[0][idet][p]->GetListOfFunctions()->FindObject("stats");
+//       p1->SetTextColor(kBlack);
+//       p1->SetX1NDC(0.7);
+//       p1->SetX2NDC(0.9);
+//       p1->SetY1NDC(0.7);
+//       p1->SetY2NDC(0.9);
+      //p1->Draw();
 
-      TPaveStats *p2 = (TPaveStats*)resolutions[1][idet][p]->GetListOfFunctions()->FindObject("stats");
-      p2->SetTextColor(kRed+1);
-      p2->SetX1NDC(0.7);
-      p2->SetX2NDC(0.9);
-      p2->SetY1NDC(0.5);
-      p2->SetY2NDC(0.7);
-      p2->Draw();
+//       TPaveStats *p2 = (TPaveStats*)resolutions[1][idet][p]->GetListOfFunctions()->FindObject("stats");
+//       p2->SetTextColor(kRed+1);
+//       p2->SetX1NDC(0.7);
+//       p2->SetX2NDC(0.9);
+//       p2->SetY1NDC(0.5);
+//       p2->SetY2NDC(0.7);
+      //      p2->Draw();
 
-      TPaveStats *p3 = (TPaveStats*)resolutions[2][idet][p]->GetListOfFunctions()->FindObject("stats");
-      p3->SetTextColor(kGreen+1);
-      p3->SetX1NDC(0.7);
-      p3->SetX2NDC(0.9);
-      p3->SetY1NDC(0.3);
-      p3->SetY2NDC(0.5);
-      p3->Draw();
+//       TPaveStats *p3 = (TPaveStats*)resolutions[2][idet][p]->GetListOfFunctions()->FindObject("stats");
+//       p3->SetTextColor(kGreen+1);
+//       p3->SetX1NDC(0.7);
+//       p3->SetX2NDC(0.9);
+//       p3->SetY1NDC(0.3);
+//       p3->SetY2NDC(0.5);
+      //      p3->Draw();
 
       legend->Draw();
       CP->Draw();
@@ -116,4 +129,80 @@ void plotResolutions(const char *file) {
     }
   }
   
+}
+
+double effectiveSigma(TH1 *histo) {
+  
+  TAxis *xaxis = histo->GetXaxis();
+  Int_t nb = xaxis->GetNbins();
+  if(nb < 10) {
+    cout << "effsigma: Not a valid histo. nbins = " << nb << endl;
+    return 0.;
+  }
+  
+  Double_t bwid = xaxis->GetBinWidth(1);
+  if(bwid == 0) {
+    cout << "effsigma: Not a valid histo. bwid = " << bwid << endl;
+    return 0.;
+  }
+  // Double_t xmax = xaxis->GetXmax();
+  Double_t xmin = xaxis->GetXmin();
+  Double_t ave = histo->GetMean();
+  Double_t rms = histo->GetRMS();
+
+  Double_t total=0.;
+  for(Int_t i=0; i<nb+2; i++) {
+    total+=histo->GetBinContent(i);
+  }
+  if(total < 100.) {
+    cout << "effsigma: Too few entries " << total << endl;
+    return 0.;
+  }
+  Int_t ierr=0;
+  Int_t ismin=999;
+  
+  Double_t rlim=0.683*total;
+  Int_t nrms=rms/(bwid);    // Set scan size to +/- rms
+  if(nrms > nb/10) nrms=nb/10; // Could be tuned...
+
+  Double_t widmin=9999999.;
+  for(Int_t iscan=-nrms;iscan<nrms+1;iscan++) { // Scan window centre
+    Int_t ibm=(ave-xmin)/bwid+1+iscan;
+    Double_t x=(ibm-0.5)*bwid+xmin;
+    Double_t xj=x;
+    Double_t xk=x;
+    Int_t jbm=ibm;
+    Int_t kbm=ibm;
+    Double_t bin=histo->GetBinContent(ibm);
+    total=bin;
+    for(Int_t j=1;j<nb;j++){
+      if(jbm < nb) {
+        jbm++;
+        xj+=bwid;
+        bin=histo->GetBinContent(jbm);
+        total+=bin;
+        if(total > rlim) break;
+      }
+      else ierr=1;
+      if(kbm > 0) {
+        kbm--;
+        xk-=bwid;
+        bin=histo->GetBinContent(kbm);
+        total+=bin;
+        if(total > rlim) break;
+      }
+      else ierr=1;
+    }
+    Double_t dxf=(total-rlim)*bwid/bin;
+    Double_t wid=(xj-xk+bwid-dxf)*0.5;
+    if(wid < widmin) {
+      widmin=wid;
+      ismin=iscan;
+    }   
+  }
+  if(ismin == nrms || ismin == -nrms) ierr=3;
+  if(ierr != 0) cout << "effsigma: Error of type " << ierr << endl;
+  
+  return widmin;
+
 }

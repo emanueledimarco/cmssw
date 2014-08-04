@@ -337,6 +337,17 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                 uncalibRecHit.setChi2(0);
 		uncalibRecHit.setOutOfTimeChi2(0);
         } else {
+          // max sample metod
+          if (detid.subdetId()==EcalBarrel) {
+            const EcalPedestals::Item * aped = &peds->barrel(EBDetId(detid).hashedIndex());
+            const EcalMGPAGainRatio * aGain  = &gains->barrel(EBDetId(detid).hashedIndex());
+            uncalibRecHit = maxsampleMethod_barrel_.makeRecHit(*itdg, aped, aGain);
+          } else {
+            const EcalPedestals::Item * aped = &peds->endcap(EEDetId(detid).hashedIndex());
+            const EcalMGPAGainRatio * aGain  = &gains->endcap(EEDetId(detid).hashedIndex());
+            uncalibRecHit = maxsampleMethod_endcap_.makeRecHit(*itdg, aped, aGain);
+          }
+          /*
           // fit metod
           if (detid.subdetId()==EcalBarrel) {
             const EcalPedestals::Item * aped = &peds->barrel(EBDetId(detid).hashedIndex());
@@ -347,6 +358,7 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
             const EcalMGPAGainRatio * aGain  = &gains->endcap(EEDetId(detid).hashedIndex());
             uncalibRecHit = fitMethod_endcap_.makeRecHit(*itdg, aped, aGain);
           }
+          */
           /*
                 // weights method
                 EcalTBWeights::EcalTDCId tdcid(1);

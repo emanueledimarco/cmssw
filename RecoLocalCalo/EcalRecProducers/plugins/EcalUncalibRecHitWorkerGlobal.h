@@ -71,8 +71,8 @@ class EcalUncalibRecHitWorkerGlobal : public EcalUncalibRecHitWorkerBaseClass {
                 EcalUncalibRecHitRecWeightsAlgo<EEDataFrame> weightsMethod_endcap_;
                 EcalUncalibRecHitFixedAlphaBetaAlgo<EBDataFrame> fitMethod_barrel_;
                 EcalUncalibRecHitFixedAlphaBetaAlgo<EEDataFrame> fitMethod_endcap_;
-                EcalUncalibRecHitFixedAlphaBetaAlgo<EBDataFrame> maxsampleMethod_barrel_;
-                EcalUncalibRecHitFixedAlphaBetaAlgo<EEDataFrame> maxsampleMethod_endcap_;
+                EcalUncalibRecHitMaxSampleAlgo<EBDataFrame> maxSampleMethod_barrel_;
+                EcalUncalibRecHitMaxSampleAlgo<EEDataFrame> maxSampleMethod_endcap_;
                 const EEShape testbeamEEShape; // used in the chi2
                 const EBShape testbeamEBShape; // can be replaced by simple shape arrays of float in the future
 

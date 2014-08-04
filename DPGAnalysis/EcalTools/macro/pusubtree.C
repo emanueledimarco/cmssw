@@ -71,6 +71,7 @@ void pusubtree::Loop(const char *outputfilename)
        if(fabs(etaMc[0])<1.479) {
          int nClus=0;
          if(clustertype==0) nClus = nEBCaloClusters; else if(clustertype==1) nClus = nEBCaloClusters2 ; else nClus=nEBCaloClusters3;
+         nClus = std::min(nClus,10); // the true one is the high energy one (and clustrs are sorted)
          for(int isc=0; isc<nClus; ++isc) {
            TVector3 scdir;
            if(clustertype==0) scdir.SetMagThetaPhi(energyEBCaloClusters[isc],  thetaEBCaloClusters[isc],  phiEBCaloClusters[isc]);
@@ -92,6 +93,7 @@ void pusubtree::Loop(const char *outputfilename)
        } else {
          int nClus=0;
          if(clustertype==0) nClus = nEECaloClusters; else if(clustertype==1) nClus = nEECaloClusters2 ; else nClus=nEECaloClusters3;
+         nClus = std::min(nClus,10); // the true one is the high energy one (and clustrs are sorted)
          for(int isc=0; isc<nClus; ++isc) {
           TVector3 scdir;
            if(clustertype==0) scdir.SetMagThetaPhi(energyEECaloClusters[isc],  thetaEECaloClusters[isc],  phiEECaloClusters[isc]);

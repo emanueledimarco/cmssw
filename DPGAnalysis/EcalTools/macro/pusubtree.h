@@ -37,49 +37,37 @@ public :
    Float_t         nTruePU[16];   //[nBX]
    Int_t           bxPU[16];   //[nBX]
    Int_t           nEBCaloClusters;
-   Int_t           nBCEBCaloClusters[1000];   //[nEBCaloClusters]
    Int_t           nCrystalsEBCaloClusters[1000];   //[nEBCaloClusters]
-   Float_t         rawEnergyEBCaloClusters[1000];   //[nEBCaloClusters]
    Float_t         energyEBCaloClusters[1000];   //[nEBCaloClusters]
    Float_t         etaEBCaloClusters[1000];   //[nEBCaloClusters]
    Float_t         thetaEBCaloClusters[1000];   //[nEBCaloClusters]
    Float_t         phiEBCaloClusters[1000];   //[nEBCaloClusters]
    Int_t           nEECaloClusters;
-   Int_t           nBCEECaloClusters[1000];   //[nEECaloClusters]
    Int_t           nCrystalsEECaloClusters[1000];   //[nEECaloClusters]
-   Float_t         rawEnergyEECaloClusters[1000];   //[nEECaloClusters]
    Float_t         energyEECaloClusters[1000];   //[nEECaloClusters]
    Float_t         etaEECaloClusters[1000];   //[nEECaloClusters]
    Float_t         thetaEECaloClusters[1000];   //[nEECaloClusters]
    Float_t         phiEECaloClusters[1000];   //[nEECaloClusters]
    Int_t           nEBCaloClusters2;
-   Int_t           nBCEBCaloClusters2[1000];   //[nEBCaloClusters2]
    Int_t           nCrystalsEBCaloClusters2[1000];   //[nEBCaloClusters2]
-   Float_t         rawEnergyEBCaloClusters2[1000];   //[nEBCaloClusters2]
    Float_t         energyEBCaloClusters2[1000];   //[nEBCaloClusters2]
    Float_t         etaEBCaloClusters2[1000];   //[nEBCaloClusters2]
    Float_t         thetaEBCaloClusters2[1000];   //[nEBCaloClusters2]
    Float_t         phiEBCaloClusters2[1000];   //[nEBCaloClusters2]
    Int_t           nEECaloClusters2;
-   Int_t           nBCEECaloClusters2[1000];   //[nEECaloClusters2]
    Int_t           nCrystalsEECaloClusters2[1000];   //[nEECaloClusters2]
-   Float_t         rawEnergyEECaloClusters2[1000];   //[nEECaloClusters2]
    Float_t         energyEECaloClusters2[1000];   //[nEECaloClusters2]
    Float_t         etaEECaloClusters2[1000];   //[nEECaloClusters2]
    Float_t         thetaEECaloClusters2[1000];   //[nEECaloClusters2]
    Float_t         phiEECaloClusters2[1000];   //[nEECaloClusters2]
    Int_t           nEBCaloClusters3;
-   Int_t           nBCEBCaloClusters3[1000];   //[nEBCaloClusters3]
    Int_t           nCrystalsEBCaloClusters3[1000];   //[nEBCaloClusters3]
-   Float_t         rawEnergyEBCaloClusters3[1000];   //[nEBCaloClusters3]
    Float_t         energyEBCaloClusters3[1000];   //[nEBCaloClusters3]
    Float_t         etaEBCaloClusters3[1000];   //[nEBCaloClusters3]
    Float_t         thetaEBCaloClusters3[1000];   //[nEBCaloClusters3]
    Float_t         phiEBCaloClusters3[1000];   //[nEBCaloClusters3]
    Int_t           nEECaloClusters3;
-   Int_t           nBCEECaloClusters3[1000];   //[nEECaloClusters3]
    Int_t           nCrystalsEECaloClusters3[1000];   //[nEECaloClusters3]
-   Float_t         rawEnergyEECaloClusters3[1000];   //[nEECaloClusters3]
    Float_t         energyEECaloClusters3[1000];   //[nEECaloClusters3]
    Float_t         etaEECaloClusters3[1000];   //[nEECaloClusters3]
    Float_t         thetaEECaloClusters3[1000];   //[nEECaloClusters3]
@@ -111,49 +99,37 @@ public :
    TBranch        *b_nTruePU;   //!
    TBranch        *b_bxPU;   //!
    TBranch        *b_nEBCaloClusters;   //!
-   TBranch        *b_nBCEBCaloClusters;   //!
    TBranch        *b_nCrystalsEBCaloClusters;   //!
-   TBranch        *b_rawEnergyEBCaloClusters;   //!
    TBranch        *b_energyEBCaloClusters;   //!
    TBranch        *b_etaEBCaloClusters;   //!
    TBranch        *b_thetaEBCaloClusters;   //!
    TBranch        *b_phiEBCaloClusters;   //!
    TBranch        *b_nEECaloClusters;   //!
-   TBranch        *b_nBCEECaloClusters;   //!
    TBranch        *b_nCrystalsEECaloClusters;   //!
-   TBranch        *b_rawEnergyEECaloClusters;   //!
    TBranch        *b_energyEECaloClusters;   //!
    TBranch        *b_etaEECaloClusters;   //!
    TBranch        *b_thetaEECaloClusters;   //!
    TBranch        *b_phiEECaloClusters;   //!
    TBranch        *b_nEBCaloClusters2;   //!
-   TBranch        *b_nBCEBCaloClusters2;   //!
    TBranch        *b_nCrystalsEBCaloClusters2;   //!
-   TBranch        *b_rawEnergyEBCaloClusters2;   //!
    TBranch        *b_energyEBCaloClusters2;   //!
    TBranch        *b_etaEBCaloClusters2;   //!
    TBranch        *b_thetaEBCaloClusters2;   //!
    TBranch        *b_phiEBCaloClusters2;   //!
    TBranch        *b_nEECaloClusters2;   //!
-   TBranch        *b_nBCEECaloClusters2;   //!
    TBranch        *b_nCrystalsEECaloClusters2;   //!
-   TBranch        *b_rawEnergyEECaloClusters2;   //!
    TBranch        *b_energyEECaloClusters2;   //!
    TBranch        *b_etaEECaloClusters2;   //!
    TBranch        *b_thetaEECaloClusters2;   //!
    TBranch        *b_phiEECaloClusters2;   //!
    TBranch        *b_nEBCaloClusters3;   //!
-   TBranch        *b_nBCEBCaloClusters3;   //!
    TBranch        *b_nCrystalsEBCaloClusters3;   //!
-   TBranch        *b_rawEnergyEBCaloClusters3;   //!
    TBranch        *b_energyEBCaloClusters3;   //!
    TBranch        *b_etaEBCaloClusters3;   //!
    TBranch        *b_thetaEBCaloClusters3;   //!
    TBranch        *b_phiEBCaloClusters3;   //!
    TBranch        *b_nEECaloClusters3;   //!
-   TBranch        *b_nBCEECaloClusters3;   //!
    TBranch        *b_nCrystalsEECaloClusters3;   //!
-   TBranch        *b_rawEnergyEECaloClusters3;   //!
    TBranch        *b_energyEECaloClusters3;   //!
    TBranch        *b_etaEECaloClusters3;   //!
    TBranch        *b_thetaEECaloClusters3;   //!
@@ -255,49 +231,37 @@ void pusubtree::Init(TTree *tree)
    fChain->SetBranchAddress("nTruePU", nTruePU, &b_nTruePU);
    fChain->SetBranchAddress("bxPU", bxPU, &b_bxPU);
    fChain->SetBranchAddress("nEBCaloClusters", &nEBCaloClusters, &b_nEBCaloClusters);
-   fChain->SetBranchAddress("nBCEBCaloClusters", nBCEBCaloClusters, &b_nBCEBCaloClusters);
    fChain->SetBranchAddress("nCrystalsEBCaloClusters", nCrystalsEBCaloClusters, &b_nCrystalsEBCaloClusters);
-   fChain->SetBranchAddress("rawEnergyEBCaloClusters", rawEnergyEBCaloClusters, &b_rawEnergyEBCaloClusters);
    fChain->SetBranchAddress("energyEBCaloClusters", energyEBCaloClusters, &b_energyEBCaloClusters);
    fChain->SetBranchAddress("etaEBCaloClusters", etaEBCaloClusters, &b_etaEBCaloClusters);
    fChain->SetBranchAddress("thetaEBCaloClusters", thetaEBCaloClusters, &b_thetaEBCaloClusters);
    fChain->SetBranchAddress("phiEBCaloClusters", phiEBCaloClusters, &b_phiEBCaloClusters);
    fChain->SetBranchAddress("nEECaloClusters", &nEECaloClusters, &b_nEECaloClusters);
-   fChain->SetBranchAddress("nBCEECaloClusters", nBCEECaloClusters, &b_nBCEECaloClusters);
    fChain->SetBranchAddress("nCrystalsEECaloClusters", nCrystalsEECaloClusters, &b_nCrystalsEECaloClusters);
-   fChain->SetBranchAddress("rawEnergyEECaloClusters", rawEnergyEECaloClusters, &b_rawEnergyEECaloClusters);
    fChain->SetBranchAddress("energyEECaloClusters", energyEECaloClusters, &b_energyEECaloClusters);
    fChain->SetBranchAddress("etaEECaloClusters", etaEECaloClusters, &b_etaEECaloClusters);
    fChain->SetBranchAddress("thetaEECaloClusters", thetaEECaloClusters, &b_thetaEECaloClusters);
    fChain->SetBranchAddress("phiEECaloClusters", phiEECaloClusters, &b_phiEECaloClusters);
    fChain->SetBranchAddress("nEBCaloClusters2", &nEBCaloClusters2, &b_nEBCaloClusters2);
-   fChain->SetBranchAddress("nBCEBCaloClusters2", nBCEBCaloClusters2, &b_nBCEBCaloClusters2);
    fChain->SetBranchAddress("nCrystalsEBCaloClusters2", nCrystalsEBCaloClusters2, &b_nCrystalsEBCaloClusters2);
-   fChain->SetBranchAddress("rawEnergyEBCaloClusters2", rawEnergyEBCaloClusters2, &b_rawEnergyEBCaloClusters2);
    fChain->SetBranchAddress("energyEBCaloClusters2", energyEBCaloClusters2, &b_energyEBCaloClusters2);
    fChain->SetBranchAddress("etaEBCaloClusters2", etaEBCaloClusters2, &b_etaEBCaloClusters2);
    fChain->SetBranchAddress("thetaEBCaloClusters2", thetaEBCaloClusters2, &b_thetaEBCaloClusters2);
    fChain->SetBranchAddress("phiEBCaloClusters2", phiEBCaloClusters2, &b_phiEBCaloClusters2);
    fChain->SetBranchAddress("nEECaloClusters2", &nEECaloClusters2, &b_nEECaloClusters2);
-   fChain->SetBranchAddress("nBCEECaloClusters2", nBCEECaloClusters2, &b_nBCEECaloClusters2);
    fChain->SetBranchAddress("nCrystalsEECaloClusters2", nCrystalsEECaloClusters2, &b_nCrystalsEECaloClusters2);
-   fChain->SetBranchAddress("rawEnergyEECaloClusters2", rawEnergyEECaloClusters2, &b_rawEnergyEECaloClusters2);
    fChain->SetBranchAddress("energyEECaloClusters2", energyEECaloClusters2, &b_energyEECaloClusters2);
    fChain->SetBranchAddress("etaEECaloClusters2", etaEECaloClusters2, &b_etaEECaloClusters2);
    fChain->SetBranchAddress("thetaEECaloClusters2", thetaEECaloClusters2, &b_thetaEECaloClusters2);
    fChain->SetBranchAddress("phiEECaloClusters2", phiEECaloClusters2, &b_phiEECaloClusters2);
    fChain->SetBranchAddress("nEBCaloClusters3", &nEBCaloClusters3, &b_nEBCaloClusters3);
-   fChain->SetBranchAddress("nBCEBCaloClusters3", nBCEBCaloClusters3, &b_nBCEBCaloClusters3);
    fChain->SetBranchAddress("nCrystalsEBCaloClusters3", nCrystalsEBCaloClusters3, &b_nCrystalsEBCaloClusters3);
-   fChain->SetBranchAddress("rawEnergyEBCaloClusters3", rawEnergyEBCaloClusters3, &b_rawEnergyEBCaloClusters3);
    fChain->SetBranchAddress("energyEBCaloClusters3", energyEBCaloClusters3, &b_energyEBCaloClusters3);
    fChain->SetBranchAddress("etaEBCaloClusters3", etaEBCaloClusters3, &b_etaEBCaloClusters3);
    fChain->SetBranchAddress("thetaEBCaloClusters3", thetaEBCaloClusters3, &b_thetaEBCaloClusters3);
    fChain->SetBranchAddress("phiEBCaloClusters3", phiEBCaloClusters3, &b_phiEBCaloClusters3);
    fChain->SetBranchAddress("nEECaloClusters3", &nEECaloClusters3, &b_nEECaloClusters3);
-   fChain->SetBranchAddress("nBCEECaloClusters3", nBCEECaloClusters3, &b_nBCEECaloClusters3);
    fChain->SetBranchAddress("nCrystalsEECaloClusters3", nCrystalsEECaloClusters3, &b_nCrystalsEECaloClusters3);
-   fChain->SetBranchAddress("rawEnergyEECaloClusters3", rawEnergyEECaloClusters3, &b_rawEnergyEECaloClusters3);
    fChain->SetBranchAddress("energyEECaloClusters3", energyEECaloClusters3, &b_energyEECaloClusters3);
    fChain->SetBranchAddress("etaEECaloClusters3", etaEECaloClusters3, &b_etaEECaloClusters3);
    fChain->SetBranchAddress("thetaEECaloClusters3", thetaEECaloClusters3, &b_thetaEECaloClusters3);

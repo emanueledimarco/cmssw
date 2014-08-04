@@ -22,33 +22,25 @@
 
 #include "RooHZZStyle.C"
 
-void plotResolutions(const char *file1, const char* file2) {
+void plotResolutions(const char *file) {
 
   vector<TH1F*> resolutions_EB_1, resolutions_EE_1, resolutions_EB_2, resolutions_EE_2;
-  TFile *tfile1 = TFile::Open(file1);
-  TFile *tfile2 = TFile::Open(file2);
+  //               [type][eta][pt]
+  TH1F *resolutions[3][2][6];
+  TFile *tfile = TFile::Open(file);
 
   // get the histograms from the files
-  for(int file=0;file<2;++file) {
-    if(file==0) tfile1->cd();
-    else tfile2->cd();
-
+  for(int clustertype=0;clustertype<3;++clustertype) {
     for(int e=0;e<2;++e) {
       std::string suffix = (e==0) ? "EB" : "EE";
       for(int p=0;p<6;++p) {
         char namer[50];
-        sprintf(namer,"res_%s_ptbin%d",suffix.c_str(),p);
-        TH1F* ires = (TH1F*)gDirectory->Get(namer);
-        if(file==0) {
-          if(e==0) resolutions_EB_1.push_back(ires);
-          else resolutions_EE_1.push_back(ires);
-        } else {
-          if(e==0) resolutions_EB_2.push_back(ires);
-          else resolutions_EE_2.push_back(ires);
-        }
+        sprintf(namer,"cluster%d_res_%s_ptbin%d",clustertype,suffix.c_str(),p);
+        TH1F* ires = (TH1F*)tfile->Get(namer);
+        resolutions[clustertype][e][p] = ires;
+        resolutions[clustertype][e][p]->Rebin(10);
       }
     }
-
   }
 
   // plot
@@ -56,28 +48,21 @@ void plotResolutions(const char *file1, const char* file2) {
 
   int ptbins[7] = {1,10,20,30,50,100,300};
 
-  vector< vector<TH1F*> > resolutions_1, resolutions_2;
-  resolutions_1.push_back(resolutions_EB_1);
-  resolutions_1.push_back(resolutions_EE_1);
-  resolutions_2.push_back(resolutions_EB_2);
-  resolutions_2.push_back(resolutions_EE_2);
-
   TCanvas *c1 = new TCanvas("c1","",600,600);
   TLatex* CP = new TLatex(0.15,0.96, "CMS Gun Simulation                                               #sqrt{s} = 8 TeV");
   CP->SetNDC(kTRUE);
   CP->SetTextSize(0.030);
   
-
   for(int idet=0;idet<2;++idet) {
     for(int p=0;p<6;++p) {
       
-      (resolutions_1[idet])[p]->SetLineColor(kBlack);
-      (resolutions_2[idet])[p]->SetLineColor(kRed+1);
-      (resolutions_1[idet])[p]->SetLineWidth(2);
-      (resolutions_2[idet])[p]->SetLineWidth(2);
-      
-      (resolutions_1[idet])[p]->Draw();
-      (resolutions_2[idet])[p]->Draw("sames");
+      resolutions[0][idet][p]->SetLineColor(kBlack);
+      resolutions[1][idet][p]->SetLineColor(kRed+1);
+      resolutions[2][idet][p]->SetLineColor(kGreen+1);
+
+      resolutions[0][idet][p]->Draw();
+      resolutions[1][idet][p]->Draw("sames");
+      resolutions[2][idet][p]->Draw("sames");
 
       char ptrange[50];
       sprintf(ptrange,"%d < p_{T} < %d GeV", ptbins[p], ptbins[p+1]);
@@ -94,10 +79,11 @@ void plotResolutions(const char *file1, const char* file2) {
       legend->SetTextAlign (    12);
       legend->SetTextFont  (    42);
   
-      legend->AddEntry((resolutions_1[idet])[p], "std. reco");
-      legend->AddEntry((resolutions_2[idet])[p], "PU sub.");
+      legend->AddEntry(resolutions[0][idet][p], "weights");
+      legend->AddEntry(resolutions[1][idet][p], "fit");
+      legend->AddEntry(resolutions[2][idet][p], "fit + NoPU");
 
-      TPaveStats *p1 = (TPaveStats*)(resolutions_1[idet])[p]->GetListOfFunctions()->FindObject("stats");
+      TPaveStats *p1 = (TPaveStats*)resolutions[0][idet][p]->GetListOfFunctions()->FindObject("stats");
       p1->SetTextColor(kBlack);
       p1->SetX1NDC(0.7);
       p1->SetX2NDC(0.9);
@@ -105,7 +91,7 @@ void plotResolutions(const char *file1, const char* file2) {
       p1->SetY2NDC(0.9);
       p1->Draw();
 
-      TPaveStats *p2 = (TPaveStats*)(resolutions_2[idet])[p]->GetListOfFunctions()->FindObject("stats");
+      TPaveStats *p2 = (TPaveStats*)resolutions[1][idet][p]->GetListOfFunctions()->FindObject("stats");
       p2->SetTextColor(kRed+1);
       p2->SetX1NDC(0.7);
       p2->SetX2NDC(0.9);
@@ -113,13 +99,21 @@ void plotResolutions(const char *file1, const char* file2) {
       p2->SetY2NDC(0.7);
       p2->Draw();
 
+      TPaveStats *p3 = (TPaveStats*)resolutions[2][idet][p]->GetListOfFunctions()->FindObject("stats");
+      p3->SetTextColor(kGreen+1);
+      p3->SetX1NDC(0.7);
+      p3->SetX2NDC(0.9);
+      p3->SetY1NDC(0.3);
+      p3->SetY2NDC(0.5);
+      p3->Draw();
+
       legend->Draw();
       CP->Draw();
 
-      c1->SaveAs(TString("figures/")+(resolutions_1[idet])[p]->GetName()+TString(".pdf"));
-      c1->SaveAs(TString("figures/")+(resolutions_1[idet])[p]->GetName()+TString(".png"));
+      c1->SaveAs(TString("figures/")+resolutions[0][idet][p]->GetName()+TString(".pdf"));
+      c1->SaveAs(TString("figures/")+resolutions[0][idet][p]->GetName()+TString(".png"));
 
     }
   }
-
+  
 }

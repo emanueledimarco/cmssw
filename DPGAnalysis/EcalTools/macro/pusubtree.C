@@ -67,11 +67,11 @@ void pusubtree::Loop(const char *outputfilename)
       pGamma.SetMagThetaPhi(pMc[0],thetaMc[0],phiMc[0]);
       
       if(fabs(etaMc[0])<1.479) {
-        for(int isc=0; isc<nEBSuperClusters; ++isc) {
+        for(int isc=0; isc<nEBCaloClusters; ++isc) {
           TVector3 scdir;
-          scdir.SetMagThetaPhi(rawEnergyEBSuperClusters[isc],
-                               thetaEBSuperClusters[isc],
-                               phiEBSuperClusters[isc]);
+          scdir.SetMagThetaPhi(energyEBCaloClusters[isc],
+                               thetaEBCaloClusters[isc],
+                               phiEBCaloClusters[isc]);
           if(mcmatch(scdir,pGamma,0.3)) {
             int ptbin=0;
             for(int ipt=0; ipt<6; ++ipt) {
@@ -79,15 +79,15 @@ void pusubtree::Loop(const char *outputfilename)
                 ptbin=ipt; break;
               }
             }
-            resolutions_EB[ptbin]->Fill((rawEnergyEBSuperClusters[isc]-energyMc[isc])/energyMc[isc]);
+            resolutions_EB[ptbin]->Fill((energyEBCaloClusters[isc]-energyMc[isc])/energyMc[isc]);
           }
         }
       } else {
-        for(int isc=0; isc<nEESuperClusters; ++isc) {
+        for(int isc=0; isc<nEECaloClusters; ++isc) {
           TVector3 scdir;
-          scdir.SetMagThetaPhi(rawEnergyEESuperClusters[isc],
-                               thetaEESuperClusters[isc],
-                               phiEESuperClusters[isc]);
+          scdir.SetMagThetaPhi(energyEECaloClusters[isc],
+                               thetaEECaloClusters[isc],
+                               phiEECaloClusters[isc]);
           if(mcmatch(scdir,pGamma,0.3)) {
             int ptbin=0;
             for(int ipt=0; ipt<6; ++ipt) {
@@ -95,7 +95,7 @@ void pusubtree::Loop(const char *outputfilename)
                 ptbin=ipt; break;
               }
             }
-            resolutions_EE[ptbin]->Fill((rawEnergyEESuperClusters[isc]-energyMc[isc])/energyMc[isc]);
+            resolutions_EE[ptbin]->Fill((energyEECaloClusters[isc]-energyMc[isc])/energyMc[isc]);
           }
         }
       }

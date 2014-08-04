@@ -34,6 +34,7 @@ template<class C> class EcalUncalibRecHitMaxSampleAlgo : public EcalUncalibRecHi
 template<class C> EcalUncalibratedRecHit  
 EcalUncalibRecHitMaxSampleAlgo<C>::makeRecHit(const C& dataFrame, const EcalPedestals::Item * aped, const EcalMGPAGainRatio * aGain) {
 
+  double fifthamplitude = -std::numeric_limits<double>::max();
   double maxamplitude = -std::numeric_limits<double>::max();
   double maxpedestal  = 4095;
   double maxjitter    = -1;
@@ -79,12 +80,15 @@ EcalUncalibRecHitMaxSampleAlgo<C>::makeRecHit(const C& dataFrame, const EcalPede
       maxflags = flags;
     }
     
-    
+    if(iSample==5) fifthamplitude = amplitude;
 
   }// loop on samples
       
       
-  return EcalUncalibratedRecHit( dataFrame.id(), maxamplitude , maxpedestal, maxjitter, maxchi2, maxflags );
+  // max sample biases the amplitude
+  //  return EcalUncalibratedRecHit( dataFrame.id(), maxamplitude , maxpedestal, maxjitter, maxchi2, maxflags );
+  // use always the 5-th, and then subtract the PU
+  return EcalUncalibratedRecHit( dataFrame.id(), fifthamplitude, maxpedestal, maxjitter, maxchi2, maxflags );
 }
 
 #endif

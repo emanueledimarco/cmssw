@@ -15,6 +15,7 @@
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitRatioMethodAlgo.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitLeadingEdgeAlgo.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitFixedAlphaBetaAlgo.h"
+#include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitMaxSampleAlgo.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitOutOfTimeSubtractionAlgo.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "CondFormats/EcalObjects/interface/EcalTimeCalibConstants.h"
@@ -70,6 +71,8 @@ class EcalUncalibRecHitWorkerGlobal : public EcalUncalibRecHitWorkerBaseClass {
                 EcalUncalibRecHitRecWeightsAlgo<EEDataFrame> weightsMethod_endcap_;
                 EcalUncalibRecHitFixedAlphaBetaAlgo<EBDataFrame> fitMethod_barrel_;
                 EcalUncalibRecHitFixedAlphaBetaAlgo<EEDataFrame> fitMethod_endcap_;
+                EcalUncalibRecHitFixedAlphaBetaAlgo<EBDataFrame> maxsampleMethod_barrel_;
+                EcalUncalibRecHitFixedAlphaBetaAlgo<EEDataFrame> maxsampleMethod_endcap_;
                 const EEShape testbeamEEShape; // used in the chi2
                 const EBShape testbeamEBShape; // can be replaced by simple shape arrays of float in the future
 

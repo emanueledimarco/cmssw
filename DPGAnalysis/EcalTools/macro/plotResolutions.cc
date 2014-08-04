@@ -74,14 +74,14 @@ void plotResolutions(const char *file) {
       ptr->SetTextSize(0.040);
       ptr->Draw();
 
-      TPaveText *results = new TPaveText(.15,.2,.55,.4,"NDC");
+      TPaveText *results = new TPaveText(.15,.3,.60,.5,"NDC");
       results->SetBorderSize(0);
       results->SetFillColor (0);
       results->SetTextAlign(12);
       results->SetTextFont(42);
       results->AddText(Form("weights: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[0][idet][p])));
-      results->AddText(Form("fit: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[1][idet][p])));
-      results->AddText(Form("fit+NoPU: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[2][idet][p])));
+      results->AddText(Form("max-sample: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[1][idet][p])));
+      results->AddText(Form("max-sample NoPU: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[2][idet][p])));
       results->Draw();
 
       c1->Update();
@@ -93,38 +93,14 @@ void plotResolutions(const char *file) {
       legend->SetTextFont  (    42);
   
       legend->AddEntry(resolutions[0][idet][p], "weights");
-      legend->AddEntry(resolutions[1][idet][p], "fit");
-      legend->AddEntry(resolutions[2][idet][p], "fit + NoPU");
-
-//       TPaveStats *p1 = (TPaveStats*)resolutions[0][idet][p]->GetListOfFunctions()->FindObject("stats");
-//       p1->SetTextColor(kBlack);
-//       p1->SetX1NDC(0.7);
-//       p1->SetX2NDC(0.9);
-//       p1->SetY1NDC(0.7);
-//       p1->SetY2NDC(0.9);
-      //p1->Draw();
-
-//       TPaveStats *p2 = (TPaveStats*)resolutions[1][idet][p]->GetListOfFunctions()->FindObject("stats");
-//       p2->SetTextColor(kRed+1);
-//       p2->SetX1NDC(0.7);
-//       p2->SetX2NDC(0.9);
-//       p2->SetY1NDC(0.5);
-//       p2->SetY2NDC(0.7);
-      //      p2->Draw();
-
-//       TPaveStats *p3 = (TPaveStats*)resolutions[2][idet][p]->GetListOfFunctions()->FindObject("stats");
-//       p3->SetTextColor(kGreen+1);
-//       p3->SetX1NDC(0.7);
-//       p3->SetX2NDC(0.9);
-//       p3->SetY1NDC(0.3);
-//       p3->SetY2NDC(0.5);
-      //      p3->Draw();
+      legend->AddEntry(resolutions[1][idet][p], "max-sample");
+      legend->AddEntry(resolutions[2][idet][p], "max-sample NoPU");
 
       legend->Draw();
       CP->Draw();
 
-      c1->SaveAs(TString("figures/")+resolutions[0][idet][p]->GetName()+TString(".pdf"));
-      c1->SaveAs(TString("figures/")+resolutions[0][idet][p]->GetName()+TString(".png"));
+      c1->SaveAs(TString("figures/maxsampleNoPU_")+resolutions[0][idet][p]->GetName()+TString(".pdf"));
+      c1->SaveAs(TString("figures/maxsampleNoPU_")+resolutions[0][idet][p]->GetName()+TString(".png"));
 
     }
   }

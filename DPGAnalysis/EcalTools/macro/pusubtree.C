@@ -34,44 +34,70 @@ void pusubtree::Loop(const char *outputfilename)
 
    TFile *fileo = TFile::Open(outputfilename,"recreate");
 
-   TH1F *res = new TH1F("res","",100,-0.25,0.25);
+   TH1F *res = new TH1F("res","",1000,-0.50,0.30);
 
-   std::vector<TH1F*> resolutions_EB, resolutions_EE;
-   float ptbins[7] = {1,10,20,30,50,100,300};
-   for(int e=0;e<2;++e) {
-     std::string suffix = (e==0) ? "EB" : "EE";
-     for(int p=0;p<7;++p) {
-       char namer[50];
-       sprintf(namer,"res_%s_ptbin%d",suffix.c_str(),p);
-       TH1F* ires = (TH1F*)res->Clone(namer);
-       if(e==0) resolutions_EB.push_back(ires);
-       else resolutions_EE.push_back(ires);
+   for(int clustertype=0; clustertype<3; ++clustertype) {
+
+     std::vector<TH1F*> resolutions_EB, resolutions_EE;
+     float ptbins[7] = {1,10,20,30,50,100,300};
+     for(int e=0;e<2;++e) {
+       std::string suffix = (e==0) ? "EB" : "EE";
+       for(int p=0;p<7;++p) {
+         char namer[50];
+         sprintf(namer,"cluster%d_res_%s_ptbin%d",clustertype,suffix.c_str(),p);
+         TH1F* ires = (TH1F*)res->Clone(namer);
+         if(e==0) resolutions_EB.push_back(ires);
+         else resolutions_EE.push_back(ires);
+       }
      }
-   }
 
-   Long64_t nentries = fChain->GetEntries();
-
-   std::cout << "Total entries = " << nentries << std::endl;
-
-   Long64_t nbytes = 0, nb = 0;
-   for (Long64_t jentry=0; jentry<nentries;jentry++) {
-      Long64_t ientry = LoadTree(jentry);
-      if (ientry < 0) break;
-      nb = fChain->GetEntry(jentry);   nbytes += nb;
-      // if (Cut(ientry) < 0) continue;
-
-      if(jentry % 1000 == 0) std::cout << "Processing entry " << jentry << std::endl;
-
-      if(idMc[0] != 22) continue;
-      TVector3 pGamma;
-      pGamma.SetMagThetaPhi(pMc[0],thetaMc[0],phiMc[0]);
+     Long64_t nentries = fChain->GetEntries();
+     
+     std::cout << "Total entries = " << nentries << std::endl;
+     
+     Long64_t nbytes = 0, nb = 0;
+     for (Long64_t jentry=0; jentry<nentries;jentry++) {
+       Long64_t ientry = LoadTree(jentry);
+       if (ientry < 0) break;
+       nb = fChain->GetEntry(jentry);   nbytes += nb;
+       // if (Cut(ientry) < 0) continue;
+       
+       if(jentry % 1000 == 0) std::cout << "Loop " << clustertype <<  ": processing entry " << jentry << std::endl;
+       
+       if(idMc[0] != 22) continue;
+       TVector3 pGamma;
+       pGamma.SetMagThetaPhi(pMc[0],thetaMc[0],phiMc[0]);
       
-      if(fabs(etaMc[0])<1.479) {
-        for(int isc=0; isc<nEBCaloClusters; ++isc) {
+       if(fabs(etaMc[0])<1.479) {
+         int nClus=0;
+         if(clustertype==0) nClus = nEBCaloClusters; else if(clustertype==1) nClus = nEBCaloClusters2 ; else nClus=nEBCaloClusters3;
+         for(int isc=0; isc<nClus; ++isc) {
+           TVector3 scdir;
+           if(clustertype==0) scdir.SetMagThetaPhi(energyEBCaloClusters[isc],  thetaEBCaloClusters[isc],  phiEBCaloClusters[isc]);
+           if(clustertype==1) scdir.SetMagThetaPhi(energyEBCaloClusters2[isc], thetaEBCaloClusters2[isc], phiEBCaloClusters2[isc]);
+           if(clustertype==2) scdir.SetMagThetaPhi(energyEBCaloClusters3[isc], thetaEBCaloClusters3[isc], phiEBCaloClusters3[isc]);
+
+           if(mcmatch(scdir,pGamma,0.3)) {
+            int ptbin=0;
+            for(int ipt=0; ipt<6; ++ipt) {
+              if(pGamma.Pt() >= ptbins[ipt] && pGamma.Pt() < ptbins[ipt+1]) {
+                ptbin=ipt; break;
+              }
+            }
+            float energy=0;
+            if(clustertype==0) energy = energyEBCaloClusters[isc]; else if(clustertype==1) energy = energyEBCaloClusters2[isc]; else energy = energyEBCaloClusters3[isc];
+            resolutions_EB[ptbin]->Fill((energy-energyMc[isc])/energyMc[isc]);
+           }
+         }
+       } else {
+         int nClus=0;
+         if(clustertype==0) nClus = nEECaloClusters; else if(clustertype==1) nClus = nEECaloClusters2 ; else nClus=nEECaloClusters3;
+         for(int isc=0; isc<nClus; ++isc) {
           TVector3 scdir;
-          scdir.SetMagThetaPhi(energyEBCaloClusters[isc],
-                               thetaEBCaloClusters[isc],
-                               phiEBCaloClusters[isc]);
+           if(clustertype==0) scdir.SetMagThetaPhi(energyEECaloClusters[isc],  thetaEECaloClusters[isc],  phiEECaloClusters[isc]);
+           if(clustertype==1) scdir.SetMagThetaPhi(energyEECaloClusters2[isc], thetaEECaloClusters2[isc], phiEECaloClusters2[isc]);
+           if(clustertype==2) scdir.SetMagThetaPhi(energyEECaloClusters3[isc], thetaEECaloClusters3[isc], phiEECaloClusters3[isc]);
+
           if(mcmatch(scdir,pGamma,0.3)) {
             int ptbin=0;
             for(int ipt=0; ipt<6; ++ipt) {
@@ -79,33 +105,21 @@ void pusubtree::Loop(const char *outputfilename)
                 ptbin=ipt; break;
               }
             }
-            resolutions_EB[ptbin]->Fill((energyEBCaloClusters[isc]-energyMc[isc])/energyMc[isc]);
+            float energy=0;
+            if(clustertype==0) energy = energyEECaloClusters[isc]; else if(clustertype==1) energy = energyEECaloClusters2[isc]; else energy = energyEECaloClusters3[isc];
+            resolutions_EE[ptbin]->Fill((energy-energyMc[isc])/energyMc[isc]);
           }
-        }
-      } else {
-        for(int isc=0; isc<nEECaloClusters; ++isc) {
-          TVector3 scdir;
-          scdir.SetMagThetaPhi(energyEECaloClusters[isc],
-                               thetaEECaloClusters[isc],
-                               phiEECaloClusters[isc]);
-          if(mcmatch(scdir,pGamma,0.3)) {
-            int ptbin=0;
-            for(int ipt=0; ipt<6; ++ipt) {
-              if(pGamma.Pt() >= ptbins[ipt] && pGamma.Pt() < ptbins[ipt+1]) {
-                ptbin=ipt; break;
-              }
-            }
-            resolutions_EE[ptbin]->Fill((energyEECaloClusters[isc]-energyMc[isc])/energyMc[isc]);
-          }
-        }
-      }
+         }
+       }
+       
+     } // loop over the events
+     
+     for(int i=0; i<(int) resolutions_EB.size(); ++i) {
+       resolutions_EB[i]->Write();
+       resolutions_EE[i]->Write();
+     }
 
-   } // loop over the events
-
-   for(int i=0; i<(int) resolutions_EB.size(); ++i) {
-     resolutions_EB[i]->Write();
-     resolutions_EE[i]->Write();
-   }
+   } // loop over the cluster types
 
    fileo->Close();
    

@@ -29,14 +29,14 @@ void plotResolutions(const char *file) {
 
   vector<TH1F*> resolutions_EB_1, resolutions_EE_1, resolutions_EB_2, resolutions_EE_2;
   //               [type][eta][pt]
-  TH1F *resolutions[3][2][6];
+  TH1F *resolutions[3][2][5];
   TFile *tfile = TFile::Open(file);
 
   // get the histograms from the files
   for(int clustertype=0;clustertype<3;++clustertype) {
     for(int e=0;e<2;++e) {
       std::string suffix = (e==0) ? "EB" : "EE";
-      for(int p=0;p<6;++p) {
+      for(int p=0;p<5;++p) {
         char namer[50];
         sprintf(namer,"cluster%d_res_%s_ptbin%d",clustertype,suffix.c_str(),p);
         TH1F* ires = (TH1F*)tfile->Get(namer);
@@ -49,6 +49,7 @@ void plotResolutions(const char *file) {
   // plot
   gStyle->SetOptStat(0);
 
+  // the sample is pT: [1-100] GeV
   int ptbins[7] = {1,10,20,30,50,100,300};
 
   TCanvas *c1 = new TCanvas("c1","",600,600);
@@ -57,11 +58,16 @@ void plotResolutions(const char *file) {
   CP->SetTextSize(0.030);
   
   for(int idet=0;idet<2;++idet) {
-    for(int p=0;p<6;++p) {
+    for(int p=0;p<5;++p) {
       
       resolutions[0][idet][p]->SetLineColor(kBlack);
       resolutions[1][idet][p]->SetLineColor(kRed+1);
       resolutions[2][idet][p]->SetLineColor(kGreen+1);
+      
+      float maxy = std::max(resolutions[0][idet][p]->GetMaximum(),std::max(resolutions[1][idet][p]->GetMaximum(),resolutions[2][idet][p]->GetMaximum()));
+      maxy*=1.2;
+
+      resolutions[0][idet][p]->GetYaxis()->SetRangeUser(0,maxy);
 
       resolutions[0][idet][p]->Draw();
       resolutions[1][idet][p]->Draw("sames");
@@ -79,9 +85,13 @@ void plotResolutions(const char *file) {
       results->SetFillColor (0);
       results->SetTextAlign(12);
       results->SetTextFont(42);
-      results->AddText(Form("weights: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[0][idet][p])));
-      results->AddText(Form("max-sample: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[1][idet][p])));
-      results->AddText(Form("max-sample NoPU: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[2][idet][p])));
+      //results->AddText(Form("weights: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[0][idet][p])));
+      //results->AddText(Form("5^{th} sample: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[1][idet][p])));
+      //results->AddText(Form("5^{th} sample NoPU: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[2][idet][p])));
+      results->AddText(Form("weights: r.m.s.=%.2f%%",100.0*resolutions[0][idet][p]->GetRMS()));
+      results->AddText(Form("5^{th} sample: r.m.s.=%.2f%%",100.0*resolutions[1][idet][p]->GetRMS()));
+      results->AddText(Form("5^{th} sample NoPU: r.m.s.=%.2f%%",100.0*resolutions[2][idet][p]->GetRMS()));
+
       results->Draw();
 
       c1->Update();
@@ -93,14 +103,14 @@ void plotResolutions(const char *file) {
       legend->SetTextFont  (    42);
   
       legend->AddEntry(resolutions[0][idet][p], "weights");
-      legend->AddEntry(resolutions[1][idet][p], "max-sample");
-      legend->AddEntry(resolutions[2][idet][p], "max-sample NoPU");
+      legend->AddEntry(resolutions[1][idet][p], "5^{th} sample");
+      legend->AddEntry(resolutions[2][idet][p], "5^{th} sample NoPU");
 
       legend->Draw();
       CP->Draw();
 
-      c1->SaveAs(TString("figures/maxsampleNoPU_")+resolutions[0][idet][p]->GetName()+TString(".pdf"));
-      c1->SaveAs(TString("figures/maxsampleNoPU_")+resolutions[0][idet][p]->GetName()+TString(".png"));
+      c1->SaveAs(TString("figures/fifthsampleNoPU_")+resolutions[0][idet][p]->GetName()+TString(".pdf"));
+      c1->SaveAs(TString("figures/fifthsampleNoPU_")+resolutions[0][idet][p]->GetName()+TString(".png"));
 
     }
   }

@@ -40,7 +40,7 @@ template<class C> class EcalUncalibRecHitRecWeightsAlgo
 
 
     // Get time samples
-    ROOT::Math::SVector<double,C::MAXSAMPLES> frame;
+    ROOT::Math::SVector<double,C::MAXSAMPLES> frame, frameSub, presamplesFrame;
     int gainId0 = 1;
     int iGainSwitch = 0;
     bool isSaturated = 0;
@@ -60,18 +60,49 @@ template<class C> class EcalUncalibRecHitRecWeightsAlgo
       // same problem as above: mark saturation only when physically
       // expected to occur SA20120513
       if ( (gainId != gainId0) && (iSample==4 || iSample ==5 || iSample==6) ) iGainSwitch = 1;
-      if (!iGainSwitch)
+      if (!iGainSwitch) {
 	frame(iSample) = double(dataFrame.sample(iSample).adc());
-      else
+        frameSub(iSample) = double(double(dataFrame.sample(iSample).adc()) -  pedestals[0]);
+      }
+      else {
 	frame(iSample) = double(((double)(dataFrame.sample(iSample).adc()) - pedestals[gainId-1]) * gainRatios[gainId-1]);
+        frameSub(iSample) = frame(iSample);
+      }
+      // fill the pedestal frame (hack to subtract it from DB instead of dynamically)
+      presamplesFrame(iSample) = (iSample<3) ? frameSub(iSample) : .0;
     }
 
-    // Compute parameters
+    // normalize the amplitude weights to 1 in the range 3-9
+    /*
+    double normAmpli=.0;
+    for(int iSample=3;iSample<10;++iSample) normAmpli += (weights[iGainSwitch])->At(0,iSample);
+    */
+
+    // Compute parameters: amplitude, avoid pedestal subtraction from pre-samples
+    // to not change the dataformats of the EcalWeights, subtract, readd the first 3 samples and renormalize to 1 the wegihts
+    ROOT::Math::SVector <double,3> paramSub = (*(weights[iGainSwitch])) * frameSub;
+    ROOT::Math::SVector <double,3> paramPreSamples = (*(weights[iGainSwitch])) * presamplesFrame; 
+    amplitude_ = (paramSub(EcalUncalibRecHitRecAbsAlgo<C>::iAmplitude) + paramPreSamples(EcalUncalibRecHitRecAbsAlgo<C>::iAmplitude));
+
+    /*
+    std::cout << "==================================================" << std::endl;
+    std::cout << "Old amplitude = " << param(EcalUncalibRecHitRecAbsAlgo<C>::iAmplitude) << std::endl;
+    std::cout << "New amplitude = " << amplitude_ << std::endl;
+    std::cout << "==================================================" << std::endl;
+    */
+    // time and pedestal with the usual pre-sample subtraction schema
     ROOT::Math::SVector <double,3> param = (*(weights[iGainSwitch])) * frame;
-    amplitude_ = param(EcalUncalibRecHitRecAbsAlgo<C>::iAmplitude);
     pedestal_ = param(EcalUncalibRecHitRecAbsAlgo<C>::iPedestal);
     if (amplitude_) jitter_ = -param(EcalUncalibRecHitRecAbsAlgo<C>::iTime) / amplitude_;
     else jitter_ = 0.;
+
+    /*
+    for(int i=0;i<3;++i) {
+      for(int j=0;j<10;++j) {
+        std::cout << "Weight matrix m[" << i << "," << j << "] = " << (weights[iGainSwitch])->At(i,j) << std::endl;
+      }
+    }
+    */
 
     //When saturated gain flag i
     if (isSaturated)

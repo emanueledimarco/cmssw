@@ -249,20 +249,20 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
         
         const EcalPedestals::Item * aped = 0;
         const EcalMGPAGainRatio * aGain = 0;
-        //        const EcalXtalGroupId * gid = 0;
+        const EcalXtalGroupId * gid = 0;
 	float offsetTime = 0;
 
         if (detid.subdetId()==EcalEndcap) {
                 unsigned int hashedIndex = EEDetId(detid).hashedIndex();
                 aped  = &peds->endcap(hashedIndex);
                 aGain = &gains->endcap(hashedIndex);
-                //                gid   = &grps->endcap(hashedIndex);
+                gid   = &grps->endcap(hashedIndex);
 		offsetTime = offtime->getEEValue();
         } else {
                 unsigned int hashedIndex = EBDetId(detid).hashedIndex();
                 aped  = &peds->barrel(hashedIndex);
                 aGain = &gains->barrel(hashedIndex);
-                //                gid   = &grps->barrel(hashedIndex);
+                gid   = &grps->barrel(hashedIndex);
 		offsetTime = offtime->getEBValue();
         }
 
@@ -337,6 +337,7 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                 uncalibRecHit.setChi2(0);
 		uncalibRecHit.setOutOfTimeChi2(0);
         } else {
+          /*
           // max sample metod
           if (detid.subdetId()==EcalBarrel) {
             const EcalPedestals::Item * aped = &peds->barrel(EBDetId(detid).hashedIndex());
@@ -347,6 +348,7 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
             const EcalMGPAGainRatio * aGain  = &gains->endcap(EEDetId(detid).hashedIndex());
             uncalibRecHit = maxSampleMethod_endcap_.makeRecHit(*itdg, aped, aGain);
           }
+          */
           /*
           // fit metod
           if (detid.subdetId()==EcalBarrel) {
@@ -359,34 +361,33 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
             uncalibRecHit = fitMethod_endcap_.makeRecHit(*itdg, aped, aGain);
           }
           */
-          /*
-                // weights method
-                EcalTBWeights::EcalTDCId tdcid(1);
-                EcalTBWeights::EcalTBWeightMap const & wgtsMap = wgts->getMap();
-                EcalTBWeights::EcalTBWeightMap::const_iterator wit;
-                wit = wgtsMap.find( std::make_pair(*gid,tdcid) );
-                if( wit == wgtsMap.end() ) {
-                        edm::LogError("EcalUncalibRecHitError") << "No weights found for EcalGroupId: " 
-                                << gid->id() << " and  EcalTDCId: " << tdcid
-                                << "\n  skipping digi with id: " << detid.rawId();
+          
+          // weights method
+          EcalTBWeights::EcalTDCId tdcid(1);
+          EcalTBWeights::EcalTBWeightMap const & wgtsMap = wgts->getMap();
+          EcalTBWeights::EcalTBWeightMap::const_iterator wit;
+          wit = wgtsMap.find( std::make_pair(*gid,tdcid) );
+          if( wit == wgtsMap.end() ) {
+            edm::LogError("EcalUncalibRecHitError") << "No weights found for EcalGroupId: " 
+                                                    << gid->id() << " and  EcalTDCId: " << tdcid
+                                                    << "\n  skipping digi with id: " << detid.rawId();
+            
+            return false;
+          }
+          const EcalWeightSet& wset = wit->second; // this is the EcalWeightSet
+          
+          const EcalWeightSet::EcalWeightMatrix& mat1 = wset.getWeightsBeforeGainSwitch();
+          const EcalWeightSet::EcalWeightMatrix& mat2 = wset.getWeightsAfterGainSwitch();
 
-                        return false;
-                }
-                const EcalWeightSet& wset = wit->second; // this is the EcalWeightSet
+          weights[0] = &mat1;
+          weights[1] = &mat2;
 
-                const EcalWeightSet::EcalWeightMatrix& mat1 = wset.getWeightsBeforeGainSwitch();
-                const EcalWeightSet::EcalWeightMatrix& mat2 = wset.getWeightsAfterGainSwitch();
-
-                weights[0] = &mat1;
-                weights[1] = &mat2;
-
-                // get uncalibrated recHit from weights
-		if (detid.subdetId()==EcalEndcap) {
-	    	     uncalibRecHit = weightsMethod_endcap_.makeRecHit(*itdg, pedVec, pedRMSVec, gainRatios, weights, testbeamEEShape);
-		} else {
-		     uncalibRecHit = weightsMethod_barrel_.makeRecHit(*itdg, pedVec, pedRMSVec, gainRatios, weights, testbeamEBShape);
-		}
-          */
+          // get uncalibrated recHit from weights
+          if (detid.subdetId()==EcalEndcap) {
+            uncalibRecHit = weightsMethod_endcap_.makeRecHit(*itdg, pedVec, pedRMSVec, gainRatios, weights, testbeamEEShape);
+          } else {
+            uncalibRecHit = weightsMethod_barrel_.makeRecHit(*itdg, pedVec, pedRMSVec, gainRatios, weights, testbeamEBShape);
+          }
                 // === time computation ===
                 // ratio method
                 float const clockToNsConstant = 25.;

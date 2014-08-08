@@ -38,9 +38,10 @@ template<class C> class EcalUncalibRecHitRecWeightsAlgo
     double amplitude_(-1.),  pedestal_(-1.), jitter_(-1.), chi2_(-1.);
     uint32_t flag = 0;
 
+    float pedestal=0;
 
     // Get time samples
-    ROOT::Math::SVector<double,C::MAXSAMPLES> frame;
+    ROOT::Math::SVector<double,C::MAXSAMPLES> frame, framePedSub;
     int gainId0 = 1;
     int iGainSwitch = 0;
     bool isSaturated = 0;
@@ -64,11 +65,33 @@ template<class C> class EcalUncalibRecHitRecWeightsAlgo
 	frame(iSample) = double(dataFrame.sample(iSample).adc());
       else
 	frame(iSample) = double(((double)(dataFrame.sample(iSample).adc()) - pedestals[gainId-1]) * gainRatios[gainId-1]);
+
+      float gainratio = 1.;
+      // now calculate the amplitude ped-subtracted for the amplitude
+      if (gainId==0 || gainId==3) {
+        pedestal = pedestals[2];
+        gainratio = gainRatios[2];
+      } else if (gainId==1) {
+        pedestal = pedestals[0];
+        gainratio = 1.;
+      } else if(gainId==2) {
+        pedestal = pedestals[1];
+        gainratio = gainRatios[1];
+      }
+      framePedSub(iSample) = double(((double)(dataFrame.sample(iSample).adc()) - pedestal) * gainratio);
+      if (gainId == 0)  framePedSub(iSample) = double((4095. - pedestal) * gainratio);
+
     }
 
-    // Compute parameters
+    // Compute amplitude
+    amplitude_=0.;
+    for(int iSample = 3; iSample < C::MAXSAMPLES; iSample++) 
+      amplitude_ += (weights[iGainSwitch])->At(0,iSample) * framePedSub(iSample);
+
+
+    // Compute other parameters
     ROOT::Math::SVector <double,3> param = (*(weights[iGainSwitch])) * frame;
-    amplitude_ = param(EcalUncalibRecHitRecAbsAlgo<C>::iAmplitude);
+    //float amplitudeDynPed = param(EcalUncalibRecHitRecAbsAlgo<C>::iAmplitude);
     pedestal_ = param(EcalUncalibRecHitRecAbsAlgo<C>::iPedestal);
     if (amplitude_) jitter_ = -param(EcalUncalibRecHitRecAbsAlgo<C>::iTime) / amplitude_;
     else jitter_ = 0.;

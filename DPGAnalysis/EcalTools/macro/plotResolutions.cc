@@ -85,12 +85,12 @@ void plotResolutions(const char *file) {
       results->SetFillColor (0);
       results->SetTextAlign(12);
       results->SetTextFont(42);
-      //results->AddText(Form("weights: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[0][idet][p])));
-      //results->AddText(Form("5^{th} sample: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[1][idet][p])));
-      //results->AddText(Form("5^{th} sample NoPU: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[2][idet][p])));
-      results->AddText(Form("weights: r.m.s.=%.2f%%",100.0*resolutions[0][idet][p]->GetRMS()));
-      results->AddText(Form("5^{th} sample: r.m.s.=%.2f%%",100.0*resolutions[1][idet][p]->GetRMS()));
-      results->AddText(Form("5^{th} sample NoPU: r.m.s.=%.2f%%",100.0*resolutions[2][idet][p]->GetRMS()));
+      results->AddText(Form("weights: #sigma_{eff}=%.2f%%",100.0*effectiveSigma(resolutions[0][idet][p])));
+      results->AddText(Form("weights + DB: #sigma_{eff}=%.2f%%",100.0*effectiveSigma(resolutions[1][idet][p])));
+      results->AddText(Form("weights + DB NoPU: #sigma_{eff}=%.2f%%",100.0*effectiveSigma(resolutions[2][idet][p])));
+      //results->AddText(Form("weights: r.m.s.=%.2f%%",100.0*resolutions[0][idet][p]->GetRMS()));
+      //results->AddText(Form("weights + DB: r.m.s.=%.2f%%",100.0*resolutions[1][idet][p]->GetRMS()));
+      //results->AddText(Form("weights + DB NoPU: r.m.s.=%.2f%%",100.0*resolutions[2][idet][p]->GetRMS()));
 
       results->Draw();
 
@@ -103,14 +103,14 @@ void plotResolutions(const char *file) {
       legend->SetTextFont  (    42);
   
       legend->AddEntry(resolutions[0][idet][p], "weights");
-      legend->AddEntry(resolutions[1][idet][p], "5^{th} sample");
-      legend->AddEntry(resolutions[2][idet][p], "5^{th} sample NoPU");
+      legend->AddEntry(resolutions[1][idet][p], "weights + DB");
+      legend->AddEntry(resolutions[2][idet][p], "weights + DB NoPU");
 
       legend->Draw();
       CP->Draw();
 
-      c1->SaveAs(TString("figures/fifthsampleNoPU_")+resolutions[0][idet][p]->GetName()+TString(".pdf"));
-      c1->SaveAs(TString("figures/fifthsampleNoPU_")+resolutions[0][idet][p]->GetName()+TString(".png"));
+      c1->SaveAs(TString("figures/weightsDBNoPU_")+resolutions[0][idet][p]->GetName()+TString(".pdf"));
+      c1->SaveAs(TString("figures/weightsDBNoPU_")+resolutions[0][idet][p]->GetName()+TString(".png"));
 
     }
   }

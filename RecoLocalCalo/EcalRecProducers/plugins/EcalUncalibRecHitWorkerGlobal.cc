@@ -475,17 +475,17 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                   std::vector<EEDataFrame> neighbors;
                   for(int ix=-2; ix<3; ++ix) {
                     for(int iy=-2; iy<3; ++iy) {
-                      if((ix==0 && abs(iy)<2) || (iy==0 && abs(ix)<2)) continue; // exclude the swiss cross
+                      if(ix==0 && iy==0) continue;
+                      //if((ix==0 && abs(iy)<2) || (iy==0 && abs(ix)<2)) continue; // exclude the swiss cross
                       //if(abs(ix)<2 && abs(iy)<2 ) continue; // exclude the 3x3 polluted by the em shower
                       cursorE.offsetBy( ix, iy );
-                      EcalDigiCollection::const_iterator itneigh = digis.find( detid );
+                      DetId cryId = cursorE.pos();
+                      EcalDigiCollection::const_iterator itneigh = digis.find( cryId );
                       if( itneigh != digis.end() ) neighbors.push_back(*itneigh);                       
                     }
                   }
-                  const EcalPedestals::Item * aped = &peds->endcap(EEDetId(detid).hashedIndex());
-                  const EcalMGPAGainRatio * aGain  = &gains->endcap(EEDetId(detid).hashedIndex());
-                  ootSubtraction_endcap_.init( *itdg, aped, aGain, neighbors );
-                  ootSubtraction_endcap_.computeAmplitudeOOT( EEamplitudeFitParameters_, EEpuSubtractionLimits_, uncalibRecHit.jitter() + 5 );
+                  ootSubtraction_endcap_.init( *itdg, neighbors, pedVec, gainRatios, EEamplitudeFitParameters_, EEpuSubtractionLimits_ );
+                  ootSubtraction_endcap_.computeAmplitudeOOT( uncalibRecHit.jitter() + 5 );
                   EcalUncalibRecHitOutOfTimeSubtractionAlgo<EEDataFrame>::CalculatedExtraHit ceh = ootSubtraction_endcap_.getCalculatedExtraHit();
                   uncalibRecHit.setOutOfTimeEnergy( ceh.amplitudeExtapolated );
                 } else {
@@ -494,23 +494,23 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                   std::vector<EBDataFrame> neighbors;
                   for(int ix=-2; ix<3; ++ix) {
                     for(int iy=-2; iy<3; ++iy) {
-                      if((ix==0 && abs(iy)<2) || (iy==0 && abs(ix)<2)) continue; // exclude the swiss cross
+                      if(ix==0 && iy==0) continue;
+                      //if((ix==0 && abs(iy)<2) || (iy==0 && abs(ix)<2)) continue; // exclude the swiss cross
                       // if(abs(ix)<2 && abs(iy)<2 ) continue; // exclude the 3x3 polluted by the em shower
                       cursorE.offsetBy( ix, iy );
-                      EcalDigiCollection::const_iterator itneigh = digis.find( detid );
+                      DetId cryId = cursorE.pos();
+                      EcalDigiCollection::const_iterator itneigh = digis.find( cryId );
                       if( itneigh != digis.end() ) neighbors.push_back(*itneigh);
                     }
                   }
-                  const EcalPedestals::Item * aped = &peds->barrel(EBDetId(detid).hashedIndex());
-                  const EcalMGPAGainRatio * aGain  = &gains->barrel(EBDetId(detid).hashedIndex());
-                  ootSubtraction_barrel_.init( *itdg, aped, aGain, neighbors );
-                  ootSubtraction_barrel_.computeAmplitudeOOT( EBamplitudeFitParameters_, EBpuSubtractionLimits_, uncalibRecHit.jitter() + 5 );
+                  ootSubtraction_barrel_.init( *itdg, neighbors, pedVec, gainRatios, EBamplitudeFitParameters_, EBpuSubtractionLimits_ );
+                  ootSubtraction_barrel_.computeAmplitudeOOT( uncalibRecHit.jitter() + 5 );
                   EcalUncalibRecHitOutOfTimeSubtractionAlgo<EBDataFrame>::CalculatedExtraHit ceh = ootSubtraction_barrel_.getCalculatedExtraHit();
                   uncalibRecHit.setOutOfTimeEnergy( ceh.amplitudeExtapolated );                  
                 }
                 
                 if(subtractPU_) uncalibRecHit.setAmplitude(uncalibRecHit.amplitude() - uncalibRecHit.outOfTimeEnergy());
-		
+
 		// === chi2express ===
 		if (detid.subdetId()==EcalEndcap) {
 		      

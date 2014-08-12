@@ -186,8 +186,8 @@ void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::computeAmplitudeOOT(std::vect
     std::cout << "Done listing samples " << std::endl;
     */
     
-    for(int iSample = 3; iSample < C::MAXSAMPLES; iSample++) {
-      extraHitFrame[iSample] = std::max(.0, pulseShapeFunction(iSample));
+    for(int iSample = 0; iSample < C::MAXSAMPLES; iSample++) {
+      extraHitFrame[iSample] = (iSample<3) ? 0.0 : std::max(.0, pulseShapeFunction(iSample));
       // std::cout << "\t\tSUBTRACTING TO SAMPLE " << iSample << " extraHitFrame[iSample] = " << extraHitFrame[iSample] << std::endl;
     }
 

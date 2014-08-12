@@ -149,6 +149,10 @@ EcalUncalibRecHitWorkerGlobal::set(const edm::EventSetup& es)
         es.get<CaloTopologyRecord>().get(theCaloTopology); 
         theSubdetTopologyEB_ = theCaloTopology->getSubdetectorTopology(DetId::Ecal,EcalBarrel);
         theSubdetTopologyEE_ = theCaloTopology->getSubdetectorTopology(DetId::Ecal,EcalEndcap);
+
+        // setup the weights algorithm
+        weightsMethod_barrel_.SetDynamicPedestal(false);
+        weightsMethod_endcap_.SetDynamicPedestal(false);
 }
 
 
@@ -336,32 +340,46 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
 		// do not propagate the default chi2 = -1 value to the calib rechit (mapped to 64), set it to 0 when saturation
                 uncalibRecHit.setChi2(0);
 		uncalibRecHit.setOutOfTimeChi2(0);
-        } else {
-          /*
-          // max sample metod
-          if (detid.subdetId()==EcalBarrel) {
-            const EcalPedestals::Item * aped = &peds->barrel(EBDetId(detid).hashedIndex());
-            const EcalMGPAGainRatio * aGain  = &gains->barrel(EBDetId(detid).hashedIndex());
-            uncalibRecHit = maxSampleMethod_barrel_.makeRecHit(*itdg, aped, aGain);
-          } else {
-            const EcalPedestals::Item * aped = &peds->endcap(EEDetId(detid).hashedIndex());
-            const EcalMGPAGainRatio * aGain  = &gains->endcap(EEDetId(detid).hashedIndex());
-            uncalibRecHit = maxSampleMethod_endcap_.makeRecHit(*itdg, aped, aGain);
-          }
-          */
-          /*
-          // fit metod
-          if (detid.subdetId()==EcalBarrel) {
-            const EcalPedestals::Item * aped = &peds->barrel(EBDetId(detid).hashedIndex());
-            const EcalMGPAGainRatio * aGain  = &gains->barrel(EBDetId(detid).hashedIndex());
-            uncalibRecHit = fitMethod_barrel_.makeRecHit(*itdg, aped, aGain);
-          } else {
-            const EcalPedestals::Item * aped = &peds->endcap(EEDetId(detid).hashedIndex());
-            const EcalMGPAGainRatio * aGain  = &gains->endcap(EEDetId(detid).hashedIndex());
-            uncalibRecHit = fitMethod_endcap_.makeRecHit(*itdg, aped, aGain);
-          }
-          */
-          
+        } else {          
+
+                // === oot energy ===
+                std::vector<double> pileup_datasamples_barrel, pileup_datasamples_endcap; 
+                if (detid.subdetId()==EcalEndcap) {
+                  CaloNavigator<DetId> cursorE = CaloNavigator<DetId>(detid, theSubdetTopologyEE_ );
+                  cursorE.home();
+                  std::vector<EEDataFrame> neighbors;
+                  for(int ix=-2; ix<3; ++ix) {
+                    for(int iy=-2; iy<3; ++iy) {
+                      if(ix==0 && iy==0) continue;
+                      //if((ix==0 && abs(iy)<2) || (iy==0 && abs(ix)<2)) continue; // exclude the swiss cross
+                      //if(abs(ix)<2 && abs(iy)<2 ) continue; // exclude the 3x3 polluted by the em shower
+                      cursorE.offsetBy( ix, iy );
+                      DetId cryId = cursorE.pos();
+                      EcalDigiCollection::const_iterator itneigh = digis.find( cryId );
+                      if( itneigh != digis.end() ) neighbors.push_back(*itneigh);                       
+                    }
+                  }
+                  ootSubtraction_endcap_.init( *itdg, neighbors, pedVec, gainRatios, EEamplitudeFitParameters_, EEpuSubtractionLimits_ );
+                  ootSubtraction_endcap_.computeAmplitudeOOT(pileup_datasamples_endcap);
+                } else {
+                  CaloNavigator<DetId> cursorE = CaloNavigator<DetId>(detid, theSubdetTopologyEB_ );
+                  cursorE.home();
+                  std::vector<EBDataFrame> neighbors;
+                  for(int ix=-2; ix<3; ++ix) {
+                    for(int iy=-2; iy<3; ++iy) {
+                      if(ix==0 && iy==0) continue;
+                      //if((ix==0 && abs(iy)<2) || (iy==0 && abs(ix)<2)) continue; // exclude the swiss cross
+                      // if(abs(ix)<2 && abs(iy)<2 ) continue; // exclude the 3x3 polluted by the em shower
+                      cursorE.offsetBy( ix, iy );
+                      DetId cryId = cursorE.pos();
+                      EcalDigiCollection::const_iterator itneigh = digis.find( cryId );
+                      if( itneigh != digis.end() ) neighbors.push_back(*itneigh);
+                    }
+                  }
+                  ootSubtraction_barrel_.init( *itdg, neighbors, pedVec, gainRatios, EBamplitudeFitParameters_, EBpuSubtractionLimits_ );
+                  ootSubtraction_barrel_.computeAmplitudeOOT(pileup_datasamples_barrel);
+                }
+
           // weights method
           EcalTBWeights::EcalTDCId tdcid(1);
           EcalTBWeights::EcalTBWeightMap const & wgtsMap = wgts->getMap();
@@ -384,8 +402,10 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
 
           // get uncalibrated recHit from weights
           if (detid.subdetId()==EcalEndcap) {
+            if(subtractPU_) weightsMethod_endcap_.setPileupDataFrame(pileup_datasamples_endcap);
             uncalibRecHit = weightsMethod_endcap_.makeRecHit(*itdg, pedVec, pedRMSVec, gainRatios, weights, testbeamEEShape);
           } else {
+            if(subtractPU_) weightsMethod_barrel_.setPileupDataFrame(pileup_datasamples_barrel);
             uncalibRecHit = weightsMethod_barrel_.makeRecHit(*itdg, pedVec, pedRMSVec, gainRatios, weights, testbeamEBShape);
           }
                 // === time computation ===
@@ -468,48 +488,6 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
 				}
 		}
 
-                // === oot energy ===
-                if (detid.subdetId()==EcalEndcap) {
-                  CaloNavigator<DetId> cursorE = CaloNavigator<DetId>(detid, theSubdetTopologyEE_ );
-                  cursorE.home();
-                  std::vector<EEDataFrame> neighbors;
-                  for(int ix=-2; ix<3; ++ix) {
-                    for(int iy=-2; iy<3; ++iy) {
-                      if(ix==0 && iy==0) continue;
-                      //if((ix==0 && abs(iy)<2) || (iy==0 && abs(ix)<2)) continue; // exclude the swiss cross
-                      //if(abs(ix)<2 && abs(iy)<2 ) continue; // exclude the 3x3 polluted by the em shower
-                      cursorE.offsetBy( ix, iy );
-                      DetId cryId = cursorE.pos();
-                      EcalDigiCollection::const_iterator itneigh = digis.find( cryId );
-                      if( itneigh != digis.end() ) neighbors.push_back(*itneigh);                       
-                    }
-                  }
-                  ootSubtraction_endcap_.init( *itdg, neighbors, pedVec, gainRatios, EEamplitudeFitParameters_, EEpuSubtractionLimits_ );
-                  ootSubtraction_endcap_.computeAmplitudeOOT( uncalibRecHit.jitter() + 5 );
-                  EcalUncalibRecHitOutOfTimeSubtractionAlgo<EEDataFrame>::CalculatedExtraHit ceh = ootSubtraction_endcap_.getCalculatedExtraHit();
-                  uncalibRecHit.setOutOfTimeEnergy( ceh.amplitudeExtapolated );
-                } else {
-                  CaloNavigator<DetId> cursorE = CaloNavigator<DetId>(detid, theSubdetTopologyEB_ );
-                  cursorE.home();
-                  std::vector<EBDataFrame> neighbors;
-                  for(int ix=-2; ix<3; ++ix) {
-                    for(int iy=-2; iy<3; ++iy) {
-                      if(ix==0 && iy==0) continue;
-                      //if((ix==0 && abs(iy)<2) || (iy==0 && abs(ix)<2)) continue; // exclude the swiss cross
-                      // if(abs(ix)<2 && abs(iy)<2 ) continue; // exclude the 3x3 polluted by the em shower
-                      cursorE.offsetBy( ix, iy );
-                      DetId cryId = cursorE.pos();
-                      EcalDigiCollection::const_iterator itneigh = digis.find( cryId );
-                      if( itneigh != digis.end() ) neighbors.push_back(*itneigh);
-                    }
-                  }
-                  ootSubtraction_barrel_.init( *itdg, neighbors, pedVec, gainRatios, EBamplitudeFitParameters_, EBpuSubtractionLimits_ );
-                  ootSubtraction_barrel_.computeAmplitudeOOT( uncalibRecHit.jitter() + 5 );
-                  EcalUncalibRecHitOutOfTimeSubtractionAlgo<EBDataFrame>::CalculatedExtraHit ceh = ootSubtraction_barrel_.getCalculatedExtraHit();
-                  uncalibRecHit.setOutOfTimeEnergy( ceh.amplitudeExtapolated );                  
-                }
-                
-                if(subtractPU_) uncalibRecHit.setAmplitude(uncalibRecHit.amplitude() - uncalibRecHit.outOfTimeEnergy());
 
 		// === chi2express ===
 		if (detid.subdetId()==EcalEndcap) {

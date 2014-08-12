@@ -22,9 +22,28 @@
 
 template<class C> class EcalUncalibRecHitRecWeightsAlgo 
 {
+ private:
+  std::vector<double> pileupDataFrame;
+  bool subtract_pu;
+  bool dyn_pedestal;
+
  public:
+  // constructor
+  EcalUncalibRecHitRecWeightsAlgo<C>() { 
+    subtract_pu = false; 
+    dyn_pedestal = true;
+  };
+
   // destructor
   virtual ~EcalUncalibRecHitRecWeightsAlgo<C>() { };
+
+  /// set the pileup dataframe to subtract
+  void setPileupDataFrame(std::vector<double> &dataFrame) { 
+    pileupDataFrame = dataFrame; 
+    subtract_pu = true;
+  }
+
+  void SetDynamicPedestal(bool dyn_pede) { dyn_pedestal = dyn_pede; }
 
   /// Compute parameters
    virtual EcalUncalibratedRecHit makeRecHit(
@@ -38,7 +57,7 @@ template<class C> class EcalUncalibRecHitRecWeightsAlgo
     double amplitude_(-1.),  pedestal_(-1.), jitter_(-1.), chi2_(-1.);
     uint32_t flag = 0;
 
-    float pedestal=0;
+    float pedestalFromDB=0;
 
     // Get time samples
     ROOT::Math::SVector<double,C::MAXSAMPLES> frame, framePedSub;
@@ -66,35 +85,50 @@ template<class C> class EcalUncalibRecHitRecWeightsAlgo
       else
 	frame(iSample) = double(((double)(dataFrame.sample(iSample).adc()) - pedestals[gainId-1]) * gainRatios[gainId-1]);
 
+      if(subtract_pu) frame(iSample) -= pileupDataFrame[iSample];
+
       float gainratio = 1.;
       // now calculate the amplitude ped-subtracted for the amplitude
       if (gainId==0 || gainId==3) {
-        pedestal = pedestals[2];
+        pedestalFromDB = pedestals[2];
         gainratio = gainRatios[2];
       } else if (gainId==1) {
-        pedestal = pedestals[0];
+        pedestalFromDB = pedestals[0];
         gainratio = 1.;
       } else if(gainId==2) {
-        pedestal = pedestals[1];
+        pedestalFromDB = pedestals[1];
         gainratio = gainRatios[1];
       }
-      framePedSub(iSample) = double(((double)(dataFrame.sample(iSample).adc()) - pedestal) * gainratio);
-      if (gainId == 0)  framePedSub(iSample) = double((4095. - pedestal) * gainratio);
+      framePedSub(iSample) = double(((double)(dataFrame.sample(iSample).adc()) - pedestalFromDB) * gainratio);
+      if (gainId == 0)  framePedSub(iSample) = double((4095. - pedestalFromDB) * gainratio);
+
+      if(subtract_pu) framePedSub(iSample) -= pileupDataFrame[iSample];
 
     }
 
+    /*
+    std::cout << "=====In the weights algo. ==== " << std::endl;
+    std::cout << "PU SUB = " << subtract_pu << std::endl;
+    for(int iSample = 0; iSample < C::MAXSAMPLES; iSample++)
+      std::cout << "\tisample = " << iSample << " frame(iSample) = " << frame(iSample) << "\tframePedSub(iSample) = " << framePedSub(iSample) << std::endl;
+    std::cout << "=====Done weights algo. ==== " << std::endl;
+    */
+
     // Compute amplitude
-    amplitude_=0.;
+    double amplitudeDBPed=0.;
     for(int iSample = 3; iSample < C::MAXSAMPLES; iSample++) 
-      amplitude_ += (weights[iGainSwitch])->At(0,iSample) * framePedSub(iSample);
+      amplitudeDBPed += (weights[iGainSwitch])->At(0,iSample) * framePedSub(iSample);
 
 
     // Compute other parameters
     ROOT::Math::SVector <double,3> param = (*(weights[iGainSwitch])) * frame;
-    //float amplitudeDynPed = param(EcalUncalibRecHitRecAbsAlgo<C>::iAmplitude);
-    pedestal_ = param(EcalUncalibRecHitRecAbsAlgo<C>::iPedestal);
+    double amplitudeDynPed = param(EcalUncalibRecHitRecAbsAlgo<C>::iAmplitude);
+    double pedestalDyn = param(EcalUncalibRecHitRecAbsAlgo<C>::iPedestal);
     if (amplitude_) jitter_ = -param(EcalUncalibRecHitRecAbsAlgo<C>::iTime) / amplitude_;
     else jitter_ = 0.;
+
+    amplitude_ = dyn_pedestal ? amplitudeDynPed : amplitudeDBPed;
+    pedestal_ = dyn_pedestal ? pedestalDyn : pedestalFromDB;
 
     //When saturated gain flag i
     if (isSaturated)

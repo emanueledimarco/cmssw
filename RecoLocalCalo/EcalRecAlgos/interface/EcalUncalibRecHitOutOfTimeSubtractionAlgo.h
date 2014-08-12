@@ -19,6 +19,7 @@
 
 template < class C > class EcalUncalibRecHitOutOfTimeSubtractionAlgo {
  public:
+
   struct CalculatedExtraHit {
     double amplitudeMax;
     double timeMax;
@@ -32,8 +33,7 @@ template < class C > class EcalUncalibRecHitOutOfTimeSubtractionAlgo {
              const double *pedestals, const double *gainRatios, 
              std::vector< double > &amplitudeFitParameters, std::vector< double > &subtractionLimit );
   double pulseShapeFunction(double t);
-  void computeAmplitudeOOT( double time );
-  CalculatedExtraHit getCalculatedExtraHit() { return calculatedExtrahit_; };
+  void computeAmplitudeOOT(std::vector<double> &extraHitFrame);
   
  protected:
   
@@ -84,7 +84,6 @@ void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::init( const C &dataFrame, std
   theDetId_ = DetId(dataFrame.id().rawId());  
   calculatedExtrahit_.timeMax = 5;
   calculatedExtrahit_.amplitudeMax = 0;
-  calculatedExtrahit_.amplitudeExtapolated = 0;
   amplitudes_.clear();
   amplitudes_.reserve(C::MAXSAMPLES);
 	
@@ -157,24 +156,26 @@ void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::init( const C &dataFrame, std
 
     amplitudes_.push_back(amplitude);
   }
-
 }
 
 template<class C>
-void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::computeAmplitudeOOT( double time )
+void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::computeAmplitudeOOT(std::vector<double> &extraHitFrame)
 {
+
+  extraHitFrame.resize(C::MAXSAMPLES);
 
   // if the max sample of the max of the neighbors is 
   // in the pre-samples, and the amplitude is above noise, 
   // --> there is a hope to fit for the out-of-time contributions
   // -> not, return 0
-  double amplitudeExtapolated_= -1.0;
-  if (calculatedExtrahit_.amplitudeMax == -100) amplitudeExtapolated_ = 0.0;
-  else if (calculatedExtrahit_.timeMax > lastOOTSampleUsed_) amplitudeExtapolated_ = 0.0;
-  else if (calculatedExtrahit_.amplitudeMax < minAmplitudeOutOfTime_) amplitudeExtapolated_ = 0.0;
-  //else if (nSameTimeHits_ < 3 ) amplitudeExtapolated_ = 0.0;
-  else {
-    
+  if(calculatedExtrahit_.amplitudeMax == -100 ||
+     calculatedExtrahit_.timeMax > lastOOTSampleUsed_ ||
+     calculatedExtrahit_.amplitudeMax < minAmplitudeOutOfTime_ ) {
+    for(int iSample = 3; iSample < C::MAXSAMPLES; iSample++) {
+      extraHitFrame[iSample] = .0;
+    }
+  } else {    
+
     /*
     std::cout << "===> timeMax = " << calculatedExtrahit_.timeMax << "\tcalculatedExtrahit_.amplitudeMax = " << calculatedExtrahit_.amplitudeMax << std::endl;
     std::cout << "===> # hits with consistent time = " << nSameTimeHits_ << std::endl;
@@ -184,13 +185,13 @@ void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::computeAmplitudeOOT( double t
     }
     std::cout << "Done listing samples " << std::endl;
     */
+    
+    for(int iSample = 3; iSample < C::MAXSAMPLES; iSample++) {
+      extraHitFrame[iSample] = std::max(.0, pulseShapeFunction(iSample));
+      // std::cout << "\t\tSUBTRACTING TO SAMPLE " << iSample << " extraHitFrame[iSample] = " << extraHitFrame[iSample] << std::endl;
+    }
 
-    amplitudeExtapolated_ = pulseShapeFunction(time);
-
-    // std::cout << "==> AMPLITUDE EXTRAP = " << amplitudeExtapolated_ << std::endl;
   }
-
-  calculatedExtrahit_.amplitudeExtapolated = amplitudeExtapolated_;
 }
 
 

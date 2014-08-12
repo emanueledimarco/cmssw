@@ -152,7 +152,7 @@ EcalUncalibRecHitWorkerGlobal::set(const edm::EventSetup& es)
 
         // setup the weights algorithm
         weightsMethod_barrel_.SetDynamicPedestal(false);
-        weightsMethod_endcap_.SetDynamicPedestal(false);
+        weightsMethod_endcap_.SetDynamicPedestal(true);
 }
 
 

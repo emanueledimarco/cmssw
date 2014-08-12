@@ -156,7 +156,7 @@ public :
    virtual void     Loop(const char *outputfilename);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
-   virtual bool     mcmatch(TVector3 scdir, TVector3 truep, int charge);
+   virtual bool     mcmatch(TVector3 scdir, TVector3 truep);
 };
 
 #endif
@@ -306,7 +306,8 @@ Int_t pusubtree::Cut(Long64_t entry)
 // returns -1 otherwise.
    return 1;
 }
-bool pusubtree::mcmatch(TVector3 scdir, TVector3 truep, int charge) {
+bool pusubtree::mcmatch(TVector3 scdir, TVector3 truep) {
+  /* for samples with material and electrons. 
   // for the EB, back-propagate with the magnetic field, since it is simple.
   // for the EE, only match in deltaEta
   
@@ -314,11 +315,19 @@ bool pusubtree::mcmatch(TVector3 scdir, TVector3 truep, int charge) {
   float phicurv = atan2(1.24*3.8*charge,4.*scdir.Pt());
   
   float deltaeta = scdir.Eta() - truep.Eta();  
+  float deltaphi = scdir.DeltaPhi(truep) - phicurv;
   if(abseta<1.479) {
-    float deltaphi = scdir.DeltaPhi(truep) - phicurv;
-    return sqrt(deltaeta*deltaeta + deltaphi*deltaphi) < 0.1;
+    return sqrt(deltaeta*deltaeta + deltaphi*deltaphi) < 0.03;
   } else {
-    return fabs(deltaeta) < 0.1;
+    //return fabs(deltaeta) < 0.03;
+    return sqrt(deltaeta*deltaeta + deltaphi*deltaphi) < 0.03;
   }
+  */
+  
+  // for photon gun samples with no material in front of ECAL
+  float deltaeta = scdir.Eta() - truep.Eta();  
+  float deltaphi = scdir.Phi() - truep.Phi();  
+  return sqrt(deltaeta*deltaeta + deltaphi*deltaphi) < 0.03;
+
 }
 #endif // #ifdef pusubtree_cxx

@@ -34,7 +34,7 @@ void pusubtree::Loop(const char *outputfilename)
 
    TFile *fileo = TFile::Open(outputfilename,"recreate");
 
-   TH1F *res = new TH1F("res","",1000,-0.50,0.30);
+   TH1F *res = new TH1F("res","",1000,-0.20,0.20);
 
    for(int clustertype=0; clustertype<3; ++clustertype) {
 
@@ -67,40 +67,43 @@ void pusubtree::Loop(const char *outputfilename)
        if(idMc[0] != 22) continue;
        TVector3 pGamma;
        pGamma.SetMagThetaPhi(pMc[0],thetaMc[0],phiMc[0]);
+       bool matched = false;
       
        if(fabs(etaMc[0])<1.479) {
          int nClus=0;
          if(clustertype==0) nClus = nEBCaloClusters; else if(clustertype==1) nClus = nEBCaloClusters2 ; else nClus=nEBCaloClusters3;
-         nClus = std::min(nClus,10); // the true one is the high energy one (and clustrs are sorted)
-         for(int isc=0; isc<nClus; ++isc) {
+         nClus = std::min(nClus,100); // the true one is the high energy one (and clustrs are sorted)
+         for(int isc=0; isc<nClus && matched==false; ++isc) {
            TVector3 scdir;
            if(clustertype==0) scdir.SetMagThetaPhi(energyEBCaloClusters[isc],  thetaEBCaloClusters[isc],  phiEBCaloClusters[isc]);
            if(clustertype==1) scdir.SetMagThetaPhi(energyEBCaloClusters2[isc], thetaEBCaloClusters2[isc], phiEBCaloClusters2[isc]);
            if(clustertype==2) scdir.SetMagThetaPhi(energyEBCaloClusters3[isc], thetaEBCaloClusters3[isc], phiEBCaloClusters3[isc]);
 
-           if(mcmatch(scdir,pGamma,0.3)) {
-            int ptbin=0;
-            for(int ipt=0; ipt<6; ++ipt) {
-              if(pGamma.Pt() >= ptbins[ipt] && pGamma.Pt() < ptbins[ipt+1]) {
-                ptbin=ipt; break;
-              }
-            }
-            float energy=0;
-            if(clustertype==0) energy = energyEBCaloClusters[isc]; else if(clustertype==1) energy = energyEBCaloClusters2[isc]; else energy = energyEBCaloClusters3[isc];
-            resolutions_EB[ptbin]->Fill((energy-energyMc[isc])/energyMc[isc]);
+           if(mcmatch(scdir,pGamma)) {
+             matched=true;
+             int ptbin=0;
+             for(int ipt=0; ipt<6; ++ipt) {
+               if(pGamma.Pt() >= ptbins[ipt] && pGamma.Pt() < ptbins[ipt+1]) {
+                 ptbin=ipt; break;
+               }
+             }
+             float energy=0;
+             if(clustertype==0) energy = energyEBCaloClusters[isc]; else if(clustertype==1) energy = energyEBCaloClusters2[isc]; else energy = energyEBCaloClusters3[isc];
+             resolutions_EB[ptbin]->Fill((energy-energyMc[isc])/energyMc[isc]);
            }
          }
        } else {
          int nClus=0;
          if(clustertype==0) nClus = nEECaloClusters; else if(clustertype==1) nClus = nEECaloClusters2 ; else nClus=nEECaloClusters3;
-         nClus = std::min(nClus,10); // the true one is the high energy one (and clustrs are sorted)
-         for(int isc=0; isc<nClus; ++isc) {
+         nClus = std::min(nClus,100); // the true one is the high energy one (and clustrs are sorted)
+         for(int isc=0; isc<nClus && matched==false; ++isc) {
           TVector3 scdir;
            if(clustertype==0) scdir.SetMagThetaPhi(energyEECaloClusters[isc],  thetaEECaloClusters[isc],  phiEECaloClusters[isc]);
            if(clustertype==1) scdir.SetMagThetaPhi(energyEECaloClusters2[isc], thetaEECaloClusters2[isc], phiEECaloClusters2[isc]);
            if(clustertype==2) scdir.SetMagThetaPhi(energyEECaloClusters3[isc], thetaEECaloClusters3[isc], phiEECaloClusters3[isc]);
 
-          if(mcmatch(scdir,pGamma,0.3)) {
+          if(mcmatch(scdir,pGamma)) {
+            matched=true;
             int ptbin=0;
             for(int ipt=0; ipt<6; ++ipt) {
               if(pGamma.Pt() >= ptbins[ipt] && pGamma.Pt() < ptbins[ipt+1]) {

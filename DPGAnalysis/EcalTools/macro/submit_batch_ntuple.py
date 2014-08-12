@@ -85,9 +85,9 @@ def main():
         else: outputfile.write('ls *.root | xargs -i cp {} '+diskoutputmain+'\n')
         outputfile.close
         logfile = opt.prefix+"/"+output+"/log/"+output+"_"+str(ijob)+".log"
-        os.system("echo bsub -q "+opt.queue+" -o "+logfile+" source "+pwd+"/"+outputname)
+        os.system("echo bsub -G CMS_CERN01_YODA -q "+opt.queue+" -o "+logfile+" source "+pwd+"/"+outputname)
         if(opt.create==False):
-            os.system("bsub -q "+opt.queue+" -o "+logfile+" source "+pwd+"/"+outputname)
+            os.system("bsub -G CMS_CERN01_YODA -q "+opt.queue+" -o "+logfile+" source "+pwd+"/"+outputname)
         ijob = ijob+1
         if(ijob==opt.testnjobs): break
 

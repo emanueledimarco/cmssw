@@ -68,9 +68,12 @@ void plotResolutions(const char *file) {
       maxy*=1.2;
 
       resolutions[0][idet][p]->GetYaxis()->SetRangeUser(0,maxy);
+      
+      if(p>0) resolutions[0][idet][p]->GetXaxis()->SetRangeUser(-0.1,0.1);
+      resolutions[0][idet][p]->GetXaxis()->SetTitle("E_{5x5}/E_{true}");
 
       resolutions[0][idet][p]->Draw();
-      resolutions[1][idet][p]->Draw("sames");
+      // resolutions[1][idet][p]->Draw("sames");
       resolutions[2][idet][p]->Draw("sames");
 
       char ptrange[50];
@@ -80,14 +83,15 @@ void plotResolutions(const char *file) {
       ptr->SetTextSize(0.040);
       ptr->Draw();
 
-      TPaveText *results = new TPaveText(.15,.3,.60,.5,"NDC");
+      TPaveText *results = new TPaveText(.6,.7,.8,.9,"NDC");
       results->SetBorderSize(0);
       results->SetFillColor (0);
       results->SetTextAlign(12);
       results->SetTextFont(42);
-      results->AddText(Form("weights: #sigma_{eff}=%.2f%%",100.0*effectiveSigma(resolutions[0][idet][p])));
-      results->AddText(Form("weights + DB: #sigma_{eff}=%.2f%%",100.0*effectiveSigma(resolutions[1][idet][p])));
-      results->AddText(Form("weights + DB NoPU: #sigma_{eff}=%.2f%%",100.0*effectiveSigma(resolutions[2][idet][p])));
+      results->SetTextSize(0.035);
+      results->AddText(Form("3+5: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[0][idet][p])));
+      // results->AddText(Form("DB+5: #sigma_{eff}=%.2f%%",100.0*effectiveSigma(resolutions[1][idet][p])));
+      results->AddText(Form("DB+5 MPS: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[2][idet][p])));
       //results->AddText(Form("weights: r.m.s.=%.2f%%",100.0*resolutions[0][idet][p]->GetRMS()));
       //results->AddText(Form("weights + DB: r.m.s.=%.2f%%",100.0*resolutions[1][idet][p]->GetRMS()));
       //results->AddText(Form("weights + DB NoPU: r.m.s.=%.2f%%",100.0*resolutions[2][idet][p]->GetRMS()));
@@ -102,15 +106,15 @@ void plotResolutions(const char *file) {
       legend->SetTextAlign (    12);
       legend->SetTextFont  (    42);
   
-      legend->AddEntry(resolutions[0][idet][p], "weights");
-      legend->AddEntry(resolutions[1][idet][p], "weights + DB");
-      legend->AddEntry(resolutions[2][idet][p], "weights + DB NoPU");
+      legend->AddEntry(resolutions[0][idet][p], "3+5");
+      // legend->AddEntry(resolutions[1][idet][p], "DB+5");
+      legend->AddEntry(resolutions[2][idet][p], "DB+5 MPS");
 
       legend->Draw();
       CP->Draw();
 
-      c1->SaveAs(TString("figures/weightsDBNoPU_")+resolutions[0][idet][p]->GetName()+TString(".pdf"));
-      c1->SaveAs(TString("figures/weightsDBNoPU_")+resolutions[0][idet][p]->GetName()+TString(".png"));
+      c1->SaveAs(TString("figures/ShapeSub_5pDB_")+resolutions[0][idet][p]->GetName()+TString(".pdf"));
+      c1->SaveAs(TString("figures/ShapeSub_5pDB_")+resolutions[0][idet][p]->GetName()+TString(".png"));
 
     }
   }

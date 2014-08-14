@@ -33,7 +33,7 @@ ecalGlobalUncalibRecHit = cms.EDProducer("EcalUncalibRecHitProducer",
 
     # for PU subtraction
     EBpuSubtractionLimits = cms.vdouble(3,5.5),
-    EEpuSubtractionLimits = cms.vdouble(3,11.0),
+    EEpuSubtractionLimits = cms.vdouble(2,11.0),
     subtractPU = cms.bool(False),
 
     ebSpikeThreshold = cms.double(1.042),

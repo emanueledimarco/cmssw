@@ -152,7 +152,7 @@ EcalUncalibRecHitWorkerGlobal::set(const edm::EventSetup& es)
 
         // setup the weights algorithm
         weightsMethod_barrel_.SetDynamicPedestal(false);
-        weightsMethod_endcap_.SetDynamicPedestal(true);
+        weightsMethod_endcap_.SetDynamicPedestal(false);
 }
 
 
@@ -341,18 +341,18 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                 uncalibRecHit.setChi2(0);
 		uncalibRecHit.setOutOfTimeChi2(0);
         } else {          
-
                 // === oot energy ===
                 std::vector<double> pileup_datasamples_barrel, pileup_datasamples_endcap; 
                 if (detid.subdetId()==EcalEndcap) {
+                  // std::cout << "======> ENDCAP: " << std::endl;
                   CaloNavigator<DetId> cursorE = CaloNavigator<DetId>(detid, theSubdetTopologyEE_ );
-                  cursorE.home();
                   std::vector<EEDataFrame> neighbors;
                   for(int ix=-2; ix<3; ++ix) {
                     for(int iy=-2; iy<3; ++iy) {
                       if(ix==0 && iy==0) continue;
                       //if((ix==0 && abs(iy)<2) || (iy==0 && abs(ix)<2)) continue; // exclude the swiss cross
                       //if(abs(ix)<2 && abs(iy)<2 ) continue; // exclude the 3x3 polluted by the em shower
+                      cursorE.home();
                       cursorE.offsetBy( ix, iy );
                       DetId cryId = cursorE.pos();
                       EcalDigiCollection::const_iterator itneigh = digis.find( cryId );
@@ -360,16 +360,18 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                     }
                   }
                   ootSubtraction_endcap_.init( *itdg, neighbors, pedVec, gainRatios, EEamplitudeFitParameters_, EEpuSubtractionLimits_ );
+                  ootSubtraction_endcap_.setDynamicPedestal(false);
                   ootSubtraction_endcap_.computeAmplitudeOOT(pileup_datasamples_endcap);
                 } else {
+                  // std::cout << "======> BARREL: " << std::endl;
                   CaloNavigator<DetId> cursorE = CaloNavigator<DetId>(detid, theSubdetTopologyEB_ );
-                  cursorE.home();
                   std::vector<EBDataFrame> neighbors;
                   for(int ix=-2; ix<3; ++ix) {
                     for(int iy=-2; iy<3; ++iy) {
                       if(ix==0 && iy==0) continue;
                       //if((ix==0 && abs(iy)<2) || (iy==0 && abs(ix)<2)) continue; // exclude the swiss cross
                       // if(abs(ix)<2 && abs(iy)<2 ) continue; // exclude the 3x3 polluted by the em shower
+                      cursorE.home();
                       cursorE.offsetBy( ix, iy );
                       DetId cryId = cursorE.pos();
                       EcalDigiCollection::const_iterator itneigh = digis.find( cryId );
@@ -377,6 +379,7 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                     }
                   }
                   ootSubtraction_barrel_.init( *itdg, neighbors, pedVec, gainRatios, EBamplitudeFitParameters_, EBpuSubtractionLimits_ );
+                  ootSubtraction_barrel_.setDynamicPedestal(false);
                   ootSubtraction_barrel_.computeAmplitudeOOT(pileup_datasamples_barrel);
                 }
 

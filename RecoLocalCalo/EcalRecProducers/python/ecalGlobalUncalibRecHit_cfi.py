@@ -32,8 +32,9 @@ ecalGlobalUncalibRecHit = cms.EDProducer("EcalUncalibRecHitProducer",
     amplitudeThresholdEE    = cms.double(10),
 
     # for PU subtraction
-    EBpuSubtractionLimits = cms.vdouble(3,5.5),
-    EEpuSubtractionLimits = cms.vdouble(2,11.0),
+                                         # PU seed thr, hit thr, min nhit with same BX, last sample to be considered for BX assignment
+    EBpuSubtractionParameters = cms.vdouble(5.5 ,  5.5, 2, 3),
+    EEpuSubtractionParameters = cms.vdouble(17.0, 11.0, 3, 2),
     subtractPU = cms.bool(False),
 
     ebSpikeThreshold = cms.double(1.042),

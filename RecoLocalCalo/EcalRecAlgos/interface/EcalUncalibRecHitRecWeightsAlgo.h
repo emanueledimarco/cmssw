@@ -106,7 +106,7 @@ template<class C> class EcalUncalibRecHitRecWeightsAlgo
 
     }
 
-    /*    
+    /*
     std::cout << "=====In the weights algo. ==== " << std::endl;
     std::cout << "PU SUB = " << subtract_pu << std::endl;
     for(int iSample = 0; iSample < C::MAXSAMPLES; iSample++)

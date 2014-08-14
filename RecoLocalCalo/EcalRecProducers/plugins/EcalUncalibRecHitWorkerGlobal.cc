@@ -47,8 +47,8 @@ EcalUncalibRecHitWorkerGlobal::EcalUncalibRecHitWorkerGlobal(const edm::Paramete
 	// spike threshold
         ebSpikeThresh_ = ps.getParameter<double>("ebSpikeThreshold");
         // pu subtraction
-        EBpuSubtractionLimits_ = ps.getParameter<std::vector<double> >("EBpuSubtractionLimits");
-        EEpuSubtractionLimits_ = ps.getParameter<std::vector<double> >("EEpuSubtractionLimits");
+        EBpuSubtractionParameters_ = ps.getParameter<std::vector<double> >("EBpuSubtractionParameters");
+        EEpuSubtractionParameters_ = ps.getParameter<std::vector<double> >("EEpuSubtractionParameters");
         subtractPU_ = ps.getParameter<bool>("subtractPU");
         // leading edge parameters
         ebPulseShape_ = ps.getParameter<std::vector<double> >("ebPulseShape");
@@ -94,8 +94,8 @@ EcalUncalibRecHitWorkerGlobal::EcalUncalibRecHitWorkerGlobal(const edm::Paramete
 	// spike threshold
         ebSpikeThresh_ = ps.getParameter<double>("ebSpikeThreshold");
         // pu subtraction
-        EBpuSubtractionLimits_ = ps.getParameter<std::vector<double> >("EBpuSubtractionLimits");
-        EEpuSubtractionLimits_ = ps.getParameter<std::vector<double> >("EEpuSubtractionLimits");
+        EBpuSubtractionParameters_ = ps.getParameter<std::vector<double> >("EBpuSubtractionParameters");
+        EEpuSubtractionParameters_ = ps.getParameter<std::vector<double> >("EEpuSubtractionParameters");
         // leading edge parameters
         ebPulseShape_ = ps.getParameter<std::vector<double> >("ebPulseShape");
         eePulseShape_ = ps.getParameter<std::vector<double> >("eePulseShape");
@@ -359,7 +359,7 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                       if( itneigh != digis.end() ) neighbors.push_back(*itneigh);                       
                     }
                   }
-                  ootSubtraction_endcap_.init( *itdg, neighbors, pedVec, gainRatios, EEamplitudeFitParameters_, EEpuSubtractionLimits_ );
+                  ootSubtraction_endcap_.init( *itdg, neighbors, pedVec, gainRatios, EEamplitudeFitParameters_, EEpuSubtractionParameters_ );
                   ootSubtraction_endcap_.setDynamicPedestal(false);
                   ootSubtraction_endcap_.computeAmplitudeOOT(pileup_datasamples_endcap);
                 } else {
@@ -378,7 +378,7 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                       if( itneigh != digis.end() ) neighbors.push_back(*itneigh);
                     }
                   }
-                  ootSubtraction_barrel_.init( *itdg, neighbors, pedVec, gainRatios, EBamplitudeFitParameters_, EBpuSubtractionLimits_ );
+                  ootSubtraction_barrel_.init( *itdg, neighbors, pedVec, gainRatios, EBamplitudeFitParameters_, EBpuSubtractionParameters_ );
                   ootSubtraction_barrel_.setDynamicPedestal(false);
                   ootSubtraction_barrel_.computeAmplitudeOOT(pileup_datasamples_barrel);
                 }

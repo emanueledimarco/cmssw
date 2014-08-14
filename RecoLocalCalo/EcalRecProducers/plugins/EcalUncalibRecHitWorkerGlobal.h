@@ -127,8 +127,8 @@ class EcalUncalibRecHitWorkerGlobal : public EcalUncalibRecHitWorkerBaseClass {
                 // for OOT pu subtraction
                 const CaloSubdetectorTopology* theSubdetTopologyEB_;
                 const CaloSubdetectorTopology* theSubdetTopologyEE_;
-                std::vector<double> EBpuSubtractionLimits_;
-                std::vector<double> EEpuSubtractionLimits_;
+                std::vector<double> EBpuSubtractionParameters_;
+                std::vector<double> EEpuSubtractionParameters_;
                 EcalUncalibRecHitOutOfTimeSubtractionAlgo<EBDataFrame> ootSubtraction_barrel_;
                 EcalUncalibRecHitOutOfTimeSubtractionAlgo<EEDataFrame> ootSubtraction_endcap_;
                 bool subtractPU_;

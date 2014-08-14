@@ -39,12 +39,12 @@ void pusubtree::Loop(const char *outputfilename)
    for(int clustertype=0; clustertype<3; ++clustertype) {
 
      std::vector<TH1F*> resolutions_EB, resolutions_EE;
-     float ptbins[7] = {1,10,20,30,50,100,300};
+     float ebins[7] = {1,10,20,30,50,100,300};
      for(int e=0;e<2;++e) {
        std::string suffix = (e==0) ? "EB" : "EE";
        for(int p=0;p<7;++p) {
          char namer[50];
-         sprintf(namer,"cluster%d_res_%s_ptbin%d",clustertype,suffix.c_str(),p);
+         sprintf(namer,"cluster%d_res_%s_ebin%d",clustertype,suffix.c_str(),p);
          TH1F* ires = (TH1F*)res->Clone(namer);
          if(e==0) resolutions_EB.push_back(ires);
          else resolutions_EE.push_back(ires);
@@ -81,15 +81,15 @@ void pusubtree::Loop(const char *outputfilename)
 
            if(mcmatch(scdir,pGamma)) {
              matched=true;
-             int ptbin=0;
-             for(int ipt=0; ipt<6; ++ipt) {
-               if(pGamma.Pt() >= ptbins[ipt] && pGamma.Pt() < ptbins[ipt+1]) {
-                 ptbin=ipt; break;
+             int ebin=0;
+             for(int iene=0; iene<6; ++iene) {
+               if(pGamma.Mag() >= ebins[iene] && pGamma.Mag() < ebins[iene+1]) {
+                 ebin=iene; break;
                }
              }
              float energy=0;
              if(clustertype==0) energy = energyEBCaloClusters[isc]; else if(clustertype==1) energy = energyEBCaloClusters2[isc]; else energy = energyEBCaloClusters3[isc];
-             resolutions_EB[ptbin]->Fill((energy-energyMc[isc])/energyMc[isc]);
+             resolutions_EB[ebin]->Fill((energy-energyMc[isc])/energyMc[isc]);
            }
          }
        } else {
@@ -104,15 +104,15 @@ void pusubtree::Loop(const char *outputfilename)
 
           if(mcmatch(scdir,pGamma)) {
             matched=true;
-            int ptbin=0;
-            for(int ipt=0; ipt<6; ++ipt) {
-              if(pGamma.Pt() >= ptbins[ipt] && pGamma.Pt() < ptbins[ipt+1]) {
-                ptbin=ipt; break;
+            int ebin=0;
+            for(int iene=0; iene<6; ++iene) {
+              if(pGamma.Mag() >= ebins[iene] && pGamma.Mag() < ebins[iene+1]) {
+                ebin=iene; break;
               }
             }
             float energy=0;
             if(clustertype==0) energy = energyEECaloClusters[isc]; else if(clustertype==1) energy = energyEECaloClusters2[isc]; else energy = energyEECaloClusters3[isc];
-            resolutions_EE[ptbin]->Fill((energy-energyMc[isc])/energyMc[isc]);
+            resolutions_EE[ebin]->Fill((energy-energyMc[isc])/energyMc[isc]);
           }
          }
        }

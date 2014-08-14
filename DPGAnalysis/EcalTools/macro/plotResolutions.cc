@@ -38,7 +38,7 @@ void plotResolutions(const char *file) {
       std::string suffix = (e==0) ? "EB" : "EE";
       for(int p=0;p<5;++p) {
         char namer[50];
-        sprintf(namer,"cluster%d_res_%s_ptbin%d",clustertype,suffix.c_str(),p);
+        sprintf(namer,"cluster%d_res_%s_ebin%d",clustertype,suffix.c_str(),p);
         TH1F* ires = (TH1F*)tfile->Get(namer);
         resolutions[clustertype][e][p] = ires;
         resolutions[clustertype][e][p]->Rebin(10);
@@ -69,15 +69,15 @@ void plotResolutions(const char *file) {
 
       resolutions[0][idet][p]->GetYaxis()->SetRangeUser(0,maxy);
       
-      if(p>0) resolutions[0][idet][p]->GetXaxis()->SetRangeUser(-0.1,0.1);
+      //      if(p>0 || idet==0) resolutions[0][idet][p]->GetXaxis()->SetRangeUser(-0.1,0.1);
       resolutions[0][idet][p]->GetXaxis()->SetTitle("E_{5x5}/E_{true}");
 
       resolutions[0][idet][p]->Draw();
-      // resolutions[1][idet][p]->Draw("sames");
+      //resolutions[1][idet][p]->Draw("sames");
       resolutions[2][idet][p]->Draw("sames");
 
       char ptrange[50];
-      sprintf(ptrange,"%d < p_{T} < %d GeV", ptbins[p], ptbins[p+1]);
+      sprintf(ptrange,"%d < E_{gen} < %d GeV", ptbins[p], ptbins[p+1]);
       TLatex *ptr = new TLatex(0.15,0.70,ptrange);
       ptr->SetNDC(kTRUE);
       ptr->SetTextSize(0.040);
@@ -90,7 +90,7 @@ void plotResolutions(const char *file) {
       results->SetTextFont(42);
       results->SetTextSize(0.035);
       results->AddText(Form("3+5: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[0][idet][p])));
-      // results->AddText(Form("DB+5: #sigma_{eff}=%.2f%%",100.0*effectiveSigma(resolutions[1][idet][p])));
+      //results->AddText(Form("DB+5: #sigma_{eff}=%.2f%%",100.0*effectiveSigma(resolutions[1][idet][p])));
       results->AddText(Form("DB+5 MPS: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[2][idet][p])));
       //results->AddText(Form("weights: r.m.s.=%.2f%%",100.0*resolutions[0][idet][p]->GetRMS()));
       //results->AddText(Form("weights + DB: r.m.s.=%.2f%%",100.0*resolutions[1][idet][p]->GetRMS()));
@@ -107,14 +107,14 @@ void plotResolutions(const char *file) {
       legend->SetTextFont  (    42);
   
       legend->AddEntry(resolutions[0][idet][p], "3+5");
-      // legend->AddEntry(resolutions[1][idet][p], "DB+5");
+      //legend->AddEntry(resolutions[1][idet][p], "DB+5");
       legend->AddEntry(resolutions[2][idet][p], "DB+5 MPS");
 
       legend->Draw();
       CP->Draw();
 
-      c1->SaveAs(TString("figures/ShapeSub_5pDB_")+resolutions[0][idet][p]->GetName()+TString(".pdf"));
-      c1->SaveAs(TString("figures/ShapeSub_5pDB_")+resolutions[0][idet][p]->GetName()+TString(".png"));
+      c1->SaveAs(TString("figures/test1_")+resolutions[0][idet][p]->GetName()+TString(".pdf"));
+      c1->SaveAs(TString("figures/test1_")+resolutions[0][idet][p]->GetName()+TString(".png"));
 
     }
   }

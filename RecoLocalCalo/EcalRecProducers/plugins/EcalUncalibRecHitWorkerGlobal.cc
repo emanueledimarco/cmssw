@@ -150,9 +150,6 @@ EcalUncalibRecHitWorkerGlobal::set(const edm::EventSetup& es)
         theSubdetTopologyEB_ = theCaloTopology->getSubdetectorTopology(DetId::Ecal,EcalBarrel);
         theSubdetTopologyEE_ = theCaloTopology->getSubdetectorTopology(DetId::Ecal,EcalEndcap);
 
-        // setup the weights algorithm
-        weightsMethod_barrel_.SetDynamicPedestal(false);
-        weightsMethod_endcap_.SetDynamicPedestal(false);
 }
 
 
@@ -405,10 +402,14 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
 
           // get uncalibrated recHit from weights
           if (detid.subdetId()==EcalEndcap) {
-            if(subtractPU_) weightsMethod_endcap_.setPileupDataFrame(pileup_datasamples_endcap);
+            if(subtractPU_) { 
+              weightsMethod_endcap_.setPileupDataFrame(pileup_datasamples_endcap);
+              weightsMethod_endcap_.SetDynamicPedestal( (ootSubtraction_endcap_.calculatedExtrahit_.puTagged) ? false : true );
+            } else weightsMethod_endcap_.SetDynamicPedestal(true);
             uncalibRecHit = weightsMethod_endcap_.makeRecHit(*itdg, pedVec, pedRMSVec, gainRatios, weights, testbeamEEShape);
           } else {
             if(subtractPU_) weightsMethod_barrel_.setPileupDataFrame(pileup_datasamples_barrel);
+            weightsMethod_barrel_.SetDynamicPedestal(false);
             uncalibRecHit = weightsMethod_barrel_.makeRecHit(*itdg, pedVec, pedRMSVec, gainRatios, weights, testbeamEBShape);
           }
                 // === time computation ===

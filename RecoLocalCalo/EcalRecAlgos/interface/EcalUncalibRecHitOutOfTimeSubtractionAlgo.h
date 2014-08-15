@@ -23,7 +23,7 @@ template < class C > class EcalUncalibRecHitOutOfTimeSubtractionAlgo {
   struct CalculatedExtraHit {
     double amplitudeMax;
     double timeMax;
-    double amplitudeExtapolated;
+    bool puTagged;
   };
 
   // constructor
@@ -35,6 +35,9 @@ template < class C > class EcalUncalibRecHitOutOfTimeSubtractionAlgo {
 
   // destructor 
   virtual ~ EcalUncalibRecHitOutOfTimeSubtractionAlgo < C > () { };
+
+  CalculatedExtraHit calculatedExtrahit_;
+
   // function to be able to compute
   // amplitude and time of the OOT pileup
   void init( const C &dataFrame, std::vector<C> neighbors, 
@@ -54,7 +57,6 @@ template < class C > class EcalUncalibRecHitOutOfTimeSubtractionAlgo {
   float minSeedAmplitudeOutOfTime_, minAmplitudeOutOfTime_, lastOOTSampleUsed_;
   bool dyn_pedestal_;
 
-  CalculatedExtraHit calculatedExtrahit_;
 };
 
 template<class C> double EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::pulseShapeFunction(double t){
@@ -96,6 +98,7 @@ void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::init( const C &dataFrame, std
   theDetId_ = DetId(dataFrame.id().rawId());  
   calculatedExtrahit_.timeMax = 5;
   calculatedExtrahit_.amplitudeMax = 0;
+  calculatedExtrahit_.puTagged = false;
   amplitudes_.clear();
   amplitudes_.reserve(C::MAXSAMPLES);
 	
@@ -203,6 +206,8 @@ void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::computeAmplitudeOOT(std::vect
       extraHitFrame[iSample] = (iSample<3) ? 0.0 : std::max(.0, pulseShapeFunction(iSample));
       // std::cout << "\t\tSUBTRACTING TO SAMPLE " << iSample << " extraHitFrame[iSample] = " << extraHitFrame[iSample] << std::endl;
     }
+
+    calculatedExtrahit_.puTagged = true;
 
   }
 }

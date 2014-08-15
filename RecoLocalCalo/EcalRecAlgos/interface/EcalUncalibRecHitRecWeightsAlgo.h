@@ -109,6 +109,7 @@ template<class C> class EcalUncalibRecHitRecWeightsAlgo
     /*
     std::cout << "=====In the weights algo. ==== " << std::endl;
     std::cout << "PU SUB = " << subtract_pu << std::endl;
+    std::cout << "dyn ped = " << dyn_pedestal << std::endl;
     for(int iSample = 0; iSample < C::MAXSAMPLES; iSample++)
       std::cout << "\tisample = " << iSample << " frame(iSample) = " << frame(iSample) << "\tframePedSub(iSample) = " << framePedSub(iSample) << std::endl;
     std::cout << "=====Done weights algo. ==== " << std::endl;

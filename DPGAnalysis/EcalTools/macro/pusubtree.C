@@ -37,7 +37,7 @@ void pusubtree::Loop(const char *outputfilename)
    TH1F *res = new TH1F("res","",1000,-0.20,0.20);
 
    for(int clustertype=0; clustertype<3; ++clustertype) {
-
+     if(clustertype==1) continue;
      std::vector<TH1F*> resolutions_EB, resolutions_EE;
      float ebins[7] = {1,10,20,30,50,100,300};
      for(int e=0;e<2;++e) {
@@ -89,10 +89,10 @@ void pusubtree::Loop(const char *outputfilename)
              }
              float energy=0;
              if(clustertype==0) energy = energyEBCaloClusters[isc]; else if(clustertype==1) energy = energyEBCaloClusters2[isc]; else energy = energyEBCaloClusters3[isc];
-             resolutions_EB[ebin]->Fill((energy-energyMc[isc])/energyMc[isc]);
+             resolutions_EB[ebin]->Fill((energy-pMc[0])/pMc[0]);
            }
          }
-       } else {
+       } else if(fabs(etaMc[0])<2.5) {
          int nClus=0;
          if(clustertype==0) nClus = nEECaloClusters; else if(clustertype==1) nClus = nEECaloClusters2 ; else nClus=nEECaloClusters3;
          nClus = std::min(nClus,100); // the true one is the high energy one (and clustrs are sorted)
@@ -112,7 +112,7 @@ void pusubtree::Loop(const char *outputfilename)
             }
             float energy=0;
             if(clustertype==0) energy = energyEECaloClusters[isc]; else if(clustertype==1) energy = energyEECaloClusters2[isc]; else energy = energyEECaloClusters3[isc];
-            resolutions_EE[ebin]->Fill((energy-energyMc[isc])/energyMc[isc]);
+            resolutions_EE[ebin]->Fill((energy-pMc[0])/pMc[0]);
           }
          }
        }

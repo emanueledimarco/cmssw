@@ -341,12 +341,12 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                 // === oot energy ===
                 std::vector<double> pileup_datasamples_barrel, pileup_datasamples_endcap; 
                 if (detid.subdetId()==EcalEndcap) {
-                  // std::cout << "======> ENDCAP: " << std::endl;
+                  //std::cout << "======> ENDCAP: " << std::endl;
                   CaloNavigator<DetId> cursorE = CaloNavigator<DetId>(detid, theSubdetTopologyEE_ );
                   std::vector<EEDataFrame> neighbors;
                   for(int ix=-2; ix<3; ++ix) {
                     for(int iy=-2; iy<3; ++iy) {
-                      if(ix==0 && iy==0) continue;
+                      // if(ix==0 && iy==0) continue;
                       //if((ix==0 && abs(iy)<2) || (iy==0 && abs(ix)<2)) continue; // exclude the swiss cross
                       //if(abs(ix)<2 && abs(iy)<2 ) continue; // exclude the 3x3 polluted by the em shower
                       cursorE.home();
@@ -360,7 +360,7 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                   ootSubtraction_endcap_.setDynamicPedestal(false);
                   ootSubtraction_endcap_.computeAmplitudeOOT(pileup_datasamples_endcap);
                 } else {
-                  // std::cout << "======> BARREL: " << std::endl;
+                  //std::cout << "======> BARREL: " << std::endl;
                   CaloNavigator<DetId> cursorE = CaloNavigator<DetId>(detid, theSubdetTopologyEB_ );
                   std::vector<EBDataFrame> neighbors;
                   for(int ix=-2; ix<3; ++ix) {

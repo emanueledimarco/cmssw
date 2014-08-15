@@ -132,7 +132,7 @@ void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::init( const C &dataFrame, std
       }
     }// loop on samples
     timeNeighbors[index] = (thisHitMaxAmpli > minAmplitudeOutOfTime_) ? thisHitMaxSample : -900;
-    // std::cout << "t\t\tXXX neighbor " << index << " has maxTime = " << thisHitMaxSample << " and maxAmpli = " << thisHitMaxAmpli << std::endl;
+    // std::cout << "\t\tXXX neighbor " << index << " has maxTime = " << thisHitMaxSample << " and maxAmpli = " << thisHitMaxAmpli << std::endl;
   } // loop over neighbors
 
   nConsistentBX_=0;
@@ -204,7 +204,7 @@ void EcalUncalibRecHitOutOfTimeSubtractionAlgo<C>::computeAmplitudeOOT(std::vect
     
     for(int iSample = 0; iSample < C::MAXSAMPLES; iSample++) {
       extraHitFrame[iSample] = (iSample<3) ? 0.0 : std::max(.0, pulseShapeFunction(iSample));
-      // std::cout << "\t\tSUBTRACTING TO SAMPLE " << iSample << " extraHitFrame[iSample] = " << extraHitFrame[iSample] << std::endl;
+      //std::cout << "\t\tSUBTRACTING TO SAMPLE " << iSample << " extraHitFrame[iSample] = " << extraHitFrame[iSample] << std::endl;
     }
 
     calculatedExtrahit_.puTagged = true;

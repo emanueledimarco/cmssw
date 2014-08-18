@@ -38,16 +38,15 @@ void pusubtree::Loop(const char *outputfilename)
 
    for(int clustertype=0; clustertype<3; ++clustertype) {
      if(clustertype==1) continue;
-     std::vector<TH1F*> resolutions_EB, resolutions_EE;
+     TH1F* resolutions[4][6];
      float ebins[7] = {1,10,20,30,50,100,300};
-     for(int e=0;e<2;++e) {
-       std::string suffix = (e==0) ? "EB" : "EE";
-       for(int p=0;p<7;++p) {
+     float etabins[5] = {0.,1.479,1.8,2.5,3.0};
+     for(int e=0;e<4;++e) {
+       for(int p=0;p<6;++p) {
          char namer[50];
-         sprintf(namer,"cluster%d_res_%s_ebin%d",clustertype,suffix.c_str(),p);
+         sprintf(namer,"cluster%d_res_eta%d_e%d",clustertype,e,p);
          TH1F* ires = (TH1F*)res->Clone(namer);
-         if(e==0) resolutions_EB.push_back(ires);
-         else resolutions_EE.push_back(ires);
+         resolutions[e][p] = ires;
        }
      }
 
@@ -83,16 +82,22 @@ void pusubtree::Loop(const char *outputfilename)
              matched=true;
              int ebin=0;
              for(int iene=0; iene<6; ++iene) {
-               if(pGamma.Mag() >= ebins[iene] && pGamma.Mag() < ebins[iene+1]) {
+               if(pGamma.Pt() >= ebins[iene] && pGamma.Pt() < ebins[iene+1]) {
                  ebin=iene; break;
                }
              }
              float energy=0;
              if(clustertype==0) energy = energyEBCaloClusters[isc]; else if(clustertype==1) energy = energyEBCaloClusters2[isc]; else energy = energyEBCaloClusters3[isc];
-             resolutions_EB[ebin]->Fill((energy-pMc[0])/pMc[0]);
+             resolutions[0][ebin]->Fill((energy-pMc[0])/pMc[0]);
            }
          }
-       } else if(fabs(etaMc[0])<2.5) {
+       } else {
+         int etabin=3;
+         for(int iee=1;iee<4;++iee) {
+           if(fabs(etaMc[0])>=etabins[iee] && fabs(etaMc[0]) < etabins[iee+1]) { 
+             etabin=iee; break;
+           }
+         }
          int nClus=0;
          if(clustertype==0) nClus = nEECaloClusters; else if(clustertype==1) nClus = nEECaloClusters2 ; else nClus=nEECaloClusters3;
          nClus = std::min(nClus,100); // the true one is the high energy one (and clustrs are sorted)
@@ -106,23 +111,20 @@ void pusubtree::Loop(const char *outputfilename)
             matched=true;
             int ebin=0;
             for(int iene=0; iene<6; ++iene) {
-              if(pGamma.Mag() >= ebins[iene] && pGamma.Mag() < ebins[iene+1]) {
+              if(pGamma.Pt() >= ebins[iene] && pGamma.Pt() < ebins[iene+1]) {
                 ebin=iene; break;
               }
             }
             float energy=0;
             if(clustertype==0) energy = energyEECaloClusters[isc]; else if(clustertype==1) energy = energyEECaloClusters2[isc]; else energy = energyEECaloClusters3[isc];
-            resolutions_EE[ebin]->Fill((energy-pMc[0])/pMc[0]);
+            resolutions[etabin][ebin]->Fill((energy-pMc[0])/pMc[0]);
           }
          }
        }
        
      } // loop over the events
      
-     for(int i=0; i<(int) resolutions_EB.size(); ++i) {
-       resolutions_EB[i]->Write();
-       resolutions_EE[i]->Write();
-     }
+     for(int i=0; i<4; ++i) for(int j=0; j<6; ++j) resolutions[i][j]->Write();
 
    } // loop over the cluster types
 

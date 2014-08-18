@@ -29,18 +29,17 @@ void plotResolutions(const char *file) {
 
   vector<TH1F*> resolutions_EB_1, resolutions_EE_1, resolutions_EB_2, resolutions_EE_2;
   //               [type][eta][pt]
-  TH1F *resolutions[3][2][5];
+  TH1F *resolutions[3][4][5];
   TFile *tfile = TFile::Open(file);
 
   // get the histograms from the files
   for(int clustertype=0;clustertype<3;++clustertype) {
-    for(int e=0;e<2;++e) {
-      std::string suffix = (e==0) ? "EB" : "EE";
+    if(clustertype==1) continue;
+    for(int e=0;e<4;++e) {
       for(int p=0;p<5;++p) {
         char namer[50];
-        sprintf(namer,"cluster%d_res_%s_ebin%d",clustertype,suffix.c_str(),p);
-        TH1F* ires = (TH1F*)tfile->Get(namer);
-        resolutions[clustertype][e][p] = ires;
+        sprintf(namer,"cluster%d_res_eta%d_e%d",clustertype,e,p);
+        resolutions[clustertype][e][p] = (TH1F*)tfile->Get(namer);
         resolutions[clustertype][e][p]->Rebin(10);
       }
     }
@@ -48,6 +47,10 @@ void plotResolutions(const char *file) {
 
   // plot
   gStyle->SetOptStat(0);
+
+  float effSigma[3][2][5], coreSigma[3][2][5];
+  float mean[3][2][5];
+  float xsigmaToFit=1.;
 
   // the sample is pT: [1-100] GeV
   int ptbins[7] = {1,10,20,30,50,100,300};
@@ -57,18 +60,17 @@ void plotResolutions(const char *file) {
   CP->SetNDC(kTRUE);
   CP->SetTextSize(0.030);
   
-  for(int idet=0;idet<2;++idet) {
+  for(int idet=0;idet<4;++idet) {
     for(int p=0;p<5;++p) {
       
       resolutions[0][idet][p]->SetLineColor(kBlack);
-      resolutions[1][idet][p]->SetLineColor(kRed+1);
+      // resolutions[1][idet][p]->SetLineColor(kRed+1);
       resolutions[2][idet][p]->SetLineColor(kGreen+1);
       
-      float maxy = std::max(resolutions[0][idet][p]->GetMaximum(),std::max(resolutions[1][idet][p]->GetMaximum(),resolutions[2][idet][p]->GetMaximum()));
+      //       float maxy = std::max(resolutions[0][idet][p]->GetMaximum(),std::max(resolutions[1][idet][p]->GetMaximum(),resolutions[2][idet][p]->GetMaximum()));
+      float maxy = std::max(resolutions[0][idet][p]->GetMaximum(),resolutions[2][idet][p]->GetMaximum());
       maxy*=1.2;
 
-      resolutions[0][idet][p]->GetYaxis()->SetRangeUser(0,maxy);
-      
       //      if(p>0 || idet==0) resolutions[0][idet][p]->GetXaxis()->SetRangeUser(-0.1,0.1);
       resolutions[0][idet][p]->GetXaxis()->SetTitle("E_{5x5}/E_{true}");
 
@@ -83,18 +85,39 @@ void plotResolutions(const char *file) {
       ptr->SetTextSize(0.040);
       ptr->Draw();
 
+      effSigma[0][idet][p] = effectiveSigma(resolutions[0][idet][p]);
+      effSigma[2][idet][p] = effectiveSigma(resolutions[2][idet][p]);
+      mean[0][idet][p] = resolutions[0][idet][p]->GetMean();
+      mean[2][idet][p] = resolutions[2][idet][p]->GetMean();
+
+      // first pass, rough
+      resolutions[0][idet][p]->Fit("gaus","","QN",mean[0][idet][p]-3*effSigma[0][idet][p],mean[0][idet][p]+3*effSigma[0][idet][p]);
+      mean[0][idet][p] = resolutions[0][idet][p]->GetFunction("gaus")->GetParameter(1);
+      resolutions[2][idet][p]->Fit("gaus","","QN",mean[2][idet][p]-3*effSigma[2][idet][p],mean[2][idet][p]+3*effSigma[2][idet][p]);
+      mean[2][idet][p] = resolutions[2][idet][p]->GetFunction("gaus")->GetParameter(1);
+      
+      // last pass, draw
+      resolutions[0][idet][p]->Fit("gaus","","same",mean[0][idet][p]-xsigmaToFit*effSigma[0][idet][p],mean[0][idet][p]+xsigmaToFit*effSigma[0][idet][p]);
+      resolutions[0][idet][p]->GetFunction("gaus")->SetLineColor(kBlack);
+      resolutions[2][idet][p]->Fit("gaus","","same",mean[2][idet][p]-xsigmaToFit*effSigma[2][idet][p],mean[2][idet][p]+xsigmaToFit*effSigma[2][idet][p]);
+      resolutions[2][idet][p]->GetFunction("gaus")->SetLineColor(kGreen+1);
+      coreSigma[0][idet][p] = resolutions[0][idet][p]->GetFunction("gaus")->GetParameter(2);
+      coreSigma[2][idet][p] = resolutions[2][idet][p]->GetFunction("gaus")->GetParameter(2);
+
+      resolutions[0][idet][p]->GetYaxis()->SetRangeUser(0,maxy);
+      c1->Update();
+
       TPaveText *results = new TPaveText(.6,.7,.8,.9,"NDC");
       results->SetBorderSize(0);
       results->SetFillColor (0);
       results->SetTextAlign(12);
       results->SetTextFont(42);
       results->SetTextSize(0.035);
-      results->AddText(Form("3+5: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[0][idet][p])));
+      results->AddText(Form("3+5: #sigma_{eff},=%.1f%%",100.0*effSigma[0][idet][p]));
+      results->AddText(Form("     #sigma_{core},=%.1f%%",100.0*coreSigma[0][idet][p]));
       //results->AddText(Form("DB+5: #sigma_{eff}=%.2f%%",100.0*effectiveSigma(resolutions[1][idet][p])));
-      results->AddText(Form("DB+5 MPS: #sigma_{eff}=%.1f%%",100.0*effectiveSigma(resolutions[2][idet][p])));
-      //results->AddText(Form("weights: r.m.s.=%.2f%%",100.0*resolutions[0][idet][p]->GetRMS()));
-      //results->AddText(Form("weights + DB: r.m.s.=%.2f%%",100.0*resolutions[1][idet][p]->GetRMS()));
-      //results->AddText(Form("weights + DB NoPU: r.m.s.=%.2f%%",100.0*resolutions[2][idet][p]->GetRMS()));
+      results->AddText(Form("DB+5 MPS: #sigma_{eff}=%.1f%%",100.0*effSigma[2][idet][p]));
+      results->AddText(Form("          #sigma_{core}=%.1f%%",100.0*coreSigma[2][idet][p]));
 
       results->Draw();
 
@@ -113,8 +136,8 @@ void plotResolutions(const char *file) {
       legend->Draw();
       CP->Draw();
 
-      c1->SaveAs(TString("figures/test1_")+resolutions[0][idet][p]->GetName()+TString(".pdf"));
-      c1->SaveAs(TString("figures/test1_")+resolutions[0][idet][p]->GetName()+TString(".png"));
+      c1->SaveAs(TString("figures/ShapeSubImprovedPUTagging_")+resolutions[0][idet][p]->GetName()+TString(".pdf"));
+      c1->SaveAs(TString("figures/ShapeSubImprovedPUTagging_")+resolutions[0][idet][p]->GetName()+TString(".png"));
 
     }
   }

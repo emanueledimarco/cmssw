@@ -341,7 +341,9 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                 // === oot energy ===
                 std::vector<double> pileup_datasamples_barrel, pileup_datasamples_endcap; 
                 if (detid.subdetId()==EcalEndcap) {
-                  //std::cout << "======> ENDCAP: " << std::endl;
+                  // std::cout << "======> ENDCAP: " << std::endl;
+                  // EEDetId eedetid = (EEDetId)detid;
+                  // std::cout << "======> ix = " << eedetid.ix() << "\tiy = " << eedetid.iy() << "\tir = " << std::sqrt(std::pow(50-eedetid.ix(),2)+std::pow(50-eedetid.iy(),2)) << std::endl;
                   CaloNavigator<DetId> cursorE = CaloNavigator<DetId>(detid, theSubdetTopologyEE_ );
                   std::vector<EEDataFrame> neighbors;
                   for(int ix=-2; ix<3; ++ix) {
@@ -352,15 +354,15 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                       cursorE.home();
                       cursorE.offsetBy( ix, iy );
                       DetId cryId = cursorE.pos();
+                      if(cryId.subdetId()!=EcalEndcap) continue;
                       EcalDigiCollection::const_iterator itneigh = digis.find( cryId );
                       if( itneigh != digis.end() ) neighbors.push_back(*itneigh);                       
                     }
                   }
                   ootSubtraction_endcap_.init( *itdg, neighbors, pedVec, gainRatios, EEamplitudeFitParameters_, EEpuSubtractionParameters_ );
-                  ootSubtraction_endcap_.setDynamicPedestal(false);
                   ootSubtraction_endcap_.computeAmplitudeOOT(pileup_datasamples_endcap);
                 } else {
-                  //std::cout << "======> BARREL: " << std::endl;
+                  // std::cout << "======> BARREL: " << std::endl;
                   CaloNavigator<DetId> cursorE = CaloNavigator<DetId>(detid, theSubdetTopologyEB_ );
                   std::vector<EBDataFrame> neighbors;
                   for(int ix=-2; ix<3; ++ix) {
@@ -371,12 +373,12 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
                       cursorE.home();
                       cursorE.offsetBy( ix, iy );
                       DetId cryId = cursorE.pos();
+                      if(cryId.subdetId()!=EcalBarrel) continue;
                       EcalDigiCollection::const_iterator itneigh = digis.find( cryId );
                       if( itneigh != digis.end() ) neighbors.push_back(*itneigh);
                     }
                   }
                   ootSubtraction_barrel_.init( *itdg, neighbors, pedVec, gainRatios, EBamplitudeFitParameters_, EBpuSubtractionParameters_ );
-                  ootSubtraction_barrel_.setDynamicPedestal(false);
                   ootSubtraction_barrel_.computeAmplitudeOOT(pileup_datasamples_barrel);
                 }
 

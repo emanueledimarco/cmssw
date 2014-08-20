@@ -34,12 +34,12 @@ void pusubtree::Loop(const char *outputfilename)
 
    TFile *fileo = TFile::Open(outputfilename,"recreate");
 
-   TH1F *res = new TH1F("res","",1000,-0.20,0.20);
+   TH1F *res = new TH1F("res","",1000,-0.50,0.50);
 
    for(int clustertype=0; clustertype<3; ++clustertype) {
      if(clustertype==1) continue;
      TH1F* resolutions[4][6];
-     float ebins[7] = {1,10,20,30,50,100,300};
+     float ebins[7] = {1,5,10,30,50,100,300};
      float etabins[5] = {0.,1.479,1.8,2.5,3.0};
      for(int e=0;e<4;++e) {
        for(int p=0;p<6;++p) {

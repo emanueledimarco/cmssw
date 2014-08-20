@@ -40,7 +40,8 @@ void plotResolutions(const char *file) {
         char namer[50];
         sprintf(namer,"cluster%d_res_eta%d_e%d",clustertype,e,p);
         resolutions[clustertype][e][p] = (TH1F*)tfile->Get(namer);
-        resolutions[clustertype][e][p]->Rebin(10);
+        if(p<2) resolutions[clustertype][e][p]->Rebin(20);
+        else resolutions[clustertype][e][p]->Rebin(5);
       }
     }
   }
@@ -53,7 +54,7 @@ void plotResolutions(const char *file) {
   float xsigmaToFit=1.;
 
   // the sample is pT: [1-100] GeV
-  int ptbins[7] = {1,10,20,30,50,100,300};
+  int ptbins[7] = {1,5,10,30,50,100,300};
 
   TCanvas *c1 = new TCanvas("c1","",600,600);
   TLatex* CP = new TLatex(0.15,0.96, "CMS Gun Simulation                                               #sqrt{s} = 8 TeV");
@@ -71,7 +72,7 @@ void plotResolutions(const char *file) {
       float maxy = std::max(resolutions[0][idet][p]->GetMaximum(),resolutions[2][idet][p]->GetMaximum());
       maxy*=1.2;
 
-      //      if(p>0 || idet==0) resolutions[0][idet][p]->GetXaxis()->SetRangeUser(-0.1,0.1);
+      if(p>1) resolutions[0][idet][p]->GetXaxis()->SetRangeUser(-0.15,0.15);
       resolutions[0][idet][p]->GetXaxis()->SetTitle("E_{5x5}/E_{true}");
 
       resolutions[0][idet][p]->Draw();
@@ -87,6 +88,7 @@ void plotResolutions(const char *file) {
 
       effSigma[0][idet][p] = effectiveSigma(resolutions[0][idet][p]);
       effSigma[2][idet][p] = effectiveSigma(resolutions[2][idet][p]);
+      /*
       mean[0][idet][p] = resolutions[0][idet][p]->GetMean();
       mean[2][idet][p] = resolutions[2][idet][p]->GetMean();
 
@@ -103,6 +105,7 @@ void plotResolutions(const char *file) {
       resolutions[2][idet][p]->GetFunction("gaus")->SetLineColor(kGreen+1);
       coreSigma[0][idet][p] = resolutions[0][idet][p]->GetFunction("gaus")->GetParameter(2);
       coreSigma[2][idet][p] = resolutions[2][idet][p]->GetFunction("gaus")->GetParameter(2);
+      */
 
       resolutions[0][idet][p]->GetYaxis()->SetRangeUser(0,maxy);
       c1->Update();
@@ -114,10 +117,10 @@ void plotResolutions(const char *file) {
       results->SetTextFont(42);
       results->SetTextSize(0.035);
       results->AddText(Form("3+5: #sigma_{eff},=%.1f%%",100.0*effSigma[0][idet][p]));
-      results->AddText(Form("     #sigma_{core},=%.1f%%",100.0*coreSigma[0][idet][p]));
+      //results->AddText(Form("     #sigma_{core},=%.1f%%",100.0*coreSigma[0][idet][p]));
       //results->AddText(Form("DB+5: #sigma_{eff}=%.2f%%",100.0*effectiveSigma(resolutions[1][idet][p])));
       results->AddText(Form("DB+5 MPS: #sigma_{eff}=%.1f%%",100.0*effSigma[2][idet][p]));
-      results->AddText(Form("          #sigma_{core}=%.1f%%",100.0*coreSigma[2][idet][p]));
+      //results->AddText(Form("          #sigma_{core}=%.1f%%",100.0*coreSigma[2][idet][p]));
 
       results->Draw();
 
@@ -136,8 +139,8 @@ void plotResolutions(const char *file) {
       legend->Draw();
       CP->Draw();
 
-      c1->SaveAs(TString("figures/ShapeSubImprovedPUTagging_")+resolutions[0][idet][p]->GetName()+TString(".pdf"));
-      c1->SaveAs(TString("figures/ShapeSubImprovedPUTagging_")+resolutions[0][idet][p]->GetName()+TString(".png"));
+      c1->SaveAs(TString("figures/test3_")+resolutions[0][idet][p]->GetName()+TString(".pdf"));
+      c1->SaveAs(TString("figures/test3_")+resolutions[0][idet][p]->GetName()+TString(".png"));
 
     }
   }

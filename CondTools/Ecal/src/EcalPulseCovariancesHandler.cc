@@ -21,10 +21,9 @@ popcon::EcalPulseCovariancesHandler::~EcalPulseCovariancesHandler()
 bool popcon::EcalPulseCovariancesHandler::checkPulseCovariance( EcalPulseCovariances::Item* item ){
   // true means all is standard and OK
   bool result=true;
-  for(int k=0; k<std::pow(EcalPulseShape::TEMPLATESAMPLES,2); ++k) {
-    int i = k/EcalPulseShape::TEMPLATESAMPLES;
-    int j = k%EcalPulseShape::TEMPLATESAMPLES;
-    if(fabs(item->covval[i][j]) > 1) result=false;
+  int N = EcalPulseShape::TEMPLATESAMPLES*(EcalPulseShape::TEMPLATESAMPLES+1)/2;
+  for(int k=0; k<N; ++k) {
+    if(fabs(item->covval[k]) > 1) result=false;
   }
   return result; 
 }
@@ -33,7 +32,10 @@ void popcon::EcalPulseCovariancesHandler::fillSimPulseCovariance( EcalPulseCovar
   for(int k=0; k<std::pow(EcalPulseShape::TEMPLATESAMPLES,2); ++k) {
     int i = k/EcalPulseShape::TEMPLATESAMPLES;
     int j = k%EcalPulseShape::TEMPLATESAMPLES;
-    item->covval[i][j] = isbarrel ? m_EBPulseShapeCovariance[k] : m_EEPulseShapeCovariance[k];
+    if(j>=i) {
+      int linK = j + (EcalPulseShape::TEMPLATESAMPLES-1)*i;
+      item->covval[linK] = isbarrel ? m_EBPulseShapeCovariance[k] : m_EEPulseShapeCovariance[k];
+    }
   }
 }
 
@@ -76,7 +78,12 @@ void popcon::EcalPulseCovariancesHandler::getNewObjects()
         return;
       }
       EcalPulseCovariances::Item item;
-      for(int i=0; i<EcalPulseShape::TEMPLATESAMPLES; ++i) for(int j=0; j<EcalPulseShape::TEMPLATESAMPLES; ++j) item.covval[i][j] = covvals[i][j];
+      for(int i=0; i<EcalPulseShape::TEMPLATESAMPLES; ++i) for(int j=0; j<EcalPulseShape::TEMPLATESAMPLES; ++j) {
+          int k=-1;
+          if(j >= i) k = j + (EcalPulseShape::TEMPLATESAMPLES-1)*i;
+          else k = i + (EcalPulseShape::TEMPLATESAMPLES-1)*j;
+          item.covval[k] = covvals[i][j];
+        }
     
       if(isbarrel) {
         EBDetId ebdetid(rawId);

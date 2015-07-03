@@ -213,7 +213,7 @@ namespace cond {
 						float y = -1 - ieta;
 						if(sign == 1) y = ieta;
                                                 for(int s = 0; s<EcalPulseShape::TEMPLATESAMPLES; ++s) {
-                                                  barrel_s[s]->Fill(iphi, y, fabs(object()[id.rawId()].covval[THERAW][s]));
+                                                  barrel_s[s]->Fill(iphi, y, fabs(object()[id.rawId()].val(THERAW,s)));
                                                 }
 					}  // iphi
 				}   // ieta
@@ -224,11 +224,11 @@ namespace cond {
 						EEDetId id(ix+1,iy+1,thesign);
 						if (thesign==1) {
                                                   for(int s = 0; s<EcalPulseShape::TEMPLATESAMPLES; ++s)
-                                                    endc_p_s[s]->Fill(ix+1,iy+1,fabs(object()[id.rawId()].covval[THERAW][s]));
+                                                    endc_p_s[s]->Fill(ix+1,iy+1,fabs(object()[id.rawId()].val(THERAW,s)));
 						}
 						else { 
                                                   for(int s = 0; s<EcalPulseShape::TEMPLATESAMPLES; ++s)
-                                                    endc_m_s[s]->Fill(ix+1,iy+1,fabs(object()[id.rawId()].covval[THERAW][s]));
+                                                    endc_m_s[s]->Fill(ix+1,iy+1,fabs(object()[id.rawId()].val(THERAW,s)));
 						}
 					}  // iy
 				}   // ix

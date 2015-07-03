@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-POPULATE_MC = False
+POPULATE_MC = True
 FIRST_RUN_DATA = '2'
 
 if POPULATE_MC: suffix = "mc"

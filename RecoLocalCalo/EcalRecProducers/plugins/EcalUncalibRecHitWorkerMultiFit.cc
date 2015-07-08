@@ -303,8 +303,8 @@ EcalUncalibRecHitWorkerMultiFit::run( const edm::Event & evt,
         for(int k=0; k<std::pow(EcalPulseShape::TEMPLATESAMPLES,2); ++k) {
           int i = k/EcalPulseShape::TEMPLATESAMPLES;
           int j = k%EcalPulseShape::TEMPLATESAMPLES;
-          fullpulsecovEB(i+7,j+7) = aPulseCov->covval[i][j];
-          fullpulsecovEE(i+7,j+7) = aPulseCov->covval[i][j];
+          fullpulsecovEB(i+7,j+7) = aPulseCov->val(i,j);
+          fullpulsecovEE(i+7,j+7) = aPulseCov->val(i,j);
         }
         
 	// compute the right bin of the pulse shape using time calibration constants

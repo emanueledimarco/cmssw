@@ -12,18 +12,8 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 process.load('Configuration.StandardSequences.RawToDigi_cff')
 process.load('Configuration.StandardSequences.Reconstruction_cff')
 
-process.GlobalTag.globaltag = 'GR_R_74_V10A'
-process.GlobalTag.toGet = cms.VPSet(
-    cms.PSet(record = cms.string("GeometryFileRcd"),
-             tag = cms.string("XMLFILE_Geometry_2015_72YV2_Extended2015ZeroMaterial_mc"),
-             connect = cms.untracked.string("frontier://FrontierProd/CMS_COND_GEOMETRY_000"),
-#             label = cms.untracked.string("Extended2015ZeroMaterial")
-             ),
-    cms.PSet(record = cms.string("EcalTBWeightsRcd"),
-             tag = cms.string("EcalTBWeights_3p5_time_mc"),
-             connect = cms.untracked.string("frontier://FrontierPrep/CMS_COND_ECAL")
-             )
-    )
+from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run1_data', '')
 
 #### CONFIGURE IT HERE
 isMC = True
@@ -116,71 +106,3 @@ process.p = cms.Path(process.ecalTestRecoLocal)
 process.outpath = cms.EndPath(process.out)
 
 
-#########################
-#    Time Profiling     #
-#########################
-
-#https://twiki.cern.ch/twiki/bin/viewauth/CMS/FastTimerService
-process.MessageLogger.categories.append('FastReport')
-process.MessageLogger.cerr.FastReport = cms.untracked.PSet( limit = cms.untracked.int32( 10000000 ) )
-
-# remove any instance of the FastTimerService
-if 'FastTimerService' in process.__dict__:
-    del process.FastTimerService
-    
-# instrument the menu with the FastTimerService
-process.load( "HLTrigger.Timer.FastTimerService_cfi" )
-
-# this is currently ignored in 7.x, and alway uses the real tim clock
-process.FastTimerService.useRealTimeClock         = True
-
-# enable specific features
-process.FastTimerService.enableTimingPaths        = True
-process.FastTimerService.enableTimingModules      = True
-process.FastTimerService.enableTimingExclusive    = True
-
-# print a text summary at the end of the job
-process.FastTimerService.enableTimingSummary      = True
-
-# skip the first path (useful for HLT timing studies to disregard the time spent loading event and conditions data)
-process.FastTimerService.skipFirstPath            = False
-
-# enable per-event DQM plots
-process.FastTimerService.enableDQM                = True
-
-# enable per-path DQM plots
-process.FastTimerService.enableDQMbyPathActive    = True
-process.FastTimerService.enableDQMbyPathTotal     = True
-process.FastTimerService.enableDQMbyPathOverhead  = True
-process.FastTimerService.enableDQMbyPathDetails   = True
-process.FastTimerService.enableDQMbyPathCounters  = True
-process.FastTimerService.enableDQMbyPathExclusive = True
-
-# enable per-module DQM plots
-process.FastTimerService.enableDQMbyModule        = True
-process.FastTimerService.enableDQMbyModuleType    = True
-        
-# enable per-event DQM sumary plots
-process.FastTimerService.enableDQMSummary         = True
-
-# enable per-event DQM plots by lumisection
-process.FastTimerService.enableDQMbyLumiSection   = True
-process.FastTimerService.dqmLumiSectionsRange     = 2500    # lumisections (23.31 s)
-
-# set the time resolution of the DQM plots
-process.FastTimerService.dqmTimeRange             = 1000.   # ms
-process.FastTimerService.dqmTimeResolution        =    5.   # ms
-process.FastTimerService.dqmPathTimeRange         =  100.   # ms
-process.FastTimerService.dqmPathTimeResolution    =    0.5  # ms
-process.FastTimerService.dqmModuleTimeRange       = 1000.   # ms
-process.FastTimerService.dqmModuleTimeResolution  =    0.5  # ms
-
-# set the base DQM folder for the plots
-process.FastTimerService.dqmPath                  = "HLT/TimerService"
-process.FastTimerService.enableDQMbyProcesses     = True
-
-# save the DQM plots in the DQMIO format
-process.dqmOutput = cms.OutputModule("DQMRootOutputModule",
-                                     fileName = cms.untracked.string("DQM_pu40.root")
-                                     )
-process.FastTimerOutput = cms.EndPath( process.dqmOutput )

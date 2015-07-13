@@ -104,6 +104,8 @@ EcalRecHitWorkerSimple::run( const edm::Event & evt,
     if( icalit!=icalMap.end() ) {
         icalconst = (*icalit);
     } else {
+        std::cout<<"EcalRecHitWorkerSimple.cc"<<std::endl;
+        throw cms::Exception("CrystalIDError");
         edm::LogError("EcalRecHitError") << "No intercalib const found for xtal "
                                          << detid.rawId()
                                          << "! something wrong with EcalIntercalibConstants in your DB? ";
@@ -121,6 +123,8 @@ EcalRecHitWorkerSimple::run( const edm::Event & evt,
     if( itime!=itimeMap.end() ) {
         itimeconst = (*itime);
     } else {
+        std::cout<<"EcalRecHitWorkerSimple.cc 2"<<std::endl;
+        throw cms::Exception("CrystalIDError");
         edm::LogError("EcalRecHitError") << "No time calib const found for xtal "
                         << detid.rawId()
                         << "! something wrong with EcalTimeCalibConstants in your DB? ";

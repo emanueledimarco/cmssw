@@ -28,7 +28,7 @@
 #include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
 #include "DataFormats/EcalDetId/interface/EBDetId.h"
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
-
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 
 EcalRecalibRecHitProducer::EcalRecalibRecHitProducer(const edm::ParameterSet& ps) {
@@ -126,6 +126,8 @@ void EcalRecalibRecHitProducer::produce(edm::Event& evt, const edm::EventSetup& 
                                 if( icalit!=icalMap.end() ){
                                         icalconst = (*icalit);
                                 } else {
+                                        std::cout<<"EcalRecalibRecHitProducer.cc"<<std::endl;
+                                        throw cms::Exception("CrystalIDError");
                                         edm::LogError("EcalRecHitError") << "No intercalib const found for xtal " << EBDetId(it->id()) << "! something wrong with EcalIntercalibConstants in your DB? "
                                                 ;
                                 }

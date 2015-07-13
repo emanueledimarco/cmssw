@@ -16,7 +16,7 @@
 
 #include <FWCore/ParameterSet/interface/ConfigurationDescriptions.h>
 #include <FWCore/ParameterSet/interface/ParameterSetDescription.h>
-
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 EcalUncalibRecHitWorkerGlobal::EcalUncalibRecHitWorkerGlobal(const edm::ParameterSet&ps,edm::ConsumesCollector& c) :
   EcalUncalibRecHitWorkerBaseClass(ps,c)
 {
@@ -255,6 +255,8 @@ EcalUncalibRecHitWorkerGlobal::run( const edm::Event & evt,
 	if( it != itime->end() ) {
 		  itimeconst = (*it);
 	} else {
+		  std::cout<<"EcalUncalibRecHitWorkerGlobal.cc"<<std::endl;
+		  throw cms::Exception("CrystalIDError");
 		  edm::LogError("EcalRecHitError") << "No time intercalib const found for xtal "
 		  << detid.rawId()
 		  << "! something wrong with EcalTimeCalibConstants in your DB? ";

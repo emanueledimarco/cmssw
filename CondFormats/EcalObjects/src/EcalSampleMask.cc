@@ -7,7 +7,7 @@
 #include <assert.h>
 #include "CondFormats/EcalObjects/interface/EcalSampleMask.h"
 #include "DataFormats/EcalDigi/interface/EcalDataFrame.h"
-
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 EcalSampleMask::EcalSampleMask() 
 {
   // by default, all samples are set as active
@@ -138,6 +138,8 @@ bool EcalSampleMask::useSample  (const int sampleId, DetId &theCrystalId) const 
     return useSampleEE ( sampleId );
   }
   else {
+    std::cout<<"EcalSampleMask.cc"<<std::endl;
+    throw cms::Exception("CrystalIDError");
     std::cout << "EcalSampleMaskuseSample::useSample can only be called for EcalBarrel or EcalEndcap DetID" << std::endl; 
     assert(0);
   }

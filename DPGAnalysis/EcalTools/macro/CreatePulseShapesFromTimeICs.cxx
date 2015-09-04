@@ -94,11 +94,24 @@ TH1D* makeSingleTemplate(float dt, bool EB) {
   fitF->FixParameter(3,5.5 + unitdt); // tmax
   fitF->FixParameter(4,0); // pedestal
 
+  int firstNonPed = EB ? 2 : 2;
+
+  // calc the max-sample
+  int maxsample=5;
+  double maxval=0;
+  for(int i=firstNonPed;i<15;++i) {
+    double val = fitF->Eval(i+0.5);
+    if(val>maxval) {
+      maxval=val;
+      maxsample=i;
+    }
+  }
+
+  // calc the normalized pulse shape
   for(int i=0;i<15;++i) {
     double val = 0.0; 
-    int firstNonPed = EB ? 2 : 2;
     if(i>firstNonPed) { 
-      val = fitF->Eval(i+0.5)/fitF->Eval(5.5);
+      val = fitF->Eval(i+0.5)/maxval;
     } else  tempH->SetBinContent(i+1, 0.0);
     tempH->SetBinContent(i+1, val); 
   }

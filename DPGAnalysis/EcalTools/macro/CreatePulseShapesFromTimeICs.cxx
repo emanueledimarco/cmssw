@@ -10,7 +10,8 @@
 #include "TString.h"
 #include "TLegend.h"
 #include "TPaveText.h"
-#include "/Users/emanuele/Scripts/RooHZZStyle.C"
+#include "TF1.h"
+#include "TMath.h"
 
 Double_t alphabeta( Double_t *x, Double_t * par)
 {
@@ -122,7 +123,7 @@ void testIT(bool EB) {
 
 }
 
-void makeTimeCalibratedTemplates(const char* timeICDump="EcalTimeCalibConstants_newIOV.dat") {
+void makeTimeCalibratedTemplates(const char* timeICDump="/afs/cern.ch/cms/CAF/CMSALCA/ALCA_ECALCALIB/RunII-time/Run2015B_WF2/EcalTimeCalibConstants_newIOV.dat") {
 
   ifstream icdump;
   icdump.open(timeICDump, std::ifstream::in);
@@ -132,7 +133,9 @@ void makeTimeCalibratedTemplates(const char* timeICDump="EcalTimeCalibConstants_
   unsigned int rawId;
   int ix,iy,iz;
   double time, boh;
-    
+
+  double offsetEB = -9.641680121e-01;
+  double offsetEE = 3.476650119e-01;
   
   while (icdump.good()) {
     icdump.get();
@@ -147,9 +150,12 @@ void makeTimeCalibratedTemplates(const char* timeICDump="EcalTimeCalibConstants_
     outtxt << rawId << "\t";
     outtxt.precision(6);
     outtxt.setf( std::ios::fixed, std:: ios::floatfield ); // floatfield set to fixed
+
+    time = time + (iz==0 ? offsetEB : offsetEE);
     
     float pdfval[12];
-    TH1D *shiftedTemp = makeSingleTemplate(time,(iz==0));
+    // the IC is - measured time, so invert it
+    TH1D *shiftedTemp = makeSingleTemplate(-time,(iz==0));
     for(int iSample=3; iSample<15; iSample++) {
       pdfval[iSample-3] = shiftedTemp->GetBinContent(iSample+1);
       outtxt << pdfval[iSample-3] << "\t";

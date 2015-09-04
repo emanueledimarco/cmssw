@@ -1,5 +1,6 @@
 #include <vector>
 #include <string>
+#include <fstream>
 
 #include "TFile.h"
 #include "TH2D.h"
@@ -15,16 +16,16 @@ void plotCovarianceMatrix(int gain,int run, std::string option="recreate") {
   std::vector<std::string> covs;
   for(int ieb=0; ieb<18; ++ieb) { 
     if(ieb<9) {
-      covs.push_back(Form("covariances_run%d_EBp0%d_Gain%d.root",run,ieb+1,gain));
-      covs.push_back(Form("covariances_run%d_EBm0%d_Gain%d.root",run,ieb+1,gain));
+      covs.push_back(Form("covariance_files/covariances_run%d_EBp0%d_Gain%d.root",run,ieb+1,gain));
+      covs.push_back(Form("covariance_files/covariances_run%d_EBm0%d_Gain%d.root",run,ieb+1,gain));
     } else {
-      covs.push_back(Form("covariances_run%d_EBp%d_Gain%d.root",run,ieb+1,gain));
-      covs.push_back(Form("covariances_run%d_EBm%d_Gain%d.root",run,ieb+1,gain));
+      covs.push_back(Form("covariance_files/covariances_run%d_EBp%d_Gain%d.root",run,ieb+1,gain));
+      covs.push_back(Form("covariance_files/covariances_run%d_EBm%d_Gain%d.root",run,ieb+1,gain));
     }
   }
   for(int iee=0; iee<9; ++iee) { 
-    covs.push_back(Form("covariances_run%d_EEp0%d_Gain%d.root",run,iee+1,gain));
-    covs.push_back(Form("covariances_run%d_EEm0%d_Gain%d.root",run,iee+1,gain));
+    covs.push_back(Form("covariance_files/covariances_run%d_EEp0%d_Gain%d.root",run,iee+1,gain));
+    covs.push_back(Form("covariance_files/covariances_run%d_EEm0%d_Gain%d.root",run,iee+1,gain));
   }
 
   TStyle *mystyle = RooHZZStyle("ZZ");
@@ -233,6 +234,37 @@ void plotHistory() {
     }
     legend->Draw();
     c1->SaveAs(Form("corr_history_Gain%d.pdf",gain[igain]));
+  }
+
+}
+
+void dumpTxtFile(const char* rootfile="average_correlation.root") {
+
+  ofstream txtdumpfile;  
+  txtdumpfile.open ("samples_noise_correlation.txt", ios::out | ios::trunc);
+
+  txtdumpfile.unsetf ( std::ios::floatfield ); 
+  txtdumpfile.precision(6);
+  txtdumpfile.setf( std::ios::fixed, std:: ios::floatfield ); // floatfield set to fixed
+
+  TFile *fileres = TFile::Open(rootfile);
+
+  int gain[3] = {12,6,1};
+  const int nruns = 1;
+  int run[nruns] = {195592};
+
+  for(int idet=0; idet<2; ++idet) {
+    for(int igain=0; igain<3; igain++) {
+      TLegend* legend = new TLegend(0.60, 0.70, 0.85, 0.85);
+      for(int irun=0; irun<nruns;++irun) {
+	TH1F *corr = idet==0 ? (TH1F*)fileres->Get(Form("average_correlation_EB_Gain%d_run%d",gain[igain],run[irun])) :
+	  (TH1F*)fileres->Get(Form("average_correlation_EE_Gain%d_run%d",gain[igain],run[irun]));
+
+	for(int b=1; b<=corr->GetNbinsX(); ++b) txtdumpfile << corr->GetBinContent(b) << "\t";
+
+	txtdumpfile << std::endl;
+      }
+    }
   }
 
 }

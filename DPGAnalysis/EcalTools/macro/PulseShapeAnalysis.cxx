@@ -279,24 +279,40 @@ void saveTemplates(bool dobarrel) {
     int iy = it->first % 1000;
     // std::cout << "Writing templates histogram. ix = " << ix << "  iy = " << iy << " got " << nevts[it->first] << " events" << std::endl;
     TH1D *th = (TH1D*)htempl->Clone(Form("template_%d_%d",ix,iy));
+
+    float pdfval[12];
     
     for(int iSample(3); iSample < 10; iSample++) {
-      float pdfval = (it->second)[iSample] / norm_average[it->first];
-      th->SetBinContent(iSample+1,pdfval);   
+      pdfval[iSample-3] = (it->second)[iSample] / norm_average[it->first];
+      th->SetBinContent(iSample+1,pdfval[iSample-3]);   
       //      th->SetBinError(iSample+1,1./norm_average[it->first]);   
-      if(norm_average[it->first]<3) pdfval = simTemplate->GetBinContent(iSample+1);
-      txtdumpfile << pdfval << "\t";
+      if(norm_average[it->first]<2 || fabs(pdfval[iSample-3]-simTemplate->GetBinContent(iSample+1))>0.1) pdfval[iSample-3] = simTemplate->GetBinContent(iSample+1); // PROTECTION !!!
+      //      txtdumpfile << pdfval << "\t";
     }
 
     if(nCry%1000==0) std::cout << "Fitting the crystal # " << nCry << " with rawId = " << rawId << std::endl;
     TH1D *fittedh = fitTemplate(th,dobarrel,simTemplate);
     for(int iExtraSample(0); iExtraSample < 5; iExtraSample++) {
-       if(norm_average[it->first]>2) txtdumpfile << valExtrap[iExtraSample] << "\t";
-       else txtdumpfile << simTemplate->GetBinContent(iExtraSample+11) << "\t";
+       // if(norm_average[it->first]>2) txtdumpfile << valExtrap[iExtraSample] << "\t";
+       // else txtdumpfile << simTemplate->GetBinContent(iExtraSample+11) << "\t";
+      if(norm_average[it->first]>1 && fabs(valExtrap[iExtraSample]-simTemplate->GetBinContent(iExtraSample+11))<0.1) pdfval[7+iExtraSample] = valExtrap[iExtraSample];
+      else pdfval[7+iExtraSample] = simTemplate->GetBinContent(iExtraSample+11);
     }
+
+    // PROTECTION AGAINST STRANGE SHAPES
+    if(fabs(pdfval[4]-simTemplate->GetBinContent(8))>0.1 || pdfval[0]==0) {
+      //      std::cout << pdfval[4] << "   " << simTemplate->GetBinContent(8) << " ==> replacing..." << std::endl;
+      for(int s=0; s<12; ++s) { 
+	pdfval[s] = simTemplate->GetBinContent(s+4);
+      }
+    }
+
+    for(int s=0;s<12;++s) txtdumpfile << pdfval[s] << "\t";
+
     delete fittedh;
 
     txtdumpfile << std::endl;
+
     th->Write();
     
     if(norm_average[it->first]>0) *htemplAverage = (*htemplAverage) + (*th);
@@ -885,5 +901,186 @@ void plotCovarianceElements(bool doEB, bool diagonal=false) {
   
   output->Close();
   file->Close();
+
+}
+
+
+void saveNoiseCovariances(bool dobarrel) {
+
+  TFile *file = TFile::Open("/Users/emanuele/Work/data/ecalreco/multifit/pedestal_templates_run195592.root");
+  TTree *tree = (TTree*)file->Get("pulseDump/pulse_tree");
+
+  Long64_t nentries = tree->GetEntries();
+  std::cout << "The tree has " << nentries << " entries" << std::endl;
+  
+  Bool_t          barrel;
+  UInt_t          gain;
+  Double_t        pedrms;
+  Double_t        pedval;
+  Int_t           ietaix;
+  Int_t           iphiiy;
+  Int_t           iz;
+  Double_t        pulse[10];
+  UInt_t          rawid;
+
+  tree->SetBranchAddress("barrel", &barrel);
+  tree->SetBranchAddress("gain", &gain);
+  tree->SetBranchAddress("pedrms", &pedrms);
+  tree->SetBranchAddress("pedval", &pedval);
+  tree->SetBranchAddress("ietaix", &ietaix);
+  tree->SetBranchAddress("iphiiy", &iphiiy);
+  tree->SetBranchAddress("iz", &iz);
+  tree->SetBranchAddress("pulse", pulse);
+  tree->SetBranchAddress("rawid", &rawid); 
+  
+  std::map<int, std::vector<double> > xy, x, xx;
+  std::map<int, std::vector<double> > templates_weight;
+  std::map<int, double> norm_average;
+  std::map<int, unsigned int> rawIds;
+
+  float minEnergy = 15;
+
+  float adcToGeV = dobarrel ? 0.035 : 0.06;
+  float minAmplitude = minEnergy / adcToGeV;
+
+  Long64_t nbytes = 0, nb = 0;
+  for (Long64_t jentry=0; jentry<nentries;jentry++) {
+    Long64_t ientry = tree->LoadTree(jentry);
+    if (ientry < 0) break;
+    nb = tree->GetEntry(jentry);   nbytes += nb;
+
+    if(jentry%1000000==0) std::cout << "Processing entry " << jentry << std::endl;
+    
+    if((dobarrel && (!barrel)) || (!dobarrel && barrel)) continue;
+
+    int offset;
+    if(barrel) offset = (ietaix > 0) ? 1000 * ietaix : 1000 * (abs(ietaix)+85);
+    else offset = (iz > 0) ? 1000 * ietaix : 1000 * (ietaix+100);
+    int ic = offset + iphiiy;
+    
+    //    std::cout << "ietaix = " << ietaix << "\toffset = " << offset << "\tic = " << ic << std::endl;
+
+    double norm = 1.0;
+    double weight = 1.0;
+    
+    if(xy.count(ic)==0) {
+      std::vector<double> this_xy, this_x, this_xx;
+      this_xy.resize(100);
+      this_x.resize(10);
+      this_xx.resize(10);
+      for(int ix(0); ix < 10; ix++) {
+    	this_x[ix] = pulse[ix]/norm * weight;
+	this_xx[ix] = std::pow(pulse[ix]/norm,2) * weight;
+	for(int iy(0); iy < 10; iy++) {
+	  int index = ix + 10*iy;
+	  this_xy[index] = pulse[ix]/norm * pulse[iy]/norm * weight;
+	}
+      }
+      xy[ic] = this_xy;
+      x[ic] = this_x;
+      xx[ic] = this_xx;
+      norm_average[ic] = weight;
+      rawIds[ic] = rawid;
+      // std::cout << "inserting new ped for DetId = " << ic << std::endl;
+    } else {
+      std::vector<double> &this_xy  = xy[ic];
+      std::vector<double> &this_x   =  x[ic];
+      std::vector<double> &this_xx  = xx[ic];
+      for(int ix(0); ix < 10; ix++) {
+	this_x[ix] += pulse[ix]/norm * weight;
+	this_xx[ix] += std::pow(pulse[ix]/norm,2) * weight;
+	for(int iy(0); iy < 10; iy++) {
+	  int index = ix + 10*iy;
+	  this_xy[index] += pulse[ix]/norm * pulse[iy]/norm * weight;
+	}
+      }
+      norm_average[ic] += weight;
+      //        std::cout << "updating ped for DetId = " << ic << std::endl;
+    }
+  } // crystals x events
+
+  TH2D *simCovariance = simPulseShapeCovariance(dobarrel);
+  
+  /// output
+  TString nameoutput = dobarrel ? "noisecov_histograms_EB.root" : "noisecov_histograms_EE.root";
+  TFile *outfile = TFile::Open(nameoutput.Data(),"recreate");
+  TH2D *hcov = new TH2D("htempl","",10,0,10,10,0,10);
+  TH2D *hcovAverage =  (TH2D*)hcov->Clone("covariance_average");
+  int nCry(0);
+
+  bool verbose = true;
+  for(std::map<int, std::vector<double> >::iterator it=xy.begin(); it!=xy.end(); ++it) {
+    unsigned int rawId = rawIds[it->first];
+
+    int ix = it->first / 1000;
+    if(dobarrel && ix >= 85) ix = -1*(ix-85);
+    if((!dobarrel) && ix >= 100) ix = -1*(ix-100);
+    int iy = it->first % 1000;
+    // std::cout << "Writing templates histogram. ix = " << ix << "  iy = " << iy << " got " << nevts[it->first] << " events" << std::endl;
+    TH2D *ch = (TH2D*)hcov->Clone(Form("templatecov_%d_%d",ix,iy));
+    TH2D *chNotNorm = (TH2D*)hcov->Clone(Form("templatecovNotNorm_%d_%d",ix,iy));
+    for(int index=0; index<100; ++index) {
+      int ind_x = index % 10;
+      int ind_y = index / 10;
+      double E_xy = (it->second)[index] / norm_average[it->first];
+      double E_x = (x[it->first])[ind_x] / norm_average[it->first];
+      double E_y = (x[it->first])[ind_y] / norm_average[it->first];
+      double E_xx = (xx[it->first])[ind_x] / norm_average[it->first];
+      double E_yy = (xx[it->first])[ind_y] / norm_average[it->first];
+
+      double cov = E_xy - E_x*E_y;
+      double var = std::sqrt(fabs(E_xx - E_x*E_x)) * std::sqrt(fabs(E_yy - E_y*E_y));
+      ch->SetBinContent(ind_x+1, ind_y+1, (var==0 ? 0.0 : cov/var));
+      chNotNorm->SetBinContent(ind_x+1, ind_y+1, sqrt(cov));
+    } 
+
+
+    ch->Write();
+    if(norm_average[it->first]>0) *hcovAverage = (*hcovAverage) + (*ch);
+    nCry += 1;
+    delete ch;
+    delete chNotNorm;
+    verbose = false;
+  }
+  hcovAverage->Scale(1./nCry);
+  hcovAverage->Write();
+  //  std::cout << "Writing average template histogram (averaged over " << nCry << " crystals" << std::endl;
+  //  htemplAverage->Write();
+  
+  outfile->Close();
+
+}
+
+
+void draw1DSamples(bool dobarrel, const char *txtdumpfile = "template_histograms_ECAL.txt") {
+
+  ifstream myfile;
+  myfile.open(txtdumpfile);
+  float samples[12];
+  int iseb, detid;
+  TH1F *h_1d = new TH1F("h_1d","",1000,0.,1.);
+  TH1F *h_samples[12];
+  for(int s=0; s<12; ++s) h_samples[s] = (TH1F*)h_1d->Clone(Form("h_1d_sample%d",s));
+
+ if (myfile.is_open()) {
+   while ( !myfile.eof() ) {
+     myfile >> iseb;
+     myfile >> detid;
+     for(int s=0; s<12; ++s) {
+       myfile >> samples[s];
+       if((dobarrel && iseb==1) || (!dobarrel && iseb==0)) h_samples[s]->Fill(samples[s]);
+     }
+   }
+    myfile.close();
+  }
+  else cout << "Unable to open file"; 
+
+ TCanvas *c1 = new TCanvas("c1","",1200,1200);
+ c1->SetLogy();
+ for(int s=0; s<12; ++s) {
+   h_samples[s]->Draw();
+   c1->SaveAs(Form("h_1d_sample%d.pdf",s));
+   c1->SaveAs(Form("h_1d_sample%d.png",s));
+ }
 
 }

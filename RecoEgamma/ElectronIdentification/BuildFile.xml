@@ -8,7 +8,7 @@
 <use   name="MagneticField/Engine"/>
 <use   name="RecoEgamma/EgammaTools"/>
 <use   name="PhysicsTools/SelectorUtils"/>
-
+<use   name="TrackingTools/IPTools"/>
 <export>
   <lib   name="1"/>
 </export>

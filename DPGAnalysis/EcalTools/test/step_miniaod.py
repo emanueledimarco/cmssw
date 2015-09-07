@@ -16,7 +16,7 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
 # Input source
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('/store/group/dpg_ecal/comm_ecal/localreco/data2015_zskim_multifits/run2015C_timeIC/DoubleEG-Run2015C-ZElectron_82.root')
+    fileNames = cms.untracked.vstring('/store/group/dpg_ecal/comm_ecal/localreco/data2015_zskim_multifits/run2015C/DoubleEG-Run2015C-ZElectron_98.root')
 )
 
 process.options = cms.untracked.PSet(
@@ -73,9 +73,6 @@ process.Flag_ecalLaserCorrFilter = cms.Path(process.ecalLaserCorrFilter)
 process.endjob_step = cms.EndPath(process.endOfProcess)
 process.MINIAODoutput_step = cms.EndPath(process.MINIAODoutput)
 
-# Schedule definition
-process.schedule = cms.Schedule(process.Flag_HBHENoiseFilter,process.Flag_HBHENoiseIsoFilter,process.Flag_CSCTightHaloFilter,process.Flag_hcalLaserEventFilter,process.Flag_EcalDeadCellTriggerPrimitiveFilter,process.Flag_EcalDeadCellBoundaryEnergyFilter,process.Flag_goodVertices,process.Flag_eeBadScFilter,process.Flag_ecalLaserCorrFilter,process.Flag_trkPOGFilters,process.Flag_trkPOG_manystripclus53X,process.Flag_trkPOG_toomanystripclus53X,process.Flag_trkPOG_logErrorTooManyClusters,process.Flag_METFilters,process.endjob_step,process.MINIAODoutput_step)
-
 # customisation of the process.
 process.load("DPGAnalysis.EcalTools.zeeFilter_cff")
 process.zeeFilterElectrons.src = "gedGsfElectrons"
@@ -85,6 +82,10 @@ process.myPat_step = cms.Path(process.boostedElectrons)
 
 process.load("DPGAnalysis.EcalTools.vertexFiltering_cff")
 process.vertexFiltering = cms.Path(process.goodPrimaryVertices)
+
+# Schedule definition
+process.schedule = cms.Schedule(process.Flag_HBHENoiseFilter,process.Flag_HBHENoiseIsoFilter,process.Flag_CSCTightHaloFilter,process.Flag_hcalLaserEventFilter,process.Flag_EcalDeadCellTriggerPrimitiveFilter,process.Flag_EcalDeadCellBoundaryEnergyFilter,process.Flag_goodVertices,process.Flag_eeBadScFilter,process.Flag_ecalLaserCorrFilter,process.Flag_trkPOGFilters,process.Flag_trkPOG_manystripclus53X,process.Flag_trkPOG_toomanystripclus53X,process.Flag_trkPOG_logErrorTooManyClusters,process.Flag_METFilters,process.Flag_zeeFilterMll40FilterSeq,process.myPat_step,process.vertexFiltering,process.endjob_step,process.MINIAODoutput_step)
+
 
 
 # Automatic addition of the customisation function from SLHCUpgradeSimulations.Configuration.postLS1Customs

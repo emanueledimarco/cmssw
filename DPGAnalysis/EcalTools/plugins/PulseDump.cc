@@ -20,8 +20,8 @@
 PulseDump::PulseDump(const edm::ParameterSet& conf)
 {
   
-  ebDigiCollectionToken_ = consumes<EBDigiCollection>(edm::InputTag("ecalDigis","ebDigis"));
-  eeDigiCollectionToken_ = consumes<EEDigiCollection>(edm::InputTag("ecalDigis","eeDigis"));
+  ebDigiCollectionToken_ = consumes<EBDigiCollection>(edm::InputTag("dummyHits","dummyBarrelDigis"));
+  eeDigiCollectionToken_ = consumes<EEDigiCollection>(edm::InputTag("dummyHits","dummyEndcapDigis"));
   
   minAmplitudeBarrel_ = conf.getParameter<double>("minAmplitudeBarrel");
   minAmplitudeEndcap_ = conf.getParameter<double>("minAmplitudeEndcap");

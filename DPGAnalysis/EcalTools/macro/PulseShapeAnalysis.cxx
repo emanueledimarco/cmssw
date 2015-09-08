@@ -12,6 +12,11 @@
 #include "TPaveText.h"
 #include "/Users/emanuele/Scripts/RooHZZStyle.C"
 
+struct rechit {
+  double time;
+  double chi2;
+  double amplitude;
+};
 
 TH2D *simPulseShapeCovariance(bool barrel) {
 
@@ -92,13 +97,14 @@ Double_t alphabeta( Double_t *x, Double_t * par)
   // par[2] = beta
   // par[3] = tmax
   // par[4] = pedestal
-  // par[5] = start of the pulse
+
+  double alphabeta = par[1]*par[2];
 
   double deltat = x[0]-par[3];
   double power_term = TMath::Power(1+deltat/par[1]/par[2],par[1]);
   double decay_term = TMath::Exp(-deltat/par[2]);
   double fcn;
-  if(x[0]>par[5]) fcn = par[0] * power_term * decay_term + par[4];
+  if(deltat>-alphabeta) fcn = par[0] * power_term * decay_term + par[4];
   else fcn = par[4];
   return fcn;
 }
@@ -108,24 +114,67 @@ double ERR_ALPHABETAT[3];
 double val4, s4s5fit;
 double valExtrap[5];
 
-TH1D* fitTemplate(TH1D *templateh, bool doEB, TH1D* simTemplate=0) {
+rechit makeRecHit(TH1D *pulse, bool doEB, double pedestal) {
+
+  rechit rh;
+
+  double alpha = doEB ? 1.250 : 1.283;
+  double beta = doEB ? 1.600 : 1.674;
+
+  TF1 *fitF = new TF1("alphabeta",alphabeta,0,10,5);
+  fitF->SetParNames("norm","#alpha","#beta","tmax","pedestal");
+  fitF->SetParLimits(0,0,10000); // normalization
+  fitF->FixParameter(1,alpha);
+  fitF->FixParameter(2,beta);
+  fitF->SetParameter(3,5.5);
+  fitF->SetParLimits(3,4,7); // tmax
+  fitF->FixParameter(5,pedestal);
+
+  pulse->Fit("alphabeta","Q WW M","",0,10);
+
+  rh.amplitude = fitF->GetParameter(0);
+  rh.time = fitF->GetParameter(3);
+  rh.chi2 = fitF->GetChisquare();
+
+  // plotting (for debug only: 1 plot / rechit
+  /*  
+  TCanvas c1("c1","");
+  pulse->SetLineColor(kBlue+2);
+  pulse->SetLineWidth(2);
+  fitF->SetLineColor(kRed+1);
+
+  pulse->GetXaxis()->SetTitle("Sample");
+  pulse->GetYaxis()->SetTitle("Ped. Subtracted Amplitude (a.u.)");
+  pulse->Draw("hist E2");
+  pulse->Fit("alphabeta","Q WW M","same",0,10);
+  fitF->Draw("same");
+  c1.SaveAs(Form("pulse_a%f_t%f_chisq%f.pdf",rh.amplitude,rh.time,rh.chi2));
+  */
+
+  return rh;
+
+}
+
+
+TH1D* fitTemplate(TH1D *templateh, bool doEB, double pedestal=0, TH1D* simTemplate=0) {
 
   TH1D *shifted_temp = (TH1D*)templateh->Clone(Form("shifted_%s",templateh->GetName()));
 
-  TF1 *fitF = new TF1("alphabeta",alphabeta,0,10,6);
+  double alpha = doEB ? 1.250 : 1.283;
+  double beta = doEB ? 1.600 : 1.674;
+
+  TF1 *fitF = new TF1("alphabeta",alphabeta,0,10,5);
   fitF->SetParNames("norm","#alpha","#beta","tmax","pedestal","raiset");
   fitF->SetParLimits(0,0,10); // normalization
-  fitF->SetParameter(1,1.0);
-  fitF->SetParameter(2,2.0);
+  fitF->SetParameter(1,alpha);
+  fitF->SetParameter(2,beta);
   fitF->SetParameter(3,5.5);
   if(doEB) fitF->SetParLimits(1,0.8,2.5); // alpha
   else fitF->SetParLimits(1,0.5,2.5);
   fitF->SetParLimits(2,0.8,2.5); // beta
   fitF->SetParLimits(3,4,7); // tmax
-  fitF->SetParLimits(5,-0.1,0.1); // pedestal
-  // raise time of the pulse shape (fixed)
-  if(doEB) fitF->FixParameter(5,4.0);
-  else fitF->FixParameter(5,3.8);
+  //  fitF->SetParLimits(5,-0.1,0.1); // pedestal
+  fitF->FixParameter(5,pedestal);
 
   templateh->SetLineColor(kBlue+2);
   templateh->SetLineWidth(2);
@@ -177,7 +226,8 @@ TH1D* fitTemplate(TH1D *templateh, bool doEB, TH1D* simTemplate=0) {
 
 void saveTemplates(bool dobarrel) {
 
-  TFile *file = TFile::Open("/Users/emanuele/Work/data/ecalreco/multifit/templates_dynped_rawid.root");
+  //  TFile *file = TFile::Open("/Users/emanuele/Work/data/ecalreco/multifit/templates_dynped_rawid.root");
+  TFile *file = TFile::Open("/Users/emanuele/Work/data/ecalreco/multifit/templates_tree_pi0_2015C_lowPU.root");
   TTree *tree = (TTree*)file->Get("pulseDump/pulse_tree");
 
   Long64_t nentries = tree->GetEntries();
@@ -206,11 +256,21 @@ void saveTemplates(bool dobarrel) {
   std::map<int, std::vector<double> > templates;
   std::map<int, std::vector<double> > templates_weight;
   std::map<int, double> norm_average;
+  std::map<int, double> norm_counts;
   std::map<int, unsigned int> rawIds;
 
-  float minEnergy = 15;
-  float adcToGeV = dobarrel ? 0.035 : 0.06;
-  float minAmplitude = minEnergy / adcToGeV;
+  // to reject noise" better in ADC not to make eta-dependent cuts
+  // ~10 sigma from the 2012 plots: https://twiki.cern.ch/twiki/bin/view/CMSPublic/EcalDPGResultsCMSDP2013007
+  float minAmplitude = dobarrel ? 14 : 26; 
+  // to reject spikes
+  float maxTimeShift = 8.0/25.; // ns
+  float maxChi2 = 25.188; 
+  int minNhits = 2;
+
+  // float adcToGeV = dobarrel ? 0.035 : 0.06;
+  // float minAmplitude = minEnergy / adcToGeV;
+
+  TH1D *htempl = new TH1D("htempl","",10,0,10);
 
   Long64_t nbytes = 0, nb = 0;
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
@@ -218,7 +278,7 @@ void saveTemplates(bool dobarrel) {
     if (ientry < 0) break;
     nb = tree->GetEntry(jentry);   nbytes += nb;
 
-    if(jentry%1000000==0) std::cout << "Processing entry " << jentry << std::endl;
+    if(jentry%100000==0) std::cout << "Processing entry " << jentry << std::endl;
 
     if((dobarrel && (!barrel)) || (!dobarrel && barrel)) continue;
 
@@ -229,23 +289,46 @@ void saveTemplates(bool dobarrel) {
     
     //    std::cout << "ietaix = " << ietaix << "\toffset = " << offset << "\tic = " << ic << std::endl;
 
-    double norm = pulse[5];
-    double weight = 1.0;
-    // double weight = norm;
-    if(norm<minAmplitude) continue;
-    
+    TH1D *digis = (TH1D*)htempl->Clone(Form("rh_%d",ic));
+    for(int iSample(0); iSample < 10; iSample++) digis->SetBinContent(iSample+1,pulse[iSample]);
+    rechit rh = makeRecHit(digis,barrel,pedval);
+
+    // std::cout << "\t Rechit has A = " << rh.amplitude << "   t = " << rh.time << "   chi2 = " << rh.chi2 
+    // 	      << "   A_maxsample = " << pulse[5] << std::endl;
+
+    delete digis;
+
+
+    // calc the max-sample
+    int maxsample=5;
+    double maxval=0;
+    for(int iSample=2;iSample<10;++iSample) {
+      double val = pulse[iSample];
+      if(val>maxval) {
+	maxval=val;
+	maxsample=iSample;
+      }
+    }
+
+    // double weight = 1.0;
+    double weight = pow(rh.amplitude,2);
+
+    if(rh.amplitude<minAmplitude || fabs(rh.time-5.5)>maxTimeShift || rh.chi2>maxChi2) continue;
+
     if(templates.count(ic)==0) {
       std::vector<double> templ;
       templ.resize(10);
-      for(int iSample(0); iSample < 10; iSample++) templ[iSample] = pulse[iSample]/norm * weight;
+      for(int iSample(0); iSample < 10; iSample++) templ[iSample] = pulse[iSample]/maxval * weight;
       templates[ic] = templ;
       norm_average[ic] = weight;
+      norm_counts[ic] = 1;
       // std::cout << "inserting new ped for DetId = " << ic << std::endl;
       rawIds[ic] = rawid;
     } else {
       std::vector<double> &templ = templates[ic];
-      for(int iSample(0); iSample < 10; iSample++) templ[iSample] += pulse[iSample]/norm * weight;
+      for(int iSample(0); iSample < 10; iSample++) templ[iSample] += pulse[iSample]/maxval * weight;
       norm_average[ic] += weight;
+      norm_counts[ic] ++;
       //        std::cout << "updating ped for DetId = " << ic << std::endl;
     }
   } // crystals x events
@@ -255,7 +338,6 @@ void saveTemplates(bool dobarrel) {
   /// output
   TString nameoutput = dobarrel ? "template_histograms_EB.root" : "template_histograms_EE.root";
   TFile *outfile = TFile::Open(nameoutput.Data(),"recreate");
-  TH1D *htempl = new TH1D("htempl","",10,0,10);
   TH1D *htemplAverage =  (TH1D*)htempl->Clone("templates_average");
   int nCry(0);
 
@@ -277,7 +359,7 @@ void saveTemplates(bool dobarrel) {
     if((!dobarrel) && ix >= 100) ix = -1*(ix-100);
     
     int iy = it->first % 1000;
-    // std::cout << "Writing templates histogram. ix = " << ix << "  iy = " << iy << " got " << nevts[it->first] << " events" << std::endl;
+    std::cout << "Writing templates histogram. ix = " << ix << "  iy = " << iy << " got " << norm_counts[it->first] << " events" << std::endl;
     TH1D *th = (TH1D*)htempl->Clone(Form("template_%d_%d",ix,iy));
 
     float pdfval[12];
@@ -286,19 +368,20 @@ void saveTemplates(bool dobarrel) {
       pdfval[iSample-3] = (it->second)[iSample] / norm_average[it->first];
       th->SetBinContent(iSample+1,pdfval[iSample-3]);   
       //      th->SetBinError(iSample+1,1./norm_average[it->first]);   
-      if(norm_average[it->first]<2 || fabs(pdfval[iSample-3]-simTemplate->GetBinContent(iSample+1))>0.1) pdfval[iSample-3] = simTemplate->GetBinContent(iSample+1); // PROTECTION !!!
+      if(norm_counts[it->first]<minNhits) pdfval[iSample-3] = simTemplate->GetBinContent(iSample+1); // PROTECTION !!!
       //      txtdumpfile << pdfval << "\t";
     }
 
     if(nCry%1000==0) std::cout << "Fitting the crystal # " << nCry << " with rawId = " << rawId << std::endl;
-    TH1D *fittedh = fitTemplate(th,dobarrel,simTemplate);
+    TH1D *fittedh = fitTemplate(th,dobarrel,0,simTemplate);
     for(int iExtraSample(0); iExtraSample < 5; iExtraSample++) {
        // if(norm_average[it->first]>2) txtdumpfile << valExtrap[iExtraSample] << "\t";
        // else txtdumpfile << simTemplate->GetBinContent(iExtraSample+11) << "\t";
-      if(norm_average[it->first]>1 && fabs(valExtrap[iExtraSample]-simTemplate->GetBinContent(iExtraSample+11))<0.1) pdfval[7+iExtraSample] = valExtrap[iExtraSample];
+      if(norm_counts[it->first]>=minNhits) pdfval[7+iExtraSample] = valExtrap[iExtraSample];
       else pdfval[7+iExtraSample] = simTemplate->GetBinContent(iExtraSample+11);
     }
 
+    /*
     // PROTECTION AGAINST STRANGE SHAPES
     if(fabs(pdfval[4]-simTemplate->GetBinContent(8))>0.1 || pdfval[0]==0) {
       //      std::cout << pdfval[4] << "   " << simTemplate->GetBinContent(8) << " ==> replacing..." << std::endl;
@@ -306,6 +389,7 @@ void saveTemplates(bool dobarrel) {
 	pdfval[s] = simTemplate->GetBinContent(s+4);
       }
     }
+    */
 
     for(int s=0;s<12;++s) txtdumpfile << pdfval[s] << "\t";
 
@@ -315,7 +399,7 @@ void saveTemplates(bool dobarrel) {
 
     th->Write();
     
-    if(norm_average[it->first]>0) *htemplAverage = (*htemplAverage) + (*th);
+    if(norm_counts[it->first]>0) *htemplAverage = (*htemplAverage) + (*th);
     nCry += 1;
     delete th;
   }

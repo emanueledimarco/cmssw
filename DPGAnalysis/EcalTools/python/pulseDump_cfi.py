@@ -21,7 +21,7 @@ pulseDump = cms.EDAnalyzer("PulseDump",
         kTowerRecovered = cms.vstring('kDeadFE'),
         kDead           = cms.vstring('kNoDataNoTP')
         ),
-    minAmplitudeBarrel = cms.double(143),
-    minAmplitudeEndcap = cms.double(83),
+    minAmplitudeBarrel = cms.double(42),
+    minAmplitudeEndcap = cms.double(78),
     pedestalAnalysis = cms.bool(False)
 )

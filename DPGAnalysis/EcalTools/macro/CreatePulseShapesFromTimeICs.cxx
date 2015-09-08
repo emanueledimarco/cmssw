@@ -165,7 +165,9 @@ void makeTimeCalibratedTemplates(const char* timeICDump="/afs/cern.ch/cms/CAF/CM
     outtxt.setf( std::ios::fixed, std:: ios::floatfield ); // floatfield set to fixed
 
     time = time + (iz==0 ? offsetEB : offsetEE);
-    
+    time = std::max(-12.5,time);
+    time = std::min(12.5,time);
+
     float pdfval[12];
     // the IC is - measured time, so invert it
     TH1D *shiftedTemp = makeSingleTemplate(-time,(iz==0));

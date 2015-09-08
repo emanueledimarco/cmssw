@@ -311,10 +311,12 @@ bool PulseChiSqSNNLS::NNLS() {
       const unsigned int nActive = npulse - _nP;
       
       updatework = aTbvec - aTamat*_ampvec;      
+      double wmaxprev = wmax;
       wmax = updatework.tail(nActive).maxCoeff(&idxwmax);
       
       //convergence
       if (wmax<1e-11) break;
+      if (wmax<1e-11 || wmax == wmaxprev) break;
       
       //unconstrain parameter
       Index idxp = _nP + idxwmax;

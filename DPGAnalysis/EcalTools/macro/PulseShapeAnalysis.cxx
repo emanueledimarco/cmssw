@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <vector>
 #include <string>
 #include <fstream>
@@ -17,6 +18,55 @@ struct rechit {
   double chi2;
   double amplitude;
 };
+
+double* noiseCorr(bool barrel, int gain) {
+ static double corr_EB_G12[10] = { 1.00000, 0.71073, 0.55721, 0.46089, 0.40449, 0.35931, 0.33924, 0.32439, 0.31581, 0.30481};
+ static double corr_EB_G6[10]  = { 1.00000, 0.70946, 0.58021, 0.49846, 0.45006, 0.41366, 0.39699, 0.38478, 0.37847, 0.37055};
+ static double corr_EB_G1[10]  = { 1.00000, 0.73354, 0.64442, 0.58851, 0.55425, 0.53082, 0.51916, 0.51097, 0.50732, 0.50409};
+ static double corr_EE_G12[10] = { 1.00000, 0.71373, 0.44825, 0.30152, 0.21609, 0.14786, 0.11772, 0.10165, 0.09465, 0.08098};
+ static double corr_EE_G6[10]  = { 1.00000, 0.71217, 0.47464, 0.34056, 0.26282, 0.20287, 0.17734, 0.16256, 0.15618, 0.14443};
+ static double corr_EE_G1[10]  = { 1.00000, 0.72698, 0.62048, 0.55691, 0.51848, 0.49147, 0.47813, 0.47007, 0.46621, 0.46265};
+  
+  if(barrel) {
+    switch ( gain ) {
+    case 12: 
+      return corr_EB_G12;
+      break;
+    case 6: 
+      return corr_EB_G6;
+      break;
+    case 1: 
+      return corr_EB_G1;
+      break;
+    default:
+      return corr_EB_G12;
+      break;
+    }
+  } else {
+    switch ( gain ) {
+    case 12: 
+      return corr_EE_G12;
+      break;
+    case 6: 
+      return corr_EE_G6;
+      break;
+    case 1: 
+      return corr_EE_G1;
+      break;
+    default:
+      return corr_EE_G12;
+      break;
+    }
+  }
+}
+
+double applyJacobian(double sample, double sample5, int i, int j) {
+  if(i!=5) {
+    if(i==j) return 1./sample5;
+    if(j==5) return -sample/sample5/sample5;
+  }
+  return 0.;
+}
 
 TH2D *simPulseShapeCovariance(bool barrel) {
 
@@ -151,6 +201,7 @@ rechit makeRecHit(TH1D *pulse, bool doEB, double pedestal) {
   c1.SaveAs(Form("pulse_a%f_t%f_chisq%f.pdf",rh.amplitude,rh.time,rh.chi2));
   */
 
+  delete fitF;
   return rh;
 
 }
@@ -593,7 +644,7 @@ void fitTemplates (int ixmin, int ixmax, int iymin, int iymax, bool doEB=true) {
 
   for(int i=0; i<(int)templates.size(); ++i) {
     filet->cd();
-    TH1D *shifted_temp = fitTemplate(templates[i],doEB);
+    TH1D *shifted_temp = fitTemplate(templates[i],doEB,0.0);
     shifted_temp->Write();
     delete shifted_temp;
     if(i%360==0) c1->SaveAs(Form("fits/fit%s_alphabeta_%s.pdf",(doEB ? "EB" : "EE"), templates[i]->GetName()) );
@@ -699,7 +750,7 @@ void FitAllTemplates() {
 
 void saveCovariances(bool dobarrel) {
 
-  TFile *file = TFile::Open("/Users/emanuele/Work/data/ecalreco/multifit/templates_dynped_rawid.root");
+  TFile *file = TFile::Open("/Users/emanuele/Work/data/ecalreco/multifit/templates_tree_pi0_2015C_lowPU.root");
   TTree *tree = (TTree*)file->Get("pulseDump/pulse_tree");
 
   Long64_t nentries = tree->GetEntries();
@@ -726,14 +777,21 @@ void saveCovariances(bool dobarrel) {
   tree->SetBranchAddress("rawid", &rawid); 
   
   std::map<int, std::vector<double> > xy, x, xx;
+  std::map<int, std::vector<double> > noise_xy, noise_x, noise_xx;
   std::map<int, std::vector<double> > templates_weight;
   std::map<int, double> norm_average;
+  std::map<int, double> norm_counts;
   std::map<int, unsigned int> rawIds;
 
-  float minEnergy = 15;
+  // to reject noise" better in ADC not to make eta-dependent cuts
+  // ~10 sigma from the 2012 plots: https://twiki.cern.ch/twiki/bin/view/CMSPublic/EcalDPGResultsCMSDP2013007
+  float minAmplitude = dobarrel ? 14 : 26; 
+  // to reject spikes
+  float maxTimeShift = 8.0/25.; // ns
+  float maxChi2 = 25.188; 
+  int minNhits = 2;
 
-  float adcToGeV = dobarrel ? 0.035 : 0.06;
-  float minAmplitude = minEnergy / adcToGeV;
+  TH1D *htempl = new TH1D("htempl","",10,0,10);
 
   Long64_t nbytes = 0, nb = 0;
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
@@ -741,8 +799,8 @@ void saveCovariances(bool dobarrel) {
     if (ientry < 0) break;
     nb = tree->GetEntry(jentry);   nbytes += nb;
 
-    if(jentry%1000000==0) std::cout << "Processing entry " << jentry << std::endl;
-    
+    if(jentry%100000==0) std::cout << "Processing entry " << jentry << std::endl;
+
     if((dobarrel && (!barrel)) || (!dobarrel && barrel)) continue;
 
     int offset;
@@ -752,43 +810,80 @@ void saveCovariances(bool dobarrel) {
     
     //    std::cout << "ietaix = " << ietaix << "\toffset = " << offset << "\tic = " << ic << std::endl;
 
-    double norm = pulse[5];
-    //    double weight = norm;
+    TH1D *digis = (TH1D*)htempl->Clone(Form("rh_%d",ic));
+    for(int iSample(0); iSample < 10; iSample++) digis->SetBinContent(iSample+1,pulse[iSample]);
+    rechit rh = makeRecHit(digis,barrel,pedval);
+
+    delete digis;
+
+    // calc the max-sample
+    int maxsample=5;
+    double maxval=0;
+    for(int iSample=2;iSample<10;++iSample) {
+      double val = pulse[iSample];
+      if(val>maxval) {
+	maxval=val;
+	maxsample=iSample;
+      }
+    }
+
     double weight = 1.0;
-    if(norm<=minAmplitude) continue;
+    //double weight = pow(rh.amplitude,2);
+
+    if(rh.amplitude<minAmplitude || fabs(rh.time-5.5)>maxTimeShift || rh.chi2>maxChi2) continue;
     
     if(xy.count(ic)==0) {
       std::vector<double> this_xy, this_x, this_xx;
       this_xy.resize(100);
       this_x.resize(10);
       this_xx.resize(10);
+      std::vector<double> this_noise_xy, this_noise_x, this_noise_xx;
+      this_noise_xy.resize(100);
+      this_noise_x.resize(10);
+      this_noise_xx.resize(10);
       for(int ix(0); ix < 10; ix++) {
-    	this_x[ix] = pulse[ix]/norm * weight;
-	this_xx[ix] = std::pow(pulse[ix]/norm,2) * weight;
+    	this_x[ix] = pulse[ix]/maxval * weight;
+	this_xx[ix] = std::pow(pulse[ix]/maxval,2) * weight;
+    	this_noise_x[ix] = noiseCorr(barrel,gain)[ix]*pedrms/maxval * weight;
+	this_noise_xx[ix] = std::pow(noiseCorr(barrel,gain)[ix]*pedrms/maxval,2) * weight;
+	//	std::cout << "ix = " << ix << "pedrms = " << pedrms << "   noisecorr = " << noiseCorr(barrel,gain)[ix] << " maxval = " << maxval << "  this_x[ix] = " << this_x[ix] << "   noise = " << this_noise_x[ix] << std::endl;
 	for(int iy(0); iy < 10; iy++) {
 	  int index = ix + 10*iy;
-	  this_xy[index] = pulse[ix]/norm * pulse[iy]/norm * weight;
+	  this_xy[index] = pulse[ix]/maxval * pulse[iy]/maxval * weight;
+	  this_noise_xy[index] = noiseCorr(barrel,gain)[ix]*pedrms/maxval * noiseCorr(barrel,gain)[iy]*pedrms/maxval * weight;
+	  // std::cout << "\t   iy = " << iy << "  this_xy[index] = " << this_xy[index] << "   noise = " << this_noise_xy[index] << std::endl;
 	}
       }
       xy[ic] = this_xy;
       x[ic] = this_x;
       xx[ic] = this_xx;
+      noise_xy[ic] = this_xy;
+      noise_x[ic] = this_x;
+      noise_xx[ic] = this_xx;
       norm_average[ic] = weight;
+      norm_counts[ic] = 1;
       rawIds[ic] = rawid;
       // std::cout << "inserting new ped for DetId = " << ic << std::endl;
     } else {
       std::vector<double> &this_xy  = xy[ic];
       std::vector<double> &this_x   =  x[ic];
       std::vector<double> &this_xx  = xx[ic];
+      std::vector<double> &this_noise_xy  = noise_xy[ic];
+      std::vector<double> &this_noise_x   = noise_x[ic];
+      std::vector<double> &this_noise_xx  = noise_xx[ic];
       for(int ix(0); ix < 10; ix++) {
-	this_x[ix] += pulse[ix]/norm * weight;
-	this_xx[ix] += std::pow(pulse[ix]/norm,2) * weight;
+	this_x[ix] += pulse[ix]/maxval * weight;
+	this_xx[ix] += std::pow(pulse[ix]/maxval,2) * weight;
+    	this_noise_x[ix] = noiseCorr(barrel,gain)[ix]*pedrms/maxval * weight;
+	this_noise_xx[ix] = std::pow(noiseCorr(barrel,gain)[ix]*pedrms/maxval,2) * weight;
 	for(int iy(0); iy < 10; iy++) {
 	  int index = ix + 10*iy;
-	  this_xy[index] += pulse[ix]/norm * pulse[iy]/norm * weight;
+	  this_xy[index] += pulse[ix]/maxval * pulse[iy]/maxval * weight;
+	  this_noise_xy[index] = noiseCorr(barrel,gain)[ix]*pedrms/maxval * noiseCorr(barrel,gain)[iy]*pedrms/maxval * weight;
 	}
       }
       norm_average[ic] += weight;
+      norm_counts[ic] ++;
       //        std::cout << "updating ped for DetId = " << ic << std::endl;
     }
   } // crystals x events
@@ -807,6 +902,8 @@ void saveCovariances(bool dobarrel) {
   TString nametxtoutput = dobarrel ? "template_covariances_EB.txt" : "template_covariances_EE.txt";
   txtdumpfile.open (nametxtoutput.Data(), ios::out | ios::trunc);
 
+  int minHits = 50;
+  int numLowstatCry = 0;
   bool verbose = true;
   for(std::map<int, std::vector<double> >::iterator it=xy.begin(); it!=xy.end(); ++it) {
     unsigned int rawId = rawIds[it->first];
@@ -831,33 +928,59 @@ void saveCovariances(bool dobarrel) {
       double E_y = (x[it->first])[ind_y] / norm_average[it->first];
       double E_xx = (xx[it->first])[ind_x] / norm_average[it->first];
       double E_yy = (xx[it->first])[ind_y] / norm_average[it->first];
+
+      double E_noise_xy = (noise_xy[it->first])[index] / norm_average[it->first];
+      double E_noise_x  = (noise_x[it->first])[ind_x]  / norm_average[it->first];
+      double E_noise_y  = (noise_x[it->first])[ind_y]  / norm_average[it->first];
+      double E_noise_xx = (noise_xx[it->first])[ind_x] / norm_average[it->first];
+      double E_noise_yy = (noise_xx[it->first])[ind_y] / norm_average[it->first];
       
-      double cov = E_xy - E_x*E_y;
-      double var = std::sqrt(fabs(E_xx - E_x*E_x)) * std::sqrt(fabs(E_yy - E_y*E_y));
-      ch->SetBinContent(ind_x+1, ind_y+1, (var==0 ? 0.0 : cov/var));
-      chNotNorm->SetBinContent(ind_x+1, ind_y+1, cov);
-      } 
+      double cov_tot = E_xy - E_x*E_y;
+      double var_tot = std::sqrt(fabs(E_xx - E_x*E_x)) * std::sqrt(fabs(E_yy - E_y*E_y));
+
+      double cov_noise = E_noise_xy - E_noise_x*E_noise_y;
+      double var_noise = std::sqrt(fabs(E_noise_xx - E_noise_x*E_noise_x)) * std::sqrt(fabs(E_noise_yy - E_noise_y*E_noise_y));
+
+      // double cov_temp = std::sqrt(pow(cov_tot,2) - pow(cov_noise,2));
+      // double var_temp = std::sqrt(pow(var_tot,2) - pow(var_noise,2));
+
+      double cov_temp = cov_tot;
+      double var_temp = var_tot;
+
+      // std::cout << "ind_x = " << ind_x << "   ind_y = " << ind_x << std::endl;
+      // std::cout << "\tTot var = " << var_tot << std::endl;
+      // std::cout << "\tNoise var = " << var_noise << std::endl;
+      // std::cout << "\tTemp var = " << var_temp << std::endl;
+      ch->SetBinContent(ind_x+1, ind_y+1, (var_temp==0 ? 0.0 : cov_temp/var_temp));
+      chNotNorm->SetBinContent(ind_x+1, ind_y+1, cov_temp);
+    }
 
     int numped=3;
     for(int index=0; index<225; ++index) {
       int i = index % 15;
       int j = index / 15;
       if(i<numped || j<numped) continue; // skip the 3 pedestal samples
-      if(i<10 && j<10 && norm_average[it->first]>5) txtdumpfile << chNotNorm->GetBinContent(i+1,j+1) << "\t";
+      if(i<10 && j<10 && norm_counts[it->first]>=minHits) txtdumpfile << chNotNorm->GetBinContent(i+1,j+1) << "\t";
       else             txtdumpfile << simCovariance->GetBinContent(i-numped+1,j-numped+1) << "\t";
     }
     
-    if(norm_average[it->first]<5) std::cout << "WARNING: Measured pulse covariance for rawID = " << rawId 
-					     << " with limited statistics estimate: " << norm_average[it->first] << " pulses above " << minEnergy << " GeV. Replace with the simulation value" << std::endl;
+    if(norm_counts[it->first]<minHits) numLowstatCry++;
+    else ch->Write();
+
+    // if(norm_counts[it->first]<10) std::cout << "WARNING: Measured pulse covariance for rawID = " << rawId 
+    // 					     << " with limited statistics estimate: " << norm_average[it->first] << " pulses above " << minAmplitude << " ADCs. Replace with the simulation value" << std::endl;
 
     txtdumpfile << std::endl;
-    ch->Write();
     if(norm_average[it->first]>0) *hcovAverage = (*hcovAverage) + (*ch);
     nCry += 1;
     delete ch;
     delete chNotNorm;
     verbose = false;
   }
+
+  std::cout << "NOTE: " << numLowstatCry << " crystals have been filled with sim values because have less than " 
+	    << minHits << " hits above " << minAmplitude << " ADC " << std::endl;
+
   hcovAverage->Scale(1./nCry);
   //  std::cout << "Writing average template histogram (averaged over " << nCry << " crystals" << std::endl;
   //  htemplAverage->Write();

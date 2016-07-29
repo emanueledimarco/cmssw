@@ -26,8 +26,8 @@ class PFRecHitQTestThreshold : public PFRecHitQTestBase {
     void beginEvent(const edm::Event& event,const edm::EventSetup& iSetup) {
     }
 
-    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean){
-      return pass(hit);
+    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean,bool fullReadOut){
+      return fullReadOut || pass(hit);
     }
     bool test(reco::PFRecHit& hit,const HBHERecHit& rh,bool& clean){
       return pass(hit);

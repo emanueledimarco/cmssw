@@ -4,6 +4,7 @@
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/EcalAlgo/interface/EcalBarrelGeometry.h"
+#include "Geometry/CaloTopology/interface/EcalTrigTowerConstituentsMap.h"
 
 #include "RecoParticleFlow/PFClusterProducer/interface/PFEcalBarrelRecHitCreator.h"
 

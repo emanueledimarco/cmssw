@@ -12,18 +12,18 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 process.load('Configuration.StandardSequences.RawToDigi_cff')
 process.load('Configuration.StandardSequences.Reconstruction_cff')
 
-process.GlobalTag.globaltag = 'GR_R_74_V10A'
-process.GlobalTag.toGet = cms.VPSet(
-    cms.PSet(record = cms.string("GeometryFileRcd"),
-             tag = cms.string("XMLFILE_Geometry_2015_72YV2_Extended2015ZeroMaterial_mc"),
-             connect = cms.untracked.string("frontier://FrontierProd/CMS_COND_GEOMETRY_000"),
-#             label = cms.untracked.string("Extended2015ZeroMaterial")
-             ),
-    cms.PSet(record = cms.string("EcalTBWeightsRcd"),
-             tag = cms.string("EcalTBWeights_3p5_time_mc"),
-             connect = cms.untracked.string("frontier://FrontierPrep/CMS_COND_ECAL")
-             )
-    )
+process.GlobalTag.globaltag = '80X_mcRun2_asymptotic_v20'
+# process.GlobalTag.toGet = cms.VPSet(
+#     cms.PSet(record = cms.string("GeometryFileRcd"),
+#              tag = cms.string("XMLFILE_Geometry_2015_72YV2_Extended2015ZeroMaterial_mc"),
+#              connect = cms.string("frontier://FrontierProd/CMS_COND_GEOMETRY_000"),
+# #             label = cms.untracked.string("Extended2015ZeroMaterial")
+#              ),
+#     cms.PSet(record = cms.string("EcalTBWeightsRcd"),
+#              tag = cms.string("EcalTBWeights_3p5_time_mc"),
+#              connect = cms.string("frontier://FrontierPrep/CMS_COND_ECAL")
+#              )
+#     )
 
 #### CONFIGURE IT HERE
 isMC = True
@@ -68,7 +68,7 @@ process.ecalRecHitGlobal.EErechitCollection = 'EcalRecHitsGlobalEE'
 
 process.ecalRecHitMultiFit = process.ecalRecHit.clone()
 process.ecalRecHitMultiFit.EBuncalibRecHitCollection = 'ecalMultiFitUncalibRecHit:EcalUncalibRecHitsEB'
-process.ecalRecHitMultiFit.EEuncalibRecHitCollection = 'ecalMultiFitUncalibRecHit:EcalUncalibRecHitsEE'
+process.ecalRecHitMultiaFit.EEuncalibRecHitCollection = 'ecalMultiFitUncalibRecHit:EcalUncalibRecHitsEE'
 process.ecalRecHitMultiFit.EBrechitCollection = 'EcalRecHitsMultiFitEB'
 process.ecalRecHitMultiFit.EErechitCollection = 'EcalRecHitsMultiFitEE'
 
@@ -79,10 +79,10 @@ process.ecalRecHitMultiFit2.EBrechitCollection = 'EcalRecHitsMultiFit2EB'
 process.ecalRecHitMultiFit2.EErechitCollection = 'EcalRecHitsMultiFit2EE'
 
 process.maxEvents = cms.untracked.PSet(  input = cms.untracked.int32(1000) )
-path = '/store/data/Run2012D/DoubleElectron/RAW-RECO/ZElectron-22Jan2013-v1/10000/'
+path = '/store/cmst3/user/bendavid/photongun_pu25/'
 process.source = cms.Source("PoolSource",
                             duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
-                            fileNames = cms.untracked.vstring(path+'0008202C-E78F-E211-AADB-0026189437FD.root'
+                            fileNames = cms.untracked.vstring(path+'photongun_pu25_992_1_6m8.root'
                                                               ))
 
 
@@ -106,7 +106,7 @@ process.ecalRecHitsReco = cms.Sequence( process.ecalRecHitGlobal *
                                         process.ecalRecHitMultiFit *
                                         process.ecalRecHitMultiFit2 )
 
-process.ecalTestRecoLocal = cms.Sequence( process.raw2digi_step *
+process.ecalTestRecoLocal = cms.Sequence( #process.raw2digi_step *
                                           process.ecalAmplitudeReco *
                                           process.ecalRecHitsReco )
 

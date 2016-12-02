@@ -32,6 +32,7 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitAlgo::makeRecHit(const EcalDataF
   double pedrms = 0.;
   
   SampleVector amplitudes;
+  BXVector usedActiveBX;
   for(unsigned int iSample = 0; iSample < nsample; iSample++) {
     
     const EcalMGPASample &sample = dataFrame.sample(iSample);
@@ -74,9 +75,21 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitAlgo::makeRecHit(const EcalDataF
       pedval = pedestal;
       pedrms = pederr*gainratio;
     }    
+
+    // mitigate the slew-rate effect in the EB for the 5th sample
+    if (iSample == 5 && gainId == 1 && amplitude > _maxAmplitudeSlewRate) { 
+      usedActiveBX.resize(activeBX.rows()-1);
+      unsigned int ibx=0;
+      for(unsigned int ipulse=0; ipulse<activeBX.rows(); ++ipulse) 
+        if (activeBX.coeff(ipulse) != -1) {
+          usedActiveBX.coeffRef(ibx) = activeBX.coeff(ipulse);
+          ibx++;
+        }
+    }
+    else usedActiveBX = activeBX;
         
   }
-  
+
   double amplitude, amperr, chisq;
   bool status = false;
   
@@ -96,7 +109,7 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitAlgo::makeRecHit(const EcalDataF
   if (!usePrefit) {
   
     if(!_computeErrors) _pulsefunc.disableErrorCalculation();
-    status = _pulsefunc.DoFit(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
+    status = _pulsefunc.DoFit(amplitudes,noisecor,pedrms,usedActiveBX,fullpulse,fullpulsecov);
     chisq = _pulsefunc.ChiSq();
     
     if (!status) {

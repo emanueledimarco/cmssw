@@ -47,6 +47,8 @@ EcalUncalibRecHitWorkerMultiFit::EcalUncalibRecHitWorkerMultiFit(const edm::Para
     bunchSpacingManual_ = ps.getParameter<int>("bunchSpacing");
   }
 
+  maxAmplitudeSlewRate_ = ps.getParameter<int>("maxAmplitudeSlewRate");
+
   doPrefitEB_ = ps.getParameter<bool>("doPrefitEB");
   doPrefitEE_ = ps.getParameter<bool>("doPrefitEE");
 
@@ -110,6 +112,7 @@ EcalUncalibRecHitWorkerMultiFit::set(const edm::EventSetup& es)
 
         // for the multifit method
         if(!ampErrorCalculation_) multiFitMethod_.disableErrorCalculation();
+        multiFitMethod_.setMaxAmplitudeSlewRate(maxAmplitudeSlewRate_);
         es.get<EcalSamplesCorrelationRcd>().get(noisecovariances);
         es.get<EcalPulseShapesRcd>().get(pulseshapes);
         es.get<EcalPulseCovariancesRcd>().get(pulsecovariances);

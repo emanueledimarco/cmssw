@@ -73,6 +73,7 @@ class EcalUncalibRecHitWorkerMultiFit final : public EcalUncalibRecHitWorkerBase
                        { {&noisecorEEg1, &noisecorEEg6, &noisecorEEg12}, 
                          {&noisecorEBg1, &noisecorEBg6, &noisecorEBg12}};
                 BXVector activeBX;
+                int maxAmplitudeSlewRate_;
                 bool ampErrorCalculation_;
                 bool useLumiInfoRunHeader_;
                 EcalUncalibRecHitMultiFitAlgo multiFitMethod_;

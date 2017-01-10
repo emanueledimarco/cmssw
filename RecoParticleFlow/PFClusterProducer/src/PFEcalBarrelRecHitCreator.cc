@@ -5,10 +5,12 @@
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/EcalAlgo/interface/EcalBarrelGeometry.h"
 #include "Geometry/CaloTopology/interface/EcalTrigTowerConstituentsMap.h"
+#include "DataFormats/EcalDigi/interface/EcalDigiCollections.h"
 
 #include "RecoParticleFlow/PFClusterProducer/interface/PFEcalBarrelRecHitCreator.h"
 
-void PFEcalBarrelRecHitCreator::initSRPMap(const edm::EventSetup &es) {
+template<typename Geometry,PFLayer::Layer Layer,int Detector>
+void PFEcalBarrelRecHitCreator<Geometry,Layer,Detector>::initSRPMap(const edm::EventSetup &es) {
 
   edm::ESHandle<CaloGeometry> pG;
   es.get<CaloGeometryRecord>().get(pG);   
@@ -90,7 +92,8 @@ void PFEcalBarrelRecHitCreator::initSRPMap(const edm::EventSetup &es) {
 
 }
 
-bool PFEcalBarrelRecHitCreator::isHighInterest(const EBDetId& detid) {
+template<typename Geometry,PFLayer::Layer Layer,int Detector>
+bool PFEcalBarrelRecHitCreator<Geometry,Layer,Detector>::isHighInterest(const EBDetId& detid) {
 
   EcalTrigTowerDetId towid = detid.tower();
   int tthi = towid.hashedIndex();
@@ -120,8 +123,9 @@ bool PFEcalBarrelRecHitCreator::isHighInterest(const EBDetId& detid) {
   return result;
 }
 
-bool PFEcalBarrelRecHitCreator::srFullReadOut(EcalTrigTowerDetId& towid) {
-  EBSrFlagCollection::const_iterator srf = srFlagColl.find(towid);
-  if(srf == srFlagColl_.end()) return false;
+template<typename Geometry,PFLayer::Layer Layer,int Detector>
+bool PFEcalBarrelRecHitCreator<Geometry,Layer,Detector>::srFullReadOut(EcalTrigTowerDetId& towid) {
+  EBSrFlagCollection::const_iterator srf = srFlagHandle_->find(towid);
+  if(srf == srFlagHandle_->end()) return false;
   return ((srf->value() & ~EcalSrFlag::SRF_FORCED_MASK) == EcalSrFlag::SRF_FULL);  
 }

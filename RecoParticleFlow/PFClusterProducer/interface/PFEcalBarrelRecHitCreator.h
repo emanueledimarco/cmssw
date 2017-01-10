@@ -32,6 +32,9 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
     PFRecHitCreatorBase(iConfig,iC)
     {
       recHitToken_ = iC.consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("src"));
+      srFlagToken_ = iC.consumes<EBSrFlagCollection>(iConfig.getParameter<edm::InputTag>("srFlags"));
+      SREtaSize_ = iConfig.getUntrackedParameter<int> ("SREtaSize",1);
+      SRPhiSize_ = iConfig.getUntrackedParameter<int> ("SRPhiSize",1);
     }
 
     void importRecHits(std::auto_ptr<reco::PFRecHitCollection>&out,std::auto_ptr<reco::PFRecHitCollection>& cleaned ,const edm::Event& iEvent,const edm::EventSetup& iSetup) {
@@ -44,6 +47,8 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
       edm::ESHandle<CaloGeometry> geoHandle;
       iSetup.get<CaloGeometryRecord>().get(geoHandle);
   
+      iEvent.getByToken(srFlagToken_,srFlagHandle_);
+
       // get the ecal geometry
       const CaloSubdetectorGeometry *gTmp = 
 	geoHandle->getSubdetectorGeometry(DetId::Ecal, Detector);
@@ -103,6 +108,7 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
   bool srFullReadOut(EcalTrigTowerDetId& towid);
 
   edm::EDGetTokenT<EcalRecHitCollection> recHitToken_;
+  edm::EDGetTokenT<EBSrFlagCollection> srFlagToken_;
 
   const EcalTrigTowerConstituentsMap* eTTmap_;  
   // Array of the DetIds
@@ -115,6 +121,13 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
   std::vector<int> theTTofHighInterest_;
   // the status of the towers. A tower is of high interest if it or one of its neighbour is above the threshold
   std::vector<int> TTHighInterest_;
+
+  // selective readout flags collection
+  edm::Handle<EBSrFlagCollection> srFlagHandle_;
+
+  // selective readout threshold
+  int SREtaSize_;
+  int SRPhiSize_;
 
 };
 

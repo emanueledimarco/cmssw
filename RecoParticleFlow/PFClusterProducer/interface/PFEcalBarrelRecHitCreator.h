@@ -42,7 +42,7 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
       neighboringTTs_.resize(2448);
     }
 
-    void importRecHits(std::unique_ptr<reco::PFRecHitCollection>&out,std::unique_ptr<reco::PFRecHitCollection>& cleaned ,const edm::Event& iEvent,const edm::EventSetup& iSetup) {
+    void importRecHits(std::auto_ptr<reco::PFRecHitCollection>&out,std::auto_ptr<reco::PFRecHitCollection>& cleaned ,const edm::Event& iEvent,const edm::EventSetup& iSetup) {
 
       beginEvent(iEvent,iSetup);
       initSRPMap(iSetup);

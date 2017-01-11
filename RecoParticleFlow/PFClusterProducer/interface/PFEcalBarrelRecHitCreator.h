@@ -46,7 +46,7 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
 
       beginEvent(iEvent,iSetup);
       initSRPMap(iSetup);
-
+      
       edm::Handle<EcalRecHitCollection> recHitHandle;
 
       edm::ESHandle<CaloGeometry> geoHandle;

@@ -241,6 +241,6 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
 };
 
 
-typedef PFEcalEndcapRecHitCreator<EcalEndcapGeometry,PFLayer::ECAL_BARREL,EcalEndcap> PFEERecHitCreator;
+typedef PFEcalEndcapRecHitCreator<EcalEndcapGeometry,PFLayer::ECAL_ENDCAP,EcalEndcap> PFEERecHitCreator;
 
 #endif

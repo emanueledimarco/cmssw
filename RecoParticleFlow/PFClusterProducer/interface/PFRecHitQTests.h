@@ -26,8 +26,8 @@ class PFRecHitQTestThreshold : public PFRecHitQTestBase {
     void beginEvent(const edm::Event& event,const edm::EventSetup& iSetup) {
     }
 
-    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean){
-      return pass(hit);
+    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean,bool fullReadOut){
+      return fullReadOut || pass(hit);
     }
     bool test(reco::PFRecHit& hit,const HBHERecHit& rh,bool& clean){
       return pass(hit);
@@ -124,7 +124,7 @@ class PFRecHitQTestHCALChannel : public PFRecHitQTestBase {
       hcalSevLvlComputer_  =  hcalSevLvlComputerHndl.product();
     }
 
-    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean){
+    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean,bool fullReadOut){
       return true;
     }
     bool test(reco::PFRecHit& hit,const HBHERecHit& rh,bool& clean){
@@ -205,7 +205,7 @@ class PFRecHitQTestHCALTimeVsDepth : public PFRecHitQTestBase {
     void beginEvent(const edm::Event& event,const edm::EventSetup& iSetup) {
     }
 
-    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean){
+    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean,bool fullReadOut){
       return true;
     }
     bool test(reco::PFRecHit& hit,const HBHERecHit& rh,bool& clean){
@@ -274,7 +274,7 @@ class PFRecHitQTestHCALThresholdVsDepth : public PFRecHitQTestBase {
     void beginEvent(const edm::Event& event,const edm::EventSetup& iSetup) {
     }
 
-    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean){
+    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean,bool fullReadOut){
       return true;
     }
     bool test(reco::PFRecHit& hit,const HBHERecHit& rh,bool& clean){
@@ -339,7 +339,7 @@ class PFRecHitQTestHOThreshold : public PFRecHitQTestBase {
     void beginEvent(const edm::Event& event,const edm::EventSetup& iSetup) {
     }
 
-    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean){
+    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean,bool fullReadOut){
       return true;
     }
     bool test(reco::PFRecHit& hit,const HBHERecHit& rh,bool& clean){
@@ -395,7 +395,7 @@ class PFRecHitQTestECAL : public PFRecHitQTestBase {
     void beginEvent(const edm::Event& event,const edm::EventSetup& iSetup) {
     }
 
-    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean){
+    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean,bool fullReadOut){
       if (skipTTRecoveredHits_ && rh.checkFlag(EcalRecHit::kTowerRecovered))
 	{
 	  clean=true;
@@ -468,7 +468,7 @@ class PFRecHitQTestES : public PFRecHitQTestBase {
   void beginEvent(const edm::Event& event,const edm::EventSetup& iSetup) {
   }
 
-  bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean){
+  bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean,bool fullReadOut){
 
     if ( rh.energy() < thresholdCleaning_ ) {
       clean=false;
@@ -539,7 +539,7 @@ class PFRecHitQTestHCALCalib29 : public PFRecHitQTestBase {
     void beginEvent(const edm::Event& event,const edm::EventSetup& iSetup) {
     }
 
-    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean){
+    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean,bool fullReadOut){
       return true;
     }
     bool test(reco::PFRecHit& hit,const HBHERecHit& rh,bool& clean){
@@ -592,7 +592,7 @@ class PFRecHitQTestThresholdInMIPs : public PFRecHitQTestBase {
     void beginEvent(const edm::Event& event,const edm::EventSetup& iSetup) {
     }
 
-    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean) {
+    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean,bool fullReadOut) {
       throw cms::Exception("WrongDetector")
 	<< "PFRecHitQTestThresholdInMIPs only works for HGCAL!";
       return false;
@@ -636,6 +636,82 @@ class PFRecHitQTestThresholdInMIPs : public PFRecHitQTestBase {
     const double hitValueInMIPs = 1e6*hit.energy()/mip_;
     return hitValueInMIPs > threshold_;
   }
+};
+
+#include "Geometry/HGCalGeometry/interface/HGCalGeometry.h"
+class PFRecHitQTestThresholdInThicknessNormalizedMIPs : public PFRecHitQTestBase {
+ public:
+  PFRecHitQTestThresholdInThicknessNormalizedMIPs() :
+    geometryInstance_(""),
+    recHitEnergy_keV_(0.),
+    threshold_(0.),
+    mip_(0.),
+    recHitEnergyMultiplier_(0.) {
+    }
+
+  PFRecHitQTestThresholdInThicknessNormalizedMIPs(const edm::ParameterSet& iConfig) :
+    PFRecHitQTestBase(iConfig),
+    geometryInstance_(iConfig.getParameter<std::string>("geometryInstance")),
+    recHitEnergy_keV_(iConfig.getParameter<bool>("recHitEnergyIs_keV")),
+    threshold_(iConfig.getParameter<double>("thresholdInMIPs")),
+    mip_(iConfig.getParameter<double>("mipValueInkeV")),
+    recHitEnergyMultiplier_(iConfig.getParameter<double>("recHitEnergyMultiplier")) { 
+    }
+
+    void beginEvent(const edm::Event& event,const edm::EventSetup& iSetup) {
+      edm::ESHandle<HGCalGeometry> geoHandle;
+      iSetup.get<IdealGeometryRecord>().get(geometryInstance_,geoHandle);
+      ddd_ = &(geoHandle->topology().dddConstants());
+    }
+
+    bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean,bool fullReadOut) {
+      throw cms::Exception("WrongDetector")
+	<< "PFRecHitQTestThresholdInMIPs only works for HGCAL!";
+      return false;
+    }
+    bool test(reco::PFRecHit& hit,const HBHERecHit& rh,bool& clean) {
+      throw cms::Exception("WrongDetector")
+	<< "PFRecHitQTestThresholdInMIPs only works for HGCAL!";
+      return false;
+    }
+
+    bool test(reco::PFRecHit& hit,const HFRecHit& rh,bool& clean) {
+      throw cms::Exception("WrongDetector")
+	<< "PFRecHitQTestThresholdInMIPs only works for HGCAL!";
+      return false;
+    }
+    bool test(reco::PFRecHit& hit,const HORecHit& rh,bool& clean) {
+      throw cms::Exception("WrongDetector")
+	<< "PFRecHitQTestThresholdInMIPs only works for HGCAL!";
+      return false;
+    }
+
+    bool test(reco::PFRecHit& hit,const CaloTower& rh,bool& clean) {
+      throw cms::Exception("WrongDetector")
+	<< "PFRecHitQTestThresholdInMIPs only works for HGCAL!";
+      return false;
+    }
+
+    bool test(reco::PFRecHit& hit,const HGCRecHit& rh,bool& clean) {
+      const double newE = ( recHitEnergy_keV_ ? 
+			    1.0e-6*rh.energy()*recHitEnergyMultiplier_ :
+			    rh.energy()*recHitEnergyMultiplier_ );
+      const int wafer = HGCalDetId(rh.detid()).wafer();
+      const float mult  = (float) ddd_->waferTypeL(wafer); // 1 for 100um, 2 for 200um, 3 for 300um
+      hit.setEnergy(newE);      
+      return pass(hit,mult);
+    }
+
+ protected:
+    const std::string geometryInstance_;
+    const bool recHitEnergy_keV_;
+    const double threshold_,mip_,recHitEnergyMultiplier_;    
+    const HGCalDDDConstants*  ddd_;
+
+    bool pass(const reco::PFRecHit& hit, const float mult) {
+      const double hitValueInMIPs = 1e6*hit.energy()/(mult*mip_);
+      return hitValueInMIPs > threshold_;
+    }
 };
 
 #endif

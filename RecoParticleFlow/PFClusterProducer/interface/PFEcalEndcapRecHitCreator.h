@@ -45,8 +45,7 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
     void importRecHits(std::auto_ptr<reco::PFRecHitCollection>&out,std::auto_ptr<reco::PFRecHitCollection>& cleaned ,const edm::Event& iEvent,const edm::EventSetup& iSetup) {
 
       beginEvent(iEvent,iSetup);
-      initSRPMap(iSetup);
-
+ 
       edm::Handle<EcalRecHitCollection> recHitHandle;
 
       edm::ESHandle<CaloGeometry> geoHandle;
@@ -104,11 +103,7 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
       }
     }
 
-
-
- protected:
-
-    void initSRPMap(const edm::EventSetup &es) {
+    void init(const edm::EventSetup &es) {
 
       edm::ESHandle<CaloGeometry> pG;
       es.get<CaloGeometryRecord>().get(pG);   
@@ -121,7 +116,7 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
       eTTmap_ = &(*hetm);
   
       const EcalEndcapGeometry * myEcalEndcapGeometry = dynamic_cast<const EcalEndcapGeometry*>(pG->getSubdetectorGeometry(DetId::Ecal,EcalEndcap));
-      //  std::cout << " Got the geometry " << myEcalEndcapGeometry << std::endl;
+      // std::cout << " Got the geometry " << myEcalEndcapGeometry << std::endl;
       const std::vector<DetId>& vec(myEcalEndcapGeometry->getValidDetIds(DetId::Ecal,EcalEndcap));
       unsigned size=vec.size();    
       for(unsigned ic=0; ic<size; ++ic) 
@@ -165,9 +160,12 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
           if(itcheck==TTofSC_[schi].end())
             TTofSC_[schi].push_back(tthashedindex);
         }
-      //  std::cout << " Made the array " << std::endl;
+      // std::cout << " Made the array " << std::endl;
 
     }
+
+ protected:
+
 
     bool isHighInterest(const EEDetId& detid) {
 

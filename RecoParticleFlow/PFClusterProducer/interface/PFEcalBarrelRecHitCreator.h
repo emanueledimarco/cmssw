@@ -41,11 +41,10 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
       theTTDetIds_.resize(2448);
       neighboringTTs_.resize(2448);
     }
-
+    
     void importRecHits(std::auto_ptr<reco::PFRecHitCollection>&out,std::auto_ptr<reco::PFRecHitCollection>& cleaned ,const edm::Event& iEvent,const edm::EventSetup& iSetup) {
 
       beginEvent(iEvent,iSetup);
-      initSRPMap(iSetup);
       
       edm::Handle<EcalRecHitCollection> recHitHandle;
 
@@ -104,11 +103,7 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
       }
     }
 
-
-
- protected:
-
-    void initSRPMap(const edm::EventSetup &es) {
+    void init(const edm::EventSetup &es) {
 
       edm::ESHandle<CaloGeometry> pG;
       es.get<CaloGeometryRecord>().get(pG);   
@@ -121,7 +116,7 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
       eTTmap_ = &(*hetm);
   
       const EcalBarrelGeometry * myEcalBarrelGeometry = dynamic_cast<const EcalBarrelGeometry*>(pG->getSubdetectorGeometry(DetId::Ecal,EcalBarrel));
-      //  std::cout << " Got the geometry " << myEcalBarrelGeometry << std::endl;
+      // std::cout << "Got the geometry " << myEcalBarrelGeometry << std::endl;
       const std::vector<DetId>& vec(myEcalBarrelGeometry->getValidDetIds(DetId::Ecal,EcalBarrel));
       unsigned size=vec.size();    
       for(unsigned ic=0; ic<size; ++ic) 
@@ -135,8 +130,6 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
           theTTDetIds_[TThashedindex]=towid;                  
           crystalsinTT_[TThashedindex].push_back(crystalHashedIndex);
         }
-
-
       unsigned nTTs=theTTDetIds_.size();
 
       //  EBDetId myDetId(-58,203);
@@ -152,6 +145,7 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
       //    }
 
       // now loop on each TT and save its neighbors. 
+
       for(unsigned iTT=0;iTT<nTTs;++iTT)
         {
           int ietaPivot=theTTDetIds_[iTT].ieta();
@@ -186,9 +180,13 @@ template <typename Geometry,PFLayer::Layer Layer,int Detector>
             }
         }
 
-      //  std::cout << " Made the array " << std::endl;
+      // std::cout << "EB Made the array " << std::endl;
 
     }
+      
+
+ protected:
+
 
     bool isHighInterest(const EBDetId& detid) {
 

@@ -13,7 +13,6 @@ namespace {
 
  PFRecHitProducer:: PFRecHitProducer(const edm::ParameterSet& iConfig)
 {
-
   produces<reco::PFRecHitCollection>();
   produces<reco::PFRecHitCollection>("Cleaned");
 
@@ -25,18 +24,16 @@ namespace {
       creators_.emplace_back(PFRecHitFactory::get()->create(name,creators.at(i),iC));
   }
 
-
   edm::ParameterSet navSet = iConfig.getParameter<edm::ParameterSet>("navigator");
 
   navigator_.reset(PFRecHitNavigationFactory::get()->create(navSet.getParameter<std::string>("name"),navSet));
-    
+  init_ = false;
 }
 
 
  PFRecHitProducer::~ PFRecHitProducer()
 {
  }
-
 
 //
 // member functions
@@ -55,6 +52,10 @@ void
    out->reserve(localRA1.upper());
    cleaned->reserve(localRA2.upper());
    for( const auto& creator : creators_ ) {
+     if (!init_) { // should go in beginRun
+       creator->init(iSetup);
+       init_ = true;
+     }
      creator->importRecHits(out,cleaned,iEvent,iSetup);
    }
    if (out->capacity()>2*out->size()) out->shrink_to_fit();

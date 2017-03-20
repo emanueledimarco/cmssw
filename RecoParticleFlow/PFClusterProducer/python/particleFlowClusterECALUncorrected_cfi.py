@@ -54,7 +54,7 @@ _topoClusterizer_ECAL = cms.PSet(
     algoName = cms.string("Basic2DGenericTopoClusterizer"),
     thresholdsByDetector = cms.VPSet(
     cms.PSet( detector = cms.string("ECAL_BARREL"),
-              gatheringThreshold = cms.double(0.16),
+              gatheringThreshold = cms.double(0.08),
               gatheringThresholdPt = cms.double(0.0)
               ),
     cms.PSet( detector = cms.string("ECAL_ENDCAP"),

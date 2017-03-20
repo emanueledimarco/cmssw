@@ -374,6 +374,69 @@ class PFRecHitQTestHOThreshold : public PFRecHitQTestBase {
 };
 
 //
+//  Quality test that checks threshold as a function of ECAL eta-ring
+//
+#include "Calibration/Tools/interface/EcalRingCalibrationTools.h"
+#include "DataFormats/DetId/interface/DetId.h"
+#include "Geometry/CaloGeometry/interface/CaloGeometry.h"
+#include "Geometry/Records/interface/CaloGeometryRecord.h"
+class PFRecHitQTestECALThreshold : public PFRecHitQTestBase {
+ public:
+  PFRecHitQTestECALThreshold() {
+
+  }
+
+ PFRecHitQTestECALThreshold(const edm::ParameterSet& iConfig):
+  PFRecHitQTestBase(iConfig)
+  {
+    thresholds_ = iConfig.getParameter<std::vector<double> >("thresholds");
+  }
+
+  void beginEvent(const edm::Event& event,const edm::EventSetup& iSetup) {
+    edm::ESHandle<CaloGeometry> pG;
+    iSetup.get<CaloGeometryRecord>().get(pG);
+    EcalRingCalibrationTools::setCaloGeometry(&(*pG));
+  }
+
+  bool test(reco::PFRecHit& hit,const EcalRecHit& rh,bool& clean,bool fullReadOut){
+    return fullReadOut || pass(hit);
+  }
+  bool test(reco::PFRecHit& hit,const HBHERecHit& rh,bool& clean){
+    return true;
+  }
+
+  bool test(reco::PFRecHit& hit,const HFRecHit& rh,bool& clean){
+    return true;
+  }
+  bool test(reco::PFRecHit& hit,const HORecHit& rh,bool& clean){
+    return true;
+  }
+
+  bool test(reco::PFRecHit& hit,const CaloTower& rh,bool& clean){
+    return true;
+  }
+
+  bool test(reco::PFRecHit& hit,const HGCRecHit& rh,bool& clean){
+    return true;
+  }
+
+ protected:
+  std::vector<double> thresholds_;
+
+  bool pass(const reco::PFRecHit& hit){
+
+    DetId detId(hit.detId());
+    int iring = EcalRingCalibrationTools::getRingIndex(detId);
+
+    if (  hit.energy() > thresholds_[iring] ) return true;
+
+    return false;
+  }
+};
+
+
+
+//
 //  Quality test that checks ecal quality cuts
 //
 class PFRecHitQTestECAL : public PFRecHitQTestBase {
@@ -438,7 +501,6 @@ class PFRecHitQTestECAL : public PFRecHitQTestBase {
     bool test(reco::PFRecHit& hit,const HGCRecHit& rh,bool& clean){
       return true;
     }
-
 
  protected:
   double thresholdCleaning_;

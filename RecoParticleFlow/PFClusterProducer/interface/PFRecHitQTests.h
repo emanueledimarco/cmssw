@@ -387,13 +387,13 @@ class PFRecHitQTestHOThreshold : public PFRecHitQTestBase {
 #include "DataFormats/DetId/interface/DetId.h"
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
-class PFRecHitQTestECALThreshold : public PFRecHitQTestBase {
+class PFRecHitQTestECALMultiThreshold : public PFRecHitQTestBase {
  public:
-  PFRecHitQTestECALThreshold() {
+  PFRecHitQTestECALMultiThreshold() {
 
   }
   
- PFRecHitQTestECALThreshold(const edm::ParameterSet& iConfig):
+ PFRecHitQTestECALMultiThreshold(const edm::ParameterSet& iConfig):
   PFRecHitQTestBase(iConfig)
   { 
     thresholds_ = iConfig.getParameter<std::vector<double> >("thresholds");
@@ -441,7 +441,10 @@ class PFRecHitQTestECALThreshold : public PFRecHitQTestBase {
     // this is to skip endcap ZS for Phase2 until there is a defined geometry
     // apply the loosest ZS threshold, for the first eta-ring in EE
     if(!endcapGeometrySet_) {
-      int firstEERing = 171;
+      // 0-169: EB eta-rings
+      // 170-208: EE- eta rings
+      // 209-247: EE+ eta rings
+      int firstEERing = 170;
       return (hit.energy() > thresholds_[firstEERing]);
     }
     

@@ -7,3 +7,4 @@
 #include "CondFormats/EgammaObjects/interface/GBRForest2D.h"
 #include "CondFormats/EgammaObjects/interface/GBRTreeD.h"
 #include "CondFormats/EgammaObjects/interface/GBRForestD.h"
+#include "CondFormats/EgammaObjects/interface/EgmCorrectorParameters.h"

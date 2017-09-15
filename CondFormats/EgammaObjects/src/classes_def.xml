@@ -19,4 +19,11 @@
   </class>
   <class name="std::vector<GBRTreeD>"/>
   <class name="GBRTreeD"/>    
+  <class name="EgmCorrectorParameters">
+    <field name="MAX_SIZE_DIMENSIONALITY" transient="true"/>
+  </class>
+  <class name="EgmCorrectorParameters::Definitions"/>
+  <class name="EgmCorrectorParameters::Record"/>
+  <class name="std::vector<EgmCorrectorParameters>"/>
+  <class name="std::vector<EgmCorrectorParameters::Record>"/>
 </lcgdict>   

@@ -51,7 +51,6 @@ EgmCorrectorParameters::Record::Record(const std::string& fLine,unsigned fNvar,u
   mNvar = fNvar;
   // quckly parse the line
   std::vector<std::string> tokens = getTokens(fLine);
-  std::cout << "DBG: " << tokens.size() << std::endl;
   if (!tokens.empty())
     {
       if (tokens.size() < 3)
@@ -62,7 +61,6 @@ EgmCorrectorParameters::Record::Record(const std::string& fLine,unsigned fNvar,u
         }
       for(unsigned i=0;i<mNvar;i++)
         {
-          std::cout << "DBG: token i = " << i << "  " << tokens[i*2] << "  " << tokens[i*2+1] << std::endl;
           mMin.push_back(getFloat(tokens[i*2]));
           mMax.push_back(getFloat(tokens[i*2+1]));
         }
@@ -106,7 +104,6 @@ EgmCorrectorParameters::EgmCorrectorParameters(const std::string& fFile)
       Definitions definitions(currentDefinitions);
       if (!(definitions.nBinVar()==0))
         mDefinitions = definitions;
-      std::cout << "DBG: " << mDefinitions.nBinVar() << " " << mDefinitions.nParVar() << " " << mDefinitions.binVar(0) << std::endl;
       Record record(line,mDefinitions.nBinVar(),mDefinitions.nParVar());
       bool check(true);
       for(unsigned i=0;i<mDefinitions.nBinVar();++i)
@@ -270,6 +267,7 @@ void EgmCorrectorParameters::printFile(const std::string& fFileName) const
   txtFile<<definitions().nParVar()<<std::setw(15);
   for(unsigned i=0;i<definitions().nParVar();i++)
     txtFile<<definitions().parVar(i)<<std::setw(15);
+  txtFile<<"}"<<std::endl;
   for(unsigned i=0;i<size();i++)
     {
       for(unsigned j=0;j<definitions().nBinVar();j++)
@@ -282,6 +280,3 @@ void EgmCorrectorParameters::printFile(const std::string& fFileName) const
   txtFile.close();
 }
 
-#include "FWCore/Utilities/interface/typelookup.h"
-
-TYPELOOKUP_DATA_REG(EgmCorrectorParameters);

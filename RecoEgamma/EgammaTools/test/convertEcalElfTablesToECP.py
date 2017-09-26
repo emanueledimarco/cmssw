@@ -7,20 +7,22 @@ outf = {'EB':open(outfile+"EB.txt",'w'), 'EE':open(outfile+"EE.txt",'w')}
 lines = {'EB':0,'EE':0}
 for line in open(infile,'r').readlines():
     fields = line.split()
+    if len(fields)==0 or (fields[0])[0]=="#": continue
     bins = fields[0].split('-')
     ranges = {}
     for b in bins:
         binvar = b.split('_')[0]
         if any(var in binvar for var in ['absEta','Et']):
             ranges[binvar] = b.split('_')[1:]
-        elif 'bad' in binvar:
+        elif any(var in binvar for var in ['bad','lowR9']):
             ranges['r9'] = ['-1','0.94']
-        elif 'gold' in binvar:
+        elif any(var in binvar for var in ['gold','highR9']):
             ranges['r9'] = ['0.94','2']
         elif 'gainEle' in binvar:
             ranges['gain'] = [float(b.split('_')[1])-0.5,float(b.split('_')[1])+0.5]
         else: print "ERROR! binvar ",binvar," unknown. Not adding it."
-    pars = fields[4:]
+    startParsIdx = 4 if 'runNumber' in fields else 1
+    pars = fields[startParsIdx:]
     variables=ranges.keys()
     variables.sort()
     subdet = 'EB' if float(ranges['absEta'][0])<1.5 else 'EE'

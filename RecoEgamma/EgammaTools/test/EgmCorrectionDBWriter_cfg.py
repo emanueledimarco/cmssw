@@ -1,11 +1,23 @@
 import FWCore.ParameterSet.Config as cms 
+import sys
 process = cms.Process('egmscaledb') 
 
-process.source = cms.Source('EmptySource') 
+FIRSTRUN=int(sys.argv[2])
+TXTFILE=str(sys.argv[3])
+DBFILE=str(sys.argv[4])
+TAG=str(sys.argv[5])
+
+process.source = cms.Source("EmptyIOVSource",
+    timetype = cms.string('runnumber'),
+    firstValue = cms.uint64(1),
+    lastValue = cms.uint64(1),
+    interval = cms.uint64(1)
+)
+
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1)) 
 
 process.load("CondCore.CondDB.CondDB_cfi")
-process.CondDB.connect = 'sqlite_file:Egm17_ele_prompt_Moriond17.db'
+process.CondDB.connect = 'sqlite_file:'+DBFILE
 
 process.PoolDBOutputService = cms.Service('PoolDBOutputService', 
    process.CondDB,
@@ -13,18 +25,16 @@ process.PoolDBOutputService = cms.Service('PoolDBOutputService',
    toPut = cms.VPSet( 
       cms.PSet(
          record = cms.string('EgmCorrectorParametersRcd'),
-         tag    = cms.string('EgmCorrectorParameters_Ele_Prompt_Moriond17'), 
+         tag    = cms.string(TAG), 
       ),
    ) 
 ) 
 
 process.dbWriterEleScale = cms.EDAnalyzer('EgmCorrectorDBWriter', 
-   object   = cms.untracked.string("electrons"),
-   name   = cms.untracked.string("scale"),
-   reco   = cms.untracked.string('promptreco'), 
-   version   = cms.untracked.string('Moriond17'),
-   path   = cms.untracked.string('RecoEgamma/EgammaTools/data/'),
+   txtfile   = cms.untracked.string(TXTFILE),
+   payloadTag = cms.untracked.string(TAG),
    record = cms.untracked.string('EgmCorrectorParametersRcd'),
+   startIOVRun = cms.untracked.uint32(FIRSTRUN),
 ) 
 
 process.p = cms.Path( process.dbWriterEleScale ) 

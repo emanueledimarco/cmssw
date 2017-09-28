@@ -1,3 +1,8 @@
 <bin file="testSerializationEgammaObjects.cpp">
     <use   name="CondFormats/EgammaObjects"/>
 </bin>
+<bin name="TestCondFormatsEgammaObjectsEgmCorrectorParameters" file="EgmCorrectorParameters_t.cpp">
+     <use name="FWCore/ParameterSet"/>
+     <use name="CondFormats/EgammaObjects"/>
+     <use name="cppunit"/>
+</bin>

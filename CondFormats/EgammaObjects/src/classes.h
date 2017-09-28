@@ -16,7 +16,11 @@ namespace CondFormats_EgammaObjects {
     GBRForest2D e4;
     GBRTreeD e5;
     GBRForestD e6;    
-    
+    EgmCorrectorParameters corr;
+    EgmCorrectorParameters::Definitions def;
+    EgmCorrectorParameters::Record record;
+    std::vector<EgmCorrectorParameters> corrv;
+    std::vector<EgmCorrectorParameters::Record> recordv;
   };
 }
 

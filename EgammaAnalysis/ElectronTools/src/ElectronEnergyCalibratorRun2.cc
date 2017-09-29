@@ -7,11 +7,31 @@
 ElectronEnergyCalibratorRun2::ElectronEnergyCalibratorRun2(EpCombinationToolSemi &combinator,
 							   bool isMC,
 							   bool synchronization,
+							   ) :
+  epCombinationTool_(&combinator),
+  isMC_(isMC), synchronization_(synchronization),
+  rng_(0),
+  fromDB_(true),
+  correctionRetriever_ // here is reading the corrections from DB
+{
+  if(isMC_) {
+    correctionRetriever_.doScale = false;
+    correctionRetriever_.doSmearings = true;
+  } else {
+    correctionRetriever_.doScale = true;
+    correctionRetriever_.doSmearings = false;
+  }
+}
+
+ElectronEnergyCalibratorRun2::ElectronEnergyCalibratorRun2(EpCombinationToolSemi &combinator,
+							   bool isMC,
+							   bool synchronization,
 							   std::string correctionFile
 							   ) :
   epCombinationTool_(&combinator),
   isMC_(isMC), synchronization_(synchronization),
   rng_(0),
+  fromDB(false),
   correctionRetriever_(correctionFile) // here is opening the files and reading the corrections
 {
   if(isMC_) {
@@ -25,6 +45,10 @@ ElectronEnergyCalibratorRun2::ElectronEnergyCalibratorRun2(EpCombinationToolSemi
 
 ElectronEnergyCalibratorRun2::~ElectronEnergyCalibratorRun2()
 {}
+
+void ElectronEnergyCalibratorRun2::set(const edm::EventSetup& es) {
+  if(fromDB_) correctionRetriever_->set(es,true);
+}
 
 void ElectronEnergyCalibratorRun2::initPrivateRng(TRandom *rnd)
 {

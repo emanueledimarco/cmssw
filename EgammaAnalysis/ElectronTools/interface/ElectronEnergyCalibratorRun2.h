@@ -17,9 +17,15 @@ class ElectronEnergyCalibratorRun2
   ElectronEnergyCalibratorRun2() {}
   
   // further configuration will be added when we will learn how it will work
-  ElectronEnergyCalibratorRun2(EpCombinationToolSemi &combinator, bool isMC, bool synchronization, std::string);
+  // default: initialize from conditions DB
+  ElectronEnergyCalibratorRun2(EpCombinationToolSemi &combinator, bool isMC, bool synchronization);
+  // standalone: initialize from txt file (ECALELF format)
+  ElectronEnergyCalibratorRun2(EpCombinationToolSemi &combinator, bool isMC, bool synchronization, std::string correctionFile);
   ~ElectronEnergyCalibratorRun2() ;
   
+  // read from DB (only for full CMSSW)
+  void set(const edm::EventSetup& es);
+
   /// Initialize with a random number generator (if not done, it will use the CMSSW service)
   /// Caller code owns the TRandom.
   void initPrivateRng(TRandom *rnd) ;
@@ -40,6 +46,7 @@ class ElectronEnergyCalibratorRun2
   /// or from the CMSSW RandomNumberGenerator service
   /// If synchronization is set to true, it returns a fixed number (1.0)
   double gauss(edm::StreamID const& id) const ;
+  bool fromDB_;
   EnergyScaleCorrection_class correctionRetriever_;
 };
 

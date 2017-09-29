@@ -43,7 +43,15 @@ EnergyScaleCorrection_class::~EnergyScaleCorrection_class(void)
   return;
 }
 
-
+void EnergyScaleCorrection_class::set(const edm::EventSetup& es, bool isElectron) {
+  if(isElectron) {
+    es.get<ElectronScaleParametersRcd>().get(scaleCorrections_);
+    es.get<ElectronResolutionParametersRcd>().get(resolutionCorrections_);
+  } else {
+    es.get<PhotonScaleParametersRcd>().get(scaleCorrections_);
+    es.get<PhotonResolutionParametersRcd>().get(resolutionCorrections_);
+  }
+}
 
 float EnergyScaleCorrection_class::ScaleCorrection(unsigned int runNumber, bool isEBEle,
 						   double R9Ele, double etaSCEle, double EtEle, unsigned int gainSeed, std::bitset<scAll> uncBitMask) const

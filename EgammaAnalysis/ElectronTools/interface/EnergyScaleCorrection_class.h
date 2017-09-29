@@ -27,6 +27,8 @@
 #include <string>
 #include <bitset> 
 
+#include "CondFormats/EgammaObjects/interface/EgmCorrectorParameters.h"
+
 //============================== First auxiliary class
 class correctionValue_class
 {
@@ -161,11 +163,16 @@ public:
   bool doScale, doSmearings;
   
  public:
+  // constructor from DB
+ EnergyScaleCorrection_class(): doScale(false), doSmearings(false), smearingType_(ECALELF) {}
+  // constructor from txt file
   EnergyScaleCorrection_class(std::string correctionFileName, unsigned int genSeed=0);
   EnergyScaleCorrection_class(){}; ///< dummy constructor needed in ElectronEnergyCalibratorRun2
   ~EnergyScaleCorrection_class(void);
   
-  
+  // setup from conditions DB
+  void set(const edm::EventSetup& es, bool isElectron);
+
   //------------------------------ scales
   float ScaleCorrection(unsigned int runNumber, bool isEBEle, double R9Ele, double etaSCEle,
 			double EtEle, unsigned int gainSeed=12, std::bitset<scAll> uncBitMask=scNone) const; ///< method to get energy scale corrections
@@ -196,6 +203,9 @@ public:
   
   
  private:
+
+  edm::ESHandle<EgmCorrectorParameters> scaleCorrections_;
+  edm::ESHandle<EgmCorrectorParameters> resolutionCorrections_;
   fileFormat_t smearingType_;
   
   correction_map_t scales, scales_not_defined;

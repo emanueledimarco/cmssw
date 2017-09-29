@@ -2,7 +2,7 @@
 #define ElectronEnergyCalibratorRun2_h
 
 #include <TRandom.h>
-#include "EgammaAnalysis/ElectronTools/interface/EnergyScaleCorrection_class.h"
+#include "EgammaAnalysis/ElectronTools/interface/EnergyScaleCorrectionDB_class.h"
 #include "EgammaAnalysis/ElectronTools/interface/EpCombinationToolSemi.h"
 #include "FWCore/Utilities/interface/StreamID.h"
 
@@ -47,7 +47,7 @@ class ElectronEnergyCalibratorRun2
   /// If synchronization is set to true, it returns a fixed number (1.0)
   double gauss(edm::StreamID const& id) const ;
   bool fromDB_;
-  EnergyScaleCorrection_class correctionRetriever_;
+  EnergyScaleCorrectionDB_class correctionRetriever_;
 };
 
 #endif

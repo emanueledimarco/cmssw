@@ -11,28 +11,7 @@ ElectronEnergyCalibratorRun2::ElectronEnergyCalibratorRun2(EpCombinationToolSemi
   epCombinationTool_(&combinator),
   isMC_(isMC), synchronization_(synchronization),
   rng_(0),
-  fromDB_(true),
   correctionRetriever_ // here is reading the corrections from DB
-{
-  if(isMC_) {
-    correctionRetriever_.doScale = false;
-    correctionRetriever_.doSmearings = true;
-  } else {
-    correctionRetriever_.doScale = true;
-    correctionRetriever_.doSmearings = false;
-  }
-}
-
-ElectronEnergyCalibratorRun2::ElectronEnergyCalibratorRun2(EpCombinationToolSemi &combinator,
-							   bool isMC,
-							   bool synchronization,
-							   std::string correctionFile
-							   ) :
-  epCombinationTool_(&combinator),
-  isMC_(isMC), synchronization_(synchronization),
-  rng_(0),
-  fromDB(false),
-  correctionRetriever_(correctionFile) // here is opening the files and reading the corrections
 {
   if(isMC_) {
     correctionRetriever_.doScale = false;
@@ -46,8 +25,10 @@ ElectronEnergyCalibratorRun2::ElectronEnergyCalibratorRun2(EpCombinationToolSemi
 ElectronEnergyCalibratorRun2::~ElectronEnergyCalibratorRun2()
 {}
 
-void ElectronEnergyCalibratorRun2::set(const edm::EventSetup& es) {
-  if(fromDB_) correctionRetriever_->set(es,true);
+void ElectronEnergyCalibratorRun2::set(const edm::EventSetup& es,const edm::ParameterSet &iConfig) {
+  correctionRetriever_->setTokens(iConfig);
+  correctionRetriever_->setEventSetup(es);
+  correctionRetriever_->initCorrector();
 }
 
 void ElectronEnergyCalibratorRun2::initPrivateRng(TRandom *rnd)
@@ -73,25 +54,25 @@ std::vector<float> ElectronEnergyCalibratorRun2::calibrate(reco::GsfElectron &el
     if(seedRecHit->checkFlag(EcalRecHit::kHasSwitchToGain6)) gainSeedSC = 6;
     if(seedRecHit->checkFlag(EcalRecHit::kHasSwitchToGain1)) gainSeedSC = 1;
   }
-  scale = correctionRetriever_.ScaleCorrection(runNumber, electron.isEB(), electron.full5x5_r9(), aeta, et, gainSeedSC);  
-  smear = correctionRetriever_.getSmearingSigma(runNumber, electron.isEB(), electron.full5x5_r9(), aeta, et, gainSeedSC, 0., 0.);
+  scale = correctionRetriever_.ScaleCorrection(electron.full5x5_r9(), aeta, et, gainSeedSC);  
+  smear = correctionRetriever_.getSmearingSigma(electron.full5x5_r9(), aeta, et, gainSeedSC, 0., 0.);
 
   // This always to be carefully thought
-  float scale_up = scale + correctionRetriever_.ScaleCorrectionUncertainty(runNumber, electron.isEB(), electron.full5x5_r9(), aeta, et, gainSeedSC, 7);
-  float scale_dn = scale - correctionRetriever_.ScaleCorrectionUncertainty(runNumber, electron.isEB(), electron.full5x5_r9(), aeta, et, gainSeedSC, 7);
-  float resol_up  = correctionRetriever_.getSmearingSigma(runNumber, electron.isEB(), electron.full5x5_r9(), aeta, et, gainSeedSC, 1., 0.);
-  float resol_dn  = correctionRetriever_.getSmearingSigma(runNumber, electron.isEB(), electron.full5x5_r9(), aeta, et, gainSeedSC, -1., 0.);
+  float scale_up = scale + correctionRetriever_.ScaleCorrectionUncertainty(electron.full5x5_r9(), aeta, et, gainSeedSC, 7);
+  float scale_dn = scale - correctionRetriever_.ScaleCorrectionUncertainty(electron.full5x5_r9(), aeta, et, gainSeedSC, 7);
+  float resol_up  = correctionRetriever_.getSmearingSigma(electron.full5x5_r9(), aeta, et, gainSeedSC, 1., 0.);
+  float resol_dn  = correctionRetriever_.getSmearingSigma(electron.full5x5_r9(), aeta, et, gainSeedSC, -1., 0.);
 
-  float scale_stat_up = scale + correctionRetriever_.ScaleCorrectionUncertainty(runNumber, electron.isEB(), electron.full5x5_r9(), aeta, et, gainSeedSC, 1);
-  float scale_stat_dn = scale - correctionRetriever_.ScaleCorrectionUncertainty(runNumber, electron.isEB(), electron.full5x5_r9(), aeta, et, gainSeedSC, 1);
-  float scale_syst_up = scale + correctionRetriever_.ScaleCorrectionUncertainty(runNumber, electron.isEB(), electron.full5x5_r9(), aeta, et, gainSeedSC, 2);
-  float scale_syst_dn = scale - correctionRetriever_.ScaleCorrectionUncertainty(runNumber, electron.isEB(), electron.full5x5_r9(), aeta, et, gainSeedSC, 2);
-  float scale_gain_up = scale + correctionRetriever_.ScaleCorrectionUncertainty(runNumber, electron.isEB(), electron.full5x5_r9(), aeta, et, gainSeedSC, 4);
-  float scale_gain_dn = scale - correctionRetriever_.ScaleCorrectionUncertainty(runNumber, electron.isEB(), electron.full5x5_r9(), aeta, et, gainSeedSC, 4);
-  float resol_rho_up  = correctionRetriever_.getSmearingSigma(runNumber, electron.isEB(), electron.full5x5_r9(), aeta, et, gainSeedSC, 1., 0.);
-  float resol_rho_dn  = correctionRetriever_.getSmearingSigma(runNumber, electron.isEB(), electron.full5x5_r9(), aeta, et, gainSeedSC, -1., 0.);
-  float resol_phi_up  = correctionRetriever_.getSmearingSigma(runNumber, electron.isEB(), electron.full5x5_r9(), aeta, et, gainSeedSC, 0., 1.);
-  float resol_phi_dn  = correctionRetriever_.getSmearingSigma(runNumber, electron.isEB(), electron.full5x5_r9(), aeta, et, gainSeedSC, 0., -1.);
+  float scale_stat_up = scale + correctionRetriever_.ScaleCorrectionUncertainty(electron.full5x5_r9(), aeta, et, gainSeedSC, 1);
+  float scale_stat_dn = scale - correctionRetriever_.ScaleCorrectionUncertainty(electron.full5x5_r9(), aeta, et, gainSeedSC, 1);
+  float scale_syst_up = scale + correctionRetriever_.ScaleCorrectionUncertainty(electron.full5x5_r9(), aeta, et, gainSeedSC, 2);
+  float scale_syst_dn = scale - correctionRetriever_.ScaleCorrectionUncertainty(electron.full5x5_r9(), aeta, et, gainSeedSC, 2);
+  float scale_gain_up = scale + correctionRetriever_.ScaleCorrectionUncertainty(electron.full5x5_r9(), aeta, et, gainSeedSC, 4);
+  float scale_gain_dn = scale - correctionRetriever_.ScaleCorrectionUncertainty(electron.full5x5_r9(), aeta, et, gainSeedSC, 4);
+  float resol_rho_up  = correctionRetriever_.getSmearingSigma(electron.full5x5_r9(), aeta, et, gainSeedSC, 1., 0.);
+  float resol_rho_dn  = correctionRetriever_.getSmearingSigma(electron.full5x5_r9(), aeta, et, gainSeedSC, -1., 0.);
+  float resol_phi_up  = correctionRetriever_.getSmearingSigma(electron.full5x5_r9(), aeta, et, gainSeedSC, 0., 1.);
+  float resol_phi_dn  = correctionRetriever_.getSmearingSigma(electron.full5x5_r9(), aeta, et, gainSeedSC, 0., -1.);
   std::vector<float> uncertainties;
 
   double newEcalEnergy = electron.correctedEcalEnergy();

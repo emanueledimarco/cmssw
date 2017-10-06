@@ -119,4 +119,3 @@ process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string(outputfilename),
                                    closeFileFast = cms.untracked.bool(True)
                                    )
-

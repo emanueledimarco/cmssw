@@ -121,9 +121,9 @@ class Jet(PhysicsObject):
             else                               : return 0;
         
         # jetID from here: https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID#Recommendations_for_13_TeV_data
-        if name == "POG_PFID_Loose":    return ((eta<3.0 and ((npr>1 and phf<0.99 and nhf<0.99) and (eta>2.4 or (elf<0.99 and chf>0 and chm>0)))) or (eta>3.0 and (phf<0.90 and npn>10)));
-        if name == "POG_PFID_Medium":   return (npr>1 and phf<0.95 and nhf<0.95 and muf < 0.8) and (eta>2.4 or (elf<0.99 and chf>0 and chm>0));
-        if name == "POG_PFID_Tight":    return ((eta<3.0 and ((npr>1 and phf<0.90 and nhf<0.90) and (eta>2.4 or (elf<0.99 and chf>0 and chm>0)))) or (eta>3.0 and (phf<0.90 and npn>10)));
+        if name == "POG_PFID_Loose":    return ((eta<2.7 and ((npr>1 and phf<0.99 and nhf<0.99) and (eta>2.4 or (elf<0.99 and chf>0 and chm>0)))) or ((eta>2.7 and eta<3.0) and (nhf<0.98 and phf>0.01 and npn>2)) or (eta>3.0 and (phf<0.90 and npn>10)))
+        if name == "POG_PFID_Tight":    return ((eta<2.7 and ((npr>1 and phf<0.90 and nhf<0.90) and (eta>2.4 or (elf<0.99 and chf>0 and chm>0)))) or ((eta>2.7 and eta<3.0) and (nhf<0.98 and  phf>0.01 and npn>2)) or (eta>3.0 and (phf<0.90 and npn>10)))
+        if name == "POG_PFID_TightLepVeto": return ((eta<2.7 and ((npr>1 and phf<0.90 and nhf<0.90 and muf<0.8) and (eta>2.4 or (elf<0.90 and chf>0 and chm>0)))))
         if name == "VBFHBB_PFID_Loose":  return (npr>1 and phf<0.99 and nhf<0.99);
         if name == "VBFHBB_PFID_Medium": return (npr>1 and phf<0.99 and nhf<0.99) and ((eta<=2.4 and nhf<0.9 and phf<0.9 and elf<0.99 and muf<0.99 and chf>0 and chm>0) or eta>2.4);
         if name == "VBFHBB_PFID_Tight":  return (npr>1 and phf<0.99 and nhf<0.99) and ((eta<=2.4 and nhf<0.9 and phf<0.9 and elf<0.70 and muf<0.70 and chf>0 and chm>0) or eta>2.4);
@@ -141,10 +141,33 @@ class Jet(PhysicsObject):
             return self.userFloat(label)
         return -99
 
-    def puJetId(self, label="pileupJetId:fullDiscriminant", tuning="76X", wp="loose"):
+    def puJetId(self, label="pileupJetId:fullDiscriminant", tuning="80X", wp="loose"):
         '''Full mva PU jet id'''
-        
-        if tuning=="76X":
+        if tuning == '80X':
+            # https://twiki.cern.ch/twiki/bin/view/CMS/PileupJetID#Information_for_13_TeV_data_anal
+            # Note: The following only works for miniAOD v2 - return true
+            #       otherwise
+
+            # Training only performed up to 50 GeV, return pass above per
+            # recommendation from JME algo subgroup
+            if self.pt() > 50.:
+                return True
+
+            # Return true if miniAOD v1 to avoid throwing in JetAnalyzer
+            if not self.hasUserInt('pileupJetId:fullId'):
+                return True
+
+            pu_id_int = self.userInt('pileupJetId:fullId')
+            if wp == 'loose':
+                return bool(pu_id_int & (1 << 2))
+            elif wp == 'medium':
+                return bool(pu_id_int & (1 << 1))
+            elif wp == 'tight':
+                return bool(pu_id_int & (1 << 0))
+            else:
+                raise RuntimeError('Pileup jet ID: Working point {wp} not supported'.format(wp=wp))
+
+        elif tuning=="76X":
             puId76X = PuJetIDWP()
             return puId76X.passWP(self,wp)
         else:
@@ -156,6 +179,7 @@ class Jet(PhysicsObject):
                 if not(eta>=etamin and eta<etamax):
                     continue
                 return puMva>cut
+        
             return -99
                     
     def rawFactor(self):

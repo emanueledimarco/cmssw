@@ -54,6 +54,7 @@ class GeneratorAnalyzer( Analyzer ):
         self.makeAllGenParticles   = cfg_ana.makeAllGenParticles
         self.makeSplittedGenLists  = cfg_ana.makeSplittedGenLists
         self.allGenTaus            = cfg_ana.allGenTaus if self.makeSplittedGenLists else False
+        self.saveIncomingPartons   = cfg_ana.saveIncomingPartons
  
     def declareHandles(self):
         super(GeneratorAnalyzer, self).declareHandles()
@@ -104,7 +105,10 @@ class GeneratorAnalyzer( Analyzer ):
             # if not ok and any(interestingPdgId(d.pdgId()) for d in realGenDaughters(p)):
             #    #print "    pass dau"
             #     ok = True
-            if not ok:
+            if not ok and self.saveIncomingPartons:
+              if id in [1,2,3,4,5,21,22] and status == 21 and any(interestingPdgId(p.daughter(j).pdgId()) for j in xrange(p.numberOfDaughters())):
+                  # interesting for being the mother of an interesting particle (to get the incoming partons creating the particle)
+                  ok = True
               for mom in realGenMothers(p):
                 if interestingPdgId(mom.pdgId()) or (getattr(mom,'rawIndex',-1) in keymap):
                     #print "    interesting mom"
@@ -267,6 +271,8 @@ setattr(GeneratorAnalyzer,"defaultConfig",
         # Make also the splitted lists
         makeSplittedGenLists = True,
         allGenTaus = False, 
+        # save incoming partons
+        saveIncomingPartons = False,
         # Print out debug information
         verbose = False,
     )

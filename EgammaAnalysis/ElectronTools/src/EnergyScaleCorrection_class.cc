@@ -160,10 +160,8 @@ void EnergyScaleCorrection_class::ReadFromFile(TString filename)
 #ifdef PEDANTIC_OUTPUT
   std::cout << "[STATUS] Reading energy scale correction  values from file: " << filename << std::endl;
 #endif
-  std::cout << "[STATUS] Reading energy scale correction  values from file: " << filename << std::endl;
 
   //std::ifstream Ccufile(edm::FileInPath(Ccufilename).fullPath().c_str(),std::ios::in);
-  std::cout << "===> " << edm::FileInPath(filename).fullPath().c_str() << std::endl;
   std::ifstream f_in(edm::FileInPath(filename).fullPath().c_str());
 
   if(!f_in.good()) {

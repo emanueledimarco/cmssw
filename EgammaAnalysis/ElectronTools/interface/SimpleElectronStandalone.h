@@ -1,10 +1,6 @@
 #ifndef SimpleElectron_H
 #define SimpleElectron_H
 
-#ifndef SimpleElectron_STANDALONE
-#include "DataFormats/EgammaCandidates/interface/GsfElectron.h"        
-#endif
-
 class SimpleElectron
 {
 	public:
@@ -47,11 +43,6 @@ class SimpleElectron
                         scale_(1.0), smearing_(0.0)
         {}
 	    ~SimpleElectron(){}	
-
-#ifndef SimpleElectron_STANDALONE
-        explicit SimpleElectron(const reco::GsfElectron &in, unsigned int runNumber, bool isMC) ;
-        void writeTo(reco::GsfElectron & out) const ;
-#endif
 
     	//accessors
     	double getNewEnergy() const {return newEnergy_;}

@@ -163,6 +163,7 @@ void EnergyScaleCorrection_class::ReadFromFile(TString filename)
   std::cout << "[STATUS] Reading energy scale correction  values from file: " << filename << std::endl;
 
   //std::ifstream Ccufile(edm::FileInPath(Ccufilename).fullPath().c_str(),std::ios::in);
+  std::cout << "===> " << edm::FileInPath(filename).fullPath().c_str() << std::endl;
   std::ifstream f_in(edm::FileInPath(filename).fullPath().c_str());
 
   if(!f_in.good()) {
@@ -173,19 +174,18 @@ void EnergyScaleCorrection_class::ReadFromFile(TString filename)
   
   int runMin, runMax;
   TString category, region2;
-  double deltaP, err_deltaP, err_deltaP_stat, err_deltaP_syst;
+  double deltaP, err_deltaP, err_deltaP_stat, err_deltaP_syst, err_deltaP_tot;
   
   
   for(f_in >> category; f_in.good(); f_in >> category) {
     f_in >> region2
 	 >> runMin >> runMax
-	 >> deltaP >> err_deltaP >> err_deltaP_stat >> err_deltaP_syst;
+	 >> deltaP >> err_deltaP >> err_deltaP_stat >> err_deltaP_syst >> err_deltaP_tot;
     
     AddScale(category, runMin, runMax, deltaP, err_deltaP_stat, err_deltaP_syst);
   }
   
   f_in.close();
-  
   return;
 }
 

@@ -56,16 +56,22 @@ void ElectronEnergyCalibratorRun2::calibrate(reco::GsfElectron &electron, unsign
   calibrate(simple, id);
   simple.writeTo(electron);
 }
+
 void ElectronEnergyCalibratorRun2::calibrate(SimpleElectron &electron, edm::StreamID const & id) const 
 {
+  std::cout << "calibrating" << std::endl;
   assert(isMC_ == electron.isMC());
+  std::cout << "isMC = " << electron.isMC() << std::endl;
   float smear = 0.0, scale = 1.0;
   float aeta = std::abs(electron.getEta()); //, r9 = electron.getR9();
   float et = electron.getNewEnergy()/cosh(aeta);
   
+  std::cout << "getting scale" << std::endl;
   scale = _correctionRetriever.ScaleCorrection(electron.getRunNumber(), electron.isEB(), electron.getR9(), aeta, et);
+  std::cout << "scale  = " << scale << std::endl;
   smear = _correctionRetriever.getSmearingSigma(electron.getRunNumber(), electron.isEB(), electron.getR9(), aeta, et, 0., 0.); 
-  
+  std::cout << "cmear  =" << smear << std::endl;
+
   double newEcalEnergy, newEcalEnergyError;
   if (isMC_) {
     double corr = 1.0 + smear * gauss(id);
@@ -77,6 +83,7 @@ void ElectronEnergyCalibratorRun2::calibrate(SimpleElectron &electron, edm::Stre
   }
   electron.setNewEnergy(newEcalEnergy); 
   electron.setNewEnergyError(newEcalEnergyError);
+  std::cout << "doEBcomp = " << doEpCombination_ << std::endl;
   if(doEpCombination_) epCombinationTool_->combine(electron);
 }
 

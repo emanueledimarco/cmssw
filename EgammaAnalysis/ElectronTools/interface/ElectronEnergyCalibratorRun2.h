@@ -32,7 +32,7 @@ class ElectronEnergyCalibratorRun2 {
   /// Correct this electron. 
   /// StreamID is needed when used with CMSSW Random Number Generator
   void calibrate(reco::GsfElectron &electron, unsigned int runNumber, edm::StreamID const & id = edm::StreamID::invalidStreamID()) const ;
-  
+
  protected:    
   // whatever data will be needed
   EpCombinationTool *epCombinationTool_;

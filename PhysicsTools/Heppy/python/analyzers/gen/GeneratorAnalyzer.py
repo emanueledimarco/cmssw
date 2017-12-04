@@ -51,6 +51,7 @@ class GeneratorAnalyzer( Analyzer ):
         super(GeneratorAnalyzer,self).__init__(cfg_ana,cfg_comp,looperName)
         self.stableBSMParticleIds  = set(cfg_ana.stableBSMParticleIds) # neutralinos and such
         self.savePreFSRParticleIds = set(cfg_ana.savePreFSRParticleIds)
+        self.saveAllInterestingGenParticles   = cfg_ana.saveAllInterestingGenParticles
         self.makeAllGenParticles   = cfg_ana.makeAllGenParticles
         self.makeSplittedGenLists  = cfg_ana.makeSplittedGenLists
         self.allGenTaus            = cfg_ana.allGenTaus if self.makeSplittedGenLists else False
@@ -72,64 +73,67 @@ class GeneratorAnalyzer( Analyzer ):
             if self.makeAllGenParticles: allGenParticles.append(p)
             id     = abs(p.pdgId())
             status = p.status()
-            # particles must be status > 2, except for prompt leptons, photons, neutralinos
-            if status <= 2:
-                if ((id not in self.stableBSMParticleIds) and
-                    (id not in [11,12,13,14,15,16,22] or not isNotFromHadronicShower(p))):
-                        continue
-            # a particle must not be decaying into itself
-            #print "  test %6d  : %+8d  %3d :  %8.2f   %+5.2f   %+5.2f : %d %d : %+8d {%6d}: %s" % ( rawIndex,
-            #        p.pdgId(), p.status(), p.pt(), p.eta(), p.phi(), p.numberOfMothers(), p.numberOfDaughters(), 
-            #        p.motherRef(0).pdgId() if p.numberOfMothers() > 0 else -999, p.motherRef(0).key()   if p.numberOfMothers() > 0 else -999, 
-            #        "  ".join("%d[%d]" % (p.daughter(i).pdgId(), p.daughter(i).status()) for i in xrange(p.numberOfDaughters())))
-            if id in self.savePreFSRParticleIds:
-                # for light objects, we want them pre-radiation
-                if any((p.mother(j).pdgId() == p.pdgId()) for j in xrange(p.numberOfMothers())):
-                    #print "    fail auto-decay"
-                    continue
-            else:
-                # everything else, we want it after radiation, i.e. just before decay
-                if any((p.daughter(j).pdgId() == p.pdgId() and p.daughter(j).status() > 2) for j in xrange(p.numberOfDaughters())):
-                    #print "    fail auto-decay"
-                    continue
-            # FIXME find a better criterion to discard there
-            if status == 71: 
-                #drop QCD radiation with unclear parentage
-                continue 
-            # is it an interesting particle?
-            ok = False
-            if interestingPdgId(id):
-                #print "    pass pdgId"
+            if self.saveAllInterestingGenParticles and interestingPdgId(id,True):
                 ok = True
-            ### no: we don't select by decay, so that we keep the particle summary free of incoming partons and such
-            # if not ok and any(interestingPdgId(d.pdgId()) for d in realGenDaughters(p)):
-            #    #print "    pass dau"
-            #     ok = True
-            if not ok and self.saveIncomingPartons:
-              if id in [1,2,3,4,5,21,22] and status == 21 and any(interestingPdgId(p.daughter(j).pdgId()) for j in xrange(p.numberOfDaughters())):
-                  # interesting for being the mother of an interesting particle (to get the incoming partons creating the particle)
-                  ok = True
-              for mom in realGenMothers(p):
-                if interestingPdgId(mom.pdgId()) or (getattr(mom,'rawIndex',-1) in keymap):
-                    #print "    interesting mom"
-                    # exclude extra x from p -> p + x
-                    if not any(mom.daughter(j2).pdgId() == mom.pdgId() for j2 in xrange(mom.numberOfDaughters())):
-                        #print "         pass no-self-decay"
-                        ok = True
-                    # Account for generator feature with Higgs decaying to itself with same four-vector but no daughters
-                    elif mom.pdgId() == 25 and any(mom.daughter(j2).pdgId() == 25 and mom.daughter(j2).numberOfDaughters()==0 for j2 in range(mom.numberOfDaughters())):
-                        ok = True
-                if abs(mom.pdgId()) == 15:
-                    # if we're a tau daughter we're status 2
-                    # if we passed all the previous steps, then we're a prompt lepton
-                    # so we'd like to be included
+            else:
+                # particles must be status > 2, except for prompt leptons, photons, neutralinos
+                if status <= 2:
+                    if ((id not in self.stableBSMParticleIds) and
+                        (id not in [11,12,13,14,15,16,22] or not isNotFromHadronicShower(p))):
+                            continue
+                # a particle must not be decaying into itself
+                #print "  test %6d  : %+8d  %3d :  %8.2f   %+5.2f   %+5.2f : %d %d : %+8d {%6d}: %s" % ( rawIndex,
+                #        p.pdgId(), p.status(), p.pt(), p.eta(), p.phi(), p.numberOfMothers(), p.numberOfDaughters(), 
+                #        p.motherRef(0).pdgId() if p.numberOfMothers() > 0 else -999, p.motherRef(0).key()   if p.numberOfMothers() > 0 else -999, 
+                #        "  ".join("%d[%d]" % (p.daughter(i).pdgId(), p.daughter(i).status()) for i in xrange(p.numberOfDaughters())))
+                if id in self.savePreFSRParticleIds:
+                    # for light objects, we want them pre-radiation
+                    if any((p.mother(j).pdgId() == p.pdgId()) for j in xrange(p.numberOfMothers())):
+                        #print "    fail auto-decay"
+                        continue
+                else:
+                    # everything else, we want it after radiation, i.e. just before decay
+                    if any((p.daughter(j).pdgId() == p.pdgId() and p.daughter(j).status() > 2) for j in xrange(p.numberOfDaughters())):
+                        #print "    fail auto-decay"
+                        continue
+                # FIXME find a better criterion to discard there
+                if status == 71: 
+                    #drop QCD radiation with unclear parentage
+                    continue 
+                # is it an interesting particle?
+                ok = False
+                if interestingPdgId(id):
+                    #print "    pass pdgId"
                     ok = True
-                if not ok and p.pt() > 10 and id in [1,2,3,4,5,21,22] and any(interestingPdgId(d.pdgId()) for d in realGenDaughters(mom)):
-                    # interesting for being a parton brother of an interesting particle (to get the extra jets in ME+PS) 
-                    ok = True 
-                if not ok and id in [11, 13, 15] and abs(mom.pdgId()) in [1,2,3,4,5,21]:
-                    # Lepton e.g. in off-shell DY with the mother being one of the incoming partons
-                    ok = True
+                ### no: we don't select by decay, so that we keep the particle summary free of incoming partons and such
+                # if not ok and any(interestingPdgId(d.pdgId()) for d in realGenDaughters(p)):
+                #    #print "    pass dau"
+                #     ok = True
+                if not ok and self.saveIncomingPartons:
+                  if id in [1,2,3,4,5,21,22] and status == 21 and any(interestingPdgId(p.daughter(j).pdgId()) for j in xrange(p.numberOfDaughters())):
+                      # interesting for being the mother of an interesting particle (to get the incoming partons creating the particle)
+                      ok = True
+                  for mom in realGenMothers(p):
+                    if interestingPdgId(mom.pdgId()) or (getattr(mom,'rawIndex',-1) in keymap):
+                        #print "    interesting mom"
+                        # exclude extra x from p -> p + x
+                        if not any(mom.daughter(j2).pdgId() == mom.pdgId() for j2 in xrange(mom.numberOfDaughters())):
+                            #print "         pass no-self-decay"
+                            ok = True
+                        # Account for generator feature with Higgs decaying to itself with same four-vector but no daughters
+                        elif mom.pdgId() == 25 and any(mom.daughter(j2).pdgId() == 25 and mom.daughter(j2).numberOfDaughters()==0 for j2 in range(mom.numberOfDaughters())):
+                            ok = True
+                    if abs(mom.pdgId()) == 15:
+                        # if we're a tau daughter we're status 2
+                        # if we passed all the previous steps, then we're a prompt lepton
+                        # so we'd like to be included
+                        ok = True
+                    if not ok and p.pt() > 10 and id in [1,2,3,4,5,21,22] and any(interestingPdgId(d.pdgId()) for d in realGenDaughters(mom)):
+                        # interesting for being a parton brother of an interesting particle (to get the extra jets in ME+PS) 
+                        ok = True 
+                    if not ok and id in [11, 13, 15] and abs(mom.pdgId()) in [1,2,3,4,5,21]:
+                        # Lepton e.g. in off-shell DY with the mother being one of the incoming partons
+                        ok = True
             if ok:
                 gp = p
                 gp.rawIndex = rawIndex # remember its index, so that we can set the mother index later

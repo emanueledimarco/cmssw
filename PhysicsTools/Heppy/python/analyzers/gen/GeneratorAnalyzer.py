@@ -143,7 +143,7 @@ class GeneratorAnalyzer( Analyzer ):
         for igp,gp in enumerate(good):
             gp.motherIndex = -1
             gp.sourceId    = 99
-            gp.promptHardFlag = gp.isPromptFinalState() or gp.isDirectPromptTauDecayProductFinalState() or gp.isHardProcess() 
+            gp.promptHardFlag = gp.isPromptFinalState() or gp.isDirectPromptTauDecayProductFinalState()
             gp.genSummaryIndex = igp
             (ancestor, ancestorKey) = (None,-1) if gp.numberOfMothers() == 0 else motherRef(gp)
             while ancestor:

@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("ProcessOne")
 process.load("CondCore.DBCommon.CondDBCommon_cfi")
-process.CondDBCommon.connect = 'sqlite_file:EcalSRSettings_beam2015_option1_v00_mc.db'
+process.CondDBCommon.connect = 'sqlite_file:EcalSRSettings_beam2018_option2_mc.db'
 process.CondDBCommon.DBParameters.authenticationPath = '/afs/cern.ch/cms/DB/conddb'
 
 process.MessageLogger = cms.Service("MessageLogger",
@@ -21,7 +21,7 @@ process.PoolDBOutputService = cms.Service("PoolDBOutputService",
     process.CondDBCommon,
     toPut = cms.VPSet(cms.PSet(
         record = cms.string('EcalSRSettingsRcd'),
-        tag = cms.string('EcalSRSettings_beam2015_option1_v00_mc')
+        tag = cms.string('EcalSRSettings_beam2018_option2_mc')
     ))
 )
 
@@ -101,6 +101,8 @@ process.writeInDB = cms.EDAnalyzer("EcalSRCondTools",
 
     # SR->action flag map
     actions = cms.vint32(1, 3, 3, 3, 5, 7, 7, 7),
+    # actions = cms.vint32(1, 3, 2, 3, 5, 7, 6, 7), # option a
+    # actions = cms.vint32(1, 3, 2, 2, 5, 7, 6, 6), # option b
 
     #Bx offset common to every SRP card. used in both write mdes
     #called SRP0BUNCHADJUSTPOSITION in online configuration database
@@ -160,14 +162,14 @@ process.writeInDB = cms.EDAnalyzer("EcalSRCondTools",
 
 # Changes settings to 2015 beam ones:
 # Index of time sample (starting from 1) the first DCC weights is implied
-process.writeInDB.ecalDccZs1stSample = cms.int32(3)
+process.writeInDB.ecalDccZs1stSample = cms.int32(2)
 
 # ZS energy threshold in GeV to apply to low interest channels of barrel
 process.writeInDB.ebDccAdcToGeV = cms.double(0.035)
-process.writeInDB.srpBarrelLowInterestChannelZS = cms.double(2.75*0.035)
+process.writeInDB.srpBarrelLowInterestChannelZS = cms.double(5.5*0.035)
 
 # ZS energy threshold in GeV to apply to low interest channels of endcap
 process.writeInDB.eeDccAdcToGeV = cms.double(0.06)
-process.writeInDB.srpEndcapLowInterestChannelZS = cms.double(6*0.06)
+process.writeInDB.srpEndcapLowInterestChannelZS = cms.double(5.5*0.06)
 
 process.p = cms.Path(process.writeInDB)

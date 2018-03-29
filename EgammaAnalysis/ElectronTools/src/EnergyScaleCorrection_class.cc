@@ -500,6 +500,19 @@ correctionCategory_class::correctionCategory_class(TString category_)
     //  std::cout << etmin << "\t" << etmax << "\t" << category.substr(p1 + 1, p2 - p1 - 1) << std::endl;
   }
   
+  // R9 region
+  p1 = category.find("-R9_");
+  p2 = p1 + 1;
+  if(p1 != std::string::npos) {
+    p1 = category.find("_", p1);
+    p2 = category.find("_", p1 + 1);
+    r9min = TString(category.substr(p1 + 1, p2 - p1 - 1)).Atof();
+    p1 = p2;
+    p2 = category.find("-", p1);
+    r9max = TString(category.substr(p1 + 1, p2 - p1 - 1)).Atof();
+    // std::cout << r9min << "\t" << r9max << "\t" << category.substr(p1 + 1, p2 - p1 - 1) << std::endl;
+  }
+
   if(category.find("gold")   != std::string::npos || 
      category.find("Gold")   != std::string::npos || 
      category.find("highR9") != std::string::npos) {

@@ -17,7 +17,6 @@
 //#define PEDANTIC_OUTPUT
 
 EnergyScaleCorrection_class::EnergyScaleCorrection_class(std::string correctionFileName, unsigned int genSeed):
-  doScale(false), doSmearings(false),
   smearingType_(ECALELF)
 {
   
@@ -53,8 +52,7 @@ float EnergyScaleCorrection_class::ScaleCorrection(unsigned int runNumber, bool 
 						   double R9Ele, double etaSCEle, double EtEle) const
 {
   float correction = 1;
-  if(doScale) correction *= getScaleOffset(runNumber, isEBEle, R9Ele, etaSCEle, EtEle);
-  
+  correction *= getScaleOffset(runNumber, isEBEle, R9Ele, etaSCEle, EtEle);
   return correction; 
 }
 
@@ -467,7 +465,7 @@ correctionCategory_class::correctionCategory_class(TString category_)
       etamax = TString(category.substr(p1 + 1, p2 - p1 - 1)).Atof();
     }
   }
-  
+
   if(category.find("EBlowEta") != std::string::npos) {
     etamin = 0;
     etamax = 1;
@@ -497,7 +495,7 @@ correctionCategory_class::correctionCategory_class(TString category_)
     p1 = p2;
     p2 = category.find("-", p1);
     etmax = TString(category.substr(p1 + 1, p2 - p1 - 1)).Atof();
-    //  std::cout << etmin << "\t" << etmax << "\t" << category.substr(p1 + 1, p2 - p1 - 1) << std::endl;
+    // std::cout << "ET = " << etmin << "\t" << etmax << "\t" << category.substr(p1 + 1, p2 - p1 - 1) << std::endl;
   }
   
   // R9 region
@@ -510,7 +508,7 @@ correctionCategory_class::correctionCategory_class(TString category_)
     p1 = p2;
     p2 = category.find("-", p1);
     r9max = TString(category.substr(p1 + 1, p2 - p1 - 1)).Atof();
-    // std::cout << r9min << "\t" << r9max << "\t" << category.substr(p1 + 1, p2 - p1 - 1) << std::endl;
+    // std::cout << "R9 = " << r9min << "\t" << r9max << "\t" << category.substr(p1 + 1, p2 - p1 - 1) << std::endl;
   }
 
   if(category.find("gold")   != std::string::npos || 

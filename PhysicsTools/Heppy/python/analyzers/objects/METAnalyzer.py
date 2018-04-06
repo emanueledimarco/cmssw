@@ -34,7 +34,7 @@ class METAnalyzer( Analyzer ):
             self.handles['corY'] = AutoHandle( 'puppiMETEGCor:corY', 'float' )
         if self.cfg_ana.doMetNoPU: 
             self.handles['nopumet'] = AutoHandle( self.cfg_ana.noPUMetCollection, 'std::vector<pat::MET>' )
-        if self.cfg_ana.doTkMet:
+        if self.cfg_ana.doTkMet or self.cfg_ana.doPuppiMet:
             self.handles['cmgCand'] = AutoHandle( self.cfg_ana.candidates, self.cfg_ana.candidatesTypes )
             #self.handles['vertices'] =  AutoHandle( "offlineSlimmedPrimaryVertices", 'std::vector<reco::Vertex>', fallbackLabel="offlinePrimaryVertices" )
             self.mchandles['packedGen'] = AutoHandle( 'packedGenParticles', 'std::vector<pat::PackedGenParticle>' )
@@ -61,21 +61,79 @@ class METAnalyzer( Analyzer ):
         setattr(met, "upara"+postfix, u1)
         setattr(met, "uperp"+postfix, u2)
 
+
+    def makePuppiMETs(self, event):
+        chargedPuppi = []
+        photonsPuppi = []
+        neutralHadronsPuppi = []
+        hfPuppi = []
+
+        pfcands = self.handles['cmgCand'].product()
+
+        for pfcand in pfcands:
+
+            if (pfcand.charge()!=0):
+                pxyw = pfcand.px(), pfcand.py(), pfcand.puppiWeightNoLep()
+                chargedPuppi.append(pxyw)
+
+            if (pfcand.pdgId()==22):
+                pxyw = pfcand.px(), pfcand.py(), pfcand.puppiWeightNoLep()
+                photonsPuppi.append(pxyw)
+
+            if (pfcand.pdgId()==130):
+                pxyw = pfcand.px(), pfcand.py(), pfcand.puppiWeightNoLep()
+                neutralHadronsPuppi.append(pxyw)
+
+            if (pfcand.pdgId()==1 or pfcand.pdgId()==2):
+                pxyw = pfcand.px(), pfcand.py(), pfcand.puppiWeightNoLep()
+                hfPuppi.append(pxyw)
+
+        def sumXY(pxyws):
+            px, py = sum(x[0]*x[2] for x in pxyws), sum(x[1]*x[2] for x in pxyws)
+            return ROOT.reco.Particle.LorentzVector(-px, -py, 0, hypot(px,py))
+
+        setattr(event, "puppiMetCh"+self.cfg_ana.collectionPostFix, sumXY(chargedPuppi))
+        setattr(event, "puppiMetPh"+self.cfg_ana.collectionPostFix, sumXY(photonsPuppi))
+        setattr(event, "puppiMetNh"+self.cfg_ana.collectionPostFix, sumXY(neutralHadronsPuppi))
+        setattr(event, "puppiMetHF"+self.cfg_ana.collectionPostFix, sumXY(hfPuppi))
+
+        getattr(event,"puppiMetCh"+self.cfg_ana.collectionPostFix).sumEt = sum([hypot(x[0]*x[2],x[1]*x[2]) for x in chargedPuppi])
+        getattr(event,"puppiMetPh"+self.cfg_ana.collectionPostFix).sumEt = sum([hypot(x[0]*x[2],x[1]*x[2]) for x in photonsPuppi])
+        getattr(event,"puppiMetNh"+self.cfg_ana.collectionPostFix).sumEt = sum([hypot(x[0]*x[2],x[1]*x[2]) for x in neutralHadronsPuppi])
+        getattr(event,"puppiMetHF"+self.cfg_ana.collectionPostFix).sumEt = sum([hypot(x[0]*x[2],x[1]*x[2]) for x in hfPuppi])
+
+
+
     def makeTkMETs(self, event):
         charged = []
         chargedchs = []
         chargedPVLoose = []
         chargedPUPVLoose = []
         chargedPVTight = []
+        chargedNoPV = []
+        chargedPVUsedInFit = []
         nt = []
         ntcentral = []
+        dochs=getattr(self.cfg_ana,"includeTkMetCHS",False)
+        dotight=getattr(self.cfg_ana,"includeTkMetPVTight",False)
+        doloose=getattr(self.cfg_ana,"includeTkMetPVLoose",False)
+        doPVUsedInFit=getattr(self.cfg_ana,"includeTkMetPVUsedInFit",False)
+        doNoPV=getattr(self.cfg_ana,"includeTkMetNoPV",False)
+        useLeptonPV=getattr(self.cfg_ana,"useLeptonPV",False)
         doneutrals=getattr(self.cfg_ana,"includeNTMet",True)       
-        dochs=getattr(self.cfg_ana,"includeTkMetCHS",True)       
-        dotight=getattr(self.cfg_ana,"includeTkMetPVTight",True)       
-        doloose=getattr(self.cfg_ana,"includeTkMetPVLoose",True)       
+
         pfcands = self.handles['cmgCand'].product()
         leadCharged,leadNeutral=None,None
         
+        #set primary vertex to the leading pT lepton  
+        ipv=0
+        if useLeptonPV and len(event.selectedLeptons)>0:
+            lpv=event.selectedLeptons[0].associatedVertex
+            for ivtx in xrange(0,len(event.vertices)):
+                if event.vertices[ivtx].position()!=lpv.position(): continue
+                ipv=ivtx
+                break
+
         for pfcand in pfcands:
 
             p = pfcand.p4()
@@ -89,7 +147,7 @@ class METAnalyzer( Analyzer ):
                     leadNeutral=p if not leadNeutral or leadNeutral.pt()<p.pt() else leadNeutral
                 continue
 
-            pvflag = pfcand.fromPV()
+            pvflag = pfcand.fromPV(ipv)
 
             if abs(pfcand.dz())<=self.cfg_ana.dzMax:
                 charged.append(p)
@@ -97,26 +155,45 @@ class METAnalyzer( Analyzer ):
             if pvflag>0:
                 chargedchs.append(p)
 
+            #close to PV and not in the fit of another PV
             if pvflag>1:
                 chargedPVLoose.append(p)
-                leadCharged=p if not leadCharged or leadCharged.pt()<p.pt() else leadCharged
-            else:
+
+                #clean wrt to selected leptons from the same PV 
+                veto=False
+                for l in event.selectedLeptons:
+                    if l.associatedVertex.position()!=pfcand.vertex() : continue
+                    if deltaR(l.p4(),p)>0.05 : continue
+                    veto=True
+                    break
+                if not veto:
+                    leadCharged=p if not leadCharged or leadCharged.pt()<p.pt() else leadCharged
+
+            #close or used in the fit of another PV
+            if pvflag<=1:
                 chargedPUPVLoose.append(p)
 
             if pvflag>2:
                 chargedPVTight.append(p)
 
+            if doNoPV and pvflag >= 0:
+                chargedNoPV.append(p)
+            if doPVUsedInFit and pvflag >= 3:
+                chargedPVUsedInFit.append(p)
+
         def sumP4(p4s):
             p4=ROOT.reco.Particle.LorentzVector(0.,0.,0.,0.)
             for p in p4s: p4 -= p
             return p4
-        for coll,p4coll,doit in [('tkMet',          charged,          True),
-                                 ('tkMetPVchs',     chargedchs,       dochs),
-                                 ('tkMetPVLoose',   chargedPVLoose,   doloose),
-                                 ('tkMetPUPVLoose', chargedPUPVLoose, doloose),
-                                 ('tkMetPVTight',   chargedPVTight,   dotight),
-                                 ('ntMet',          nt,               doneutrals),
-                                 ('ntCentralMet',   ntcentral,        doneutrals),]:
+        for coll,p4coll,doit in [('tkMet',            charged,            True),
+                                 ('tkMetPVchs',       chargedchs,         dochs),
+                                 ('tkMetPVLoose',     chargedPVLoose,     doloose),
+                                 ('tkMetPUPVLoose',   chargedPUPVLoose,   doloose),
+                                 ('tkMetPVUsedInFit', chargedPVUsedInFit, doPVUsedInFit),
+                                 ('tkMetNoPV',        chargedNoPV,        doNoPV),
+                                 ('tkMetPVTight',     chargedPVTight,     dotight),
+                                 ('ntMet',            nt,                 doneutrals),
+                                 ('ntCentralMet',     ntcentral,          doneutrals),]:
             if not doit: continue
             setattr(event,coll+self.cfg_ana.collectionPostFix, sumP4(p4coll))
             getattr(event,coll+self.cfg_ana.collectionPostFix).sumEt = sum(x.pt() for x in p4coll)
@@ -309,6 +386,9 @@ class METAnalyzer( Analyzer ):
         if self.cfg_ana.doTkMet: 
             self.makeTkMETs(event);
 
+        if self.cfg_ana.doPuppiMet:
+            self.makePuppiMETs(event);
+
         if getattr(self.cfg_ana,"doTkGenMet",self.cfg_ana.doTkMet) and self.cfg_comp.isMC and hasattr(event, 'genParticles'):
             self.makeGenTkMet(event)
 
@@ -326,9 +406,14 @@ setattr(METAnalyzer,"defaultConfig", cfg.Analyzer(
     old74XMiniAODs = False, # need to set to True to get proper Raw MET on plain 74X MC produced with CMSSW <= 7_4_12
     makeShiftedMETs = True,
     doTkMet = False,
-    includeTkMetCHS = True,
-    includeTkMetPVLoose = True,
-    includeTkMetPVTight = True,
+    doPuppiMet = False,
+    ### more on tkMET
+    includeTkMetCHS = False,
+    includeTkMetPVLoose = False,
+    includeTkMetPVTight = False,
+    includeTkMetNoPV = False,
+    includeTkMetPVUsedInFit = False,
+    ###
     doMetNoPU = False, # Not existing in MiniAOD at the moment
     doMetNoMu = False,  
     doMetNoEle = False,  

@@ -18,7 +18,7 @@ class LHEWeightAnalyzer( Analyzer ):
     """
     def __init__(self, cfg_ana, cfg_comp, looperName ):
         super(LHEWeightAnalyzer,self).__init__(cfg_ana,cfg_comp,looperName)
-
+        self.normLHEWeights = getattr(cfg_ana, "normLHEWeights", False)
         self.LHEWeightsNames=[]
 
     def declareHandles(self):
@@ -66,6 +66,7 @@ class LHEWeightAnalyzer( Analyzer ):
                 # Check if id is string or int and convert to int if it's a string
                 try:
                     int(w.id)
+                    if self.normLHEWeights: w.wgt = w.wgt/event.LHE_originalWeight
                     event.LHE_weights.append(w)
                 except ValueError:
                     if not type(w.id) == str:

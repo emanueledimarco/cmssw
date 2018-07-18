@@ -35,7 +35,7 @@ class Tree(object):
         if storageType == "default": 
             storageType = self.defaultIntType if type is int else self.defaultFloatType
         if type is float  :
-            if storageType == "F": 
+            if storageType in ["F","H"]: 
                 selfmap[varName]=numpy.zeros(len,numpy.float32)
                 self.tree.Branch(varName,selfmap[varName],varName+postfix+'/F')
             elif storageType == "D":
@@ -113,20 +113,21 @@ class Tree(object):
                 if isinstance(value, ROOT.TObject) and value.ClassName() == "TClonesArray":
                     value.ExpandCreateFast(0)
             
-    def fill(self, varName, value ):
+    def fill(self, varName, value, storageType="default" ):
+        if isinstance(value,float) and storageType=="H": value=np.float16(value)
         if isinstance(self.vars[varName], numpy.ndarray):
             self.vars[varName][0]=value
         else:
             self.fillers[varName](self.vars[varName],value)
 
-    def vfill(self, varName, values ):
+    def vfill(self, varName, values, storageType="default" ):
         a = self.vecvars[varName]
         if isinstance(a, numpy.ndarray):
             for (i,v) in enumerate(values):
-                a[i]=v
+                a[i]=numpy.float16(v) if storageType=="H" else v
         else:
             if isinstance(a, ROOT.TObject) and a.ClassName() == "TClonesArray":
                 a.ExpandCreateFast(len(values))
             fillit = self.fillers[varName]
             for (i,v) in enumerate(values):
-                fillit(a[i],v)
+                fillit(a[i],numpy.float16(v) if storageType=="H" else v)

@@ -12,7 +12,7 @@ class TriggerMatchAnalyzer( Analyzer ):
         self.processName = getattr(self.cfg_ana,"processName","PAT")
         self.fallbackName = getattr(self.cfg_ana,"fallbackProcessName","RECO")
         self.unpackPathNames = getattr(self.cfg_ana,"unpackPathNames",True)
-        self.label = self.cfg_ana.label
+        self.label = self.cfg_ana.instance_label
         self.trgObjSelectors = []
         self.trgObjSelectors.extend(getattr(self.cfg_ana,"trgObjSelectors",[]))
         self.collToMatch = getattr(self.cfg_ana,"collToMatch",None)

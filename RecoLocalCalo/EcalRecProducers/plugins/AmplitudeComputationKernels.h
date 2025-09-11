@@ -4,10 +4,6 @@
 #include "RecoLocalCalo/EcalRecProducers/interface/EigenMatrixTypes_gpu.h"
 #include "DeclsForKernels.h"
 
-class EcalPulseShape;
-class EcalPulseCovariance;
-class EcalUncalibratedRecHit;
-
 namespace ecal {
   namespace multifit {
 

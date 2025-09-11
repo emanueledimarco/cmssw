@@ -35,15 +35,7 @@
 #include "HeterogeneousCore/CUDAUtilities/interface/cudaCheck.h"
 #include "RecoLocalCalo/EcalRecProducers/interface/EigenMatrixTypes_gpu.h"
 
-struct EcalPulseShape;
 class EcalSampleMask;
-class EcalTimeBiasCorrections;
-struct EcalPulseCovariance;
-class EcalDigiCollection;
-class EcalXtalGroupId;
-class EcalSamplesCorrelation;
-class EBDigiCollection;
-class EEDigiCollection;
 
 namespace ecal {
   namespace multifit {

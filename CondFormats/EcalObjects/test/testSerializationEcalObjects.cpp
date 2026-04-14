@@ -132,7 +132,7 @@ int main() {
   testSerialization<EcalSamplesCorrelation>();
   testSerialization<EcalPh2SamplesCorrelation>();
   testSerialization<EcalPulseShapes>();
-  testSerialization<EcalPh2PulseShapes>();
+  testSerialization<EcalPh2CubicPulseShapes>();
   testSerialization<EcalPulseCovariances>();
   testSerialization<EcalPh2PulseCovariances>();
   testSerialization<EcalPulseSymmCovariances>();

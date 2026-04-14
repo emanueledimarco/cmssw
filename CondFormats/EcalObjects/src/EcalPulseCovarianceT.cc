@@ -9,4 +9,4 @@ EcalPulseCovarianceT<T>::EcalPulseCovarianceT() {
   }
 }
 
-template struct EcalPulseCovarianceT<EcalPh2PulseShape>;
+template struct EcalPulseCovarianceT<EcalPh2CubicPulseShape>;

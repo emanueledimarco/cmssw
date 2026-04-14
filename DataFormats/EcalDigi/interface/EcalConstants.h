@@ -47,7 +47,7 @@ public:
   static constexpr unsigned int kGainIdMask = 0x1;          // Gain id mask for unpacking
   static constexpr unsigned int kNActiveLHCPeriods = 5;     // Number of active LHC periods for multifit algorithm
   static constexpr unsigned int kNSamplesPerLHCPeriod = 25 / Samp_Period;    // Number of samples per LHC 25ns period
-  static constexpr unsigned int kPulseShapeTemplateSampleSize = sampleSize;  // Pulse shape template sample size for
+  static constexpr unsigned int kPulseShapeTemplateSampleSize = 12;  // Pulse shape template sample size for
                                                                              // multifit Eigen matrix types
   static constexpr unsigned int kFullSampleVectorSize =
       (kNActiveLHCPeriods - 1) * kNSamplesPerLHCPeriod + sampleSize;  // Size of full sample vector for multifit

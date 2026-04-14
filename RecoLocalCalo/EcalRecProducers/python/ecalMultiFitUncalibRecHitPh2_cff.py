@@ -44,12 +44,12 @@ EcalTrivialConditionRetriever = _EcalTrivialConditionRetriever.clone(
 )
 
 # provides the Phase 2 pulse shape (same for all channels)
-ecalPh2PulseShapesRcd = cms.ESSource("EmptyESSource",
-    recordName = cms.string("EcalPh2PulseShapesRcd"),
+EcalPh2CubicPulseShapesRcd = cms.ESSource("EmptyESSource",
+    recordName = cms.string("EcalPh2CubicPulseShapesRcd"),
     firstValid = cms.vuint32(1),
     iovIsRunNotTime = cms.bool(True)
 )
-ecalPh2PulseShapesESProducer = cms.ESProducer("EcalPh2PulseShapesESProducer",
+EcalPh2CubicPulseShapesESProducer = cms.ESProducer("EcalPh2CubicPulseShapesESProducer",
     pulseShapes = cms.vdouble(0., 0., 0., 0.0113979, 0.758151, 1.0, 0.887744, 0.673548, 0.474332, 0.319561, 0.215144, 0.147464, 0.101087, 0.0693181, 0.0475044, 0.)
 )
 

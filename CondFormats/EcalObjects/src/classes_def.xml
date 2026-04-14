@@ -303,12 +303,12 @@
 </class>
 
 <!-- base class -->
-<class name="EcalPh2PulseShape"/>
+<class name="EcalPh2CubicPulseShape"/>
 <!-- templates for EcalCondObjectContainer having the class as template parameter -->
-<class name="std::vector<EcalPh2PulseShape>"/>
-<class name="EcalContainer<EEDetId,EcalPh2PulseShape>"/>
-<class name="EcalContainer<EBDetId,EcalPh2PulseShape>"/>
-<class name="EcalCondObjectContainer<EcalPh2PulseShape>">
+<class name="std::vector<EcalPh2CubicPulseShape>"/>
+<class name="EcalContainer<EEDetId,EcalPh2CubicPulseShape>"/>
+<class name="EcalContainer<EBDetId,EcalPh2CubicPulseShape>"/>
+<class name="EcalCondObjectContainer<EcalPh2CubicPulseShape>">
    <field name = "eb_" mapping = "blob"/>
    <field name = "ee_" mapping = "blob"/>
 </class>

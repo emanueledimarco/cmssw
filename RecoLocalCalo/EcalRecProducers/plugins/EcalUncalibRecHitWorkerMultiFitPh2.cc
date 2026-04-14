@@ -17,7 +17,7 @@
 #include "CondFormats/EcalObjects/interface/EcalSampleMask.h"
 #include "CondFormats/EcalObjects/interface/EcalTimeBiasCorrections.h"
 #include "CondFormats/EcalObjects/interface/EcalPh2SamplesCorrelation.h"
-#include "CondFormats/EcalObjects/interface/EcalPulseShapeT.h"
+#include "CondFormats/EcalObjects/interface/EcalCubicPulseShapeT.h"
 #include "CondFormats/EcalObjects/interface/EcalPulseCovarianceT.h"
 #include "CondFormats/DataRecord/interface/EcalCATIAGainRatiosRcd.h"
 #include "CondFormats/DataRecord/interface/EcalLiteDTUPedestalsRcd.h"
@@ -28,7 +28,7 @@
 #include "CondFormats/DataRecord/interface/EcalTimeOffsetConstantRcd.h"
 #include "CondFormats/DataRecord/interface/EcalTimeBiasCorrectionsRcd.h"
 #include "CondFormats/DataRecord/interface/EcalPh2SamplesCorrelationRcd.h"
-#include "CondFormats/DataRecord/interface/EcalPh2PulseShapesRcd.h"
+#include "CondFormats/DataRecord/interface/EcalPh2CubicPulseShapesRcd.h"
 #include "CondFormats/DataRecord/interface/EcalPh2PulseCovariancesRcd.h"
 #include "DataFormats/EcalDigi/interface/EcalConstants.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitTimingCCAlgo.h"
@@ -71,8 +71,8 @@ private:
   edm::ESHandle<EcalCATIAGainRatios> gains_;
   edm::ESGetToken<EcalCATIAGainRatios, EcalCATIAGainRatiosRcd> gainsToken_;
   edm::ESGetToken<EcalPh2SamplesCorrelation, EcalPh2SamplesCorrelationRcd> noiseConvariancesToken_;
-  edm::ESHandle<EcalPh2PulseShapes> pulseshapes_;
-  edm::ESGetToken<EcalPh2PulseShapes, EcalPh2PulseShapesRcd> pulseShapesToken_;
+  edm::ESHandle<EcalPh2CubicPulseShapes> pulseshapes_;
+  edm::ESGetToken<EcalPh2CubicPulseShapes, EcalPh2CubicPulseShapesRcd> pulseShapesToken_;
   edm::ESHandle<EcalPh2PulseCovariances> pulsecovariances_;
   edm::ESGetToken<EcalPh2PulseCovariances, EcalPh2PulseCovariancesRcd> pulseConvariancesToken_;
 
@@ -181,7 +181,7 @@ EcalUncalibRecHitWorkerMultiFitPh2::EcalUncalibRecHitWorkerMultiFitPh2(const edm
   pedsToken_ = c.esConsumes<EcalLiteDTUPedestalsMap, EcalLiteDTUPedestalsRcd>();
   gainsToken_ = c.esConsumes<EcalCATIAGainRatios, EcalCATIAGainRatiosRcd>();
   noiseConvariancesToken_ = c.esConsumes<EcalPh2SamplesCorrelation, EcalPh2SamplesCorrelationRcd>();
-  pulseShapesToken_ = c.esConsumes<EcalPh2PulseShapes, EcalPh2PulseShapesRcd>();
+  pulseShapesToken_ = c.esConsumes<EcalPh2CubicPulseShapes, EcalPh2CubicPulseShapesRcd>();
   pulseConvariancesToken_ = c.esConsumes<EcalPh2PulseCovariances, EcalPh2PulseCovariancesRcd>();
 
   // algorithm to be used for timing and required configurations
@@ -382,11 +382,11 @@ void EcalUncalibRecHitWorkerMultiFitPh2::run(const edm::Event& evt,
       pedRMSVec[i] = aped->rms(i);
     }
 
-    for (int i = 0; i < EcalPh2PulseShape::TEMPLATESAMPLES; ++i)
+    for (int i = 0; i < EcalPh2CubicPulseShape::TEMPLATESAMPLES; ++i)
       fullpulse(i + indexOffset) = aPulse->val(i);
 
-    for (int i = 0; i < EcalPh2PulseShape::TEMPLATESAMPLES; ++i)
-      for (int j = 0; j < EcalPh2PulseShape::TEMPLATESAMPLES; ++j)
+    for (int i = 0; i < EcalPh2CubicPulseShape::TEMPLATESAMPLES; ++i)
+      for (int j = 0; j < EcalPh2CubicPulseShape::TEMPLATESAMPLES; ++j)
         fullpulsecov(i + indexOffset, j + indexOffset) = aPulseCov->val(i, j);
 
     int lastSampleBeforeSaturation = -2;

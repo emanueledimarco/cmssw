@@ -3,7 +3,8 @@
 
 #include "CondFormats/Serialization/interface/Serializable.h"
 
-#include "CondFormats/EcalObjects/interface/EcalPulseShapeT.h"
+#include "CondFormats/EcalObjects/interface/EcalPulseShapes.h"
+#include "CondFormats/EcalObjects/interface/EcalCubicPulseShapeT.h"
 #include "CondFormats/EcalObjects/interface/EcalCondObjectContainer.h"
 
 template <typename T>
@@ -20,7 +21,8 @@ public:
   COND_SERIALIZABLE;
 };
 
-using EcalPh2PulseCovariance = EcalPulseCovarianceT<EcalPh2PulseShape>;
+
+using EcalPh2PulseCovariance = EcalPulseCovarianceT<EcalPh2CubicPulseShape>;
 
 typedef EcalCondObjectContainer<EcalPh2PulseCovariance> EcalPh2PulseCovariancesMap;
 typedef EcalPh2PulseCovariancesMap::const_iterator EcalPh2PulseCovariancesMapIterator;

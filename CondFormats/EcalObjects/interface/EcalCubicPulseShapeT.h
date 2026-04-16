@@ -9,12 +9,21 @@ template <class P>
 struct EcalCubicPulseShapeT {
 public:
   static constexpr int TEMPLATESAMPLES = static_cast<int>(P::kPulseShapeTemplateSampleSize);
+  static constexpr int PARSPERSAMPLE = static_cast<int>(P::kParsPerTemplateSample);
 
   EcalCubicPulseShapeT();
 
-  float pdfval[TEMPLATESAMPLES];
+  float parameters[TEMPLATESAMPLES*PARSPERSAMPLE];
 
-  float val(int isample) const { return pdfval[isample]; }
+  float pdfval(int ipar) const { 
+    int baseIndex = (ipar / PARSPERSAMPLE) * PARSPERSAMPLE;
+    return parameters[baseIndex];
+  }
+
+  const float* splinepars(int ipar) const {
+    int baseIndex = (ipar / PARSPERSAMPLE) * PARSPERSAMPLE;
+    return &parameters[baseIndex + 1];
+  }
 
   COND_SERIALIZABLE;
 };

@@ -52,6 +52,7 @@ public:
   static constexpr unsigned int kFullSampleVectorSize =
       (kNActiveLHCPeriods - 1) * kNSamplesPerLHCPeriod + sampleSize;  // Size of full sample vector for multifit
                                                                       // Eigen matrix types
+  static constexpr unsigned int kParsPerTemplateSample = 4; // Number of parameters per template sample of multifit
 };
 
 class ecalPh1 {
@@ -73,5 +74,6 @@ public:
                                                                            // multifit Eigen matrix types
   static constexpr unsigned int kFullSampleVectorSize =
       (kNActiveLHCPeriods - 1) * kNSamplesPerLHCPeriod + sampleSize;  // Size of full sample vector for multifit
+  static constexpr unsigned int kParsPerTemplateSample = 1; // Number of parameters per template sample of multifit
 };
 #endif

@@ -303,6 +303,18 @@
 </class>
 
 <!-- base class -->
+<class name="EcalPh1CubicPulseShape"/>
+<!-- templates for EcalCondObjectContainer having the class as template parameter -->
+<class name="std::vector<EcalPh1CubicPulseShape>"/>
+<class name="EcalContainer<EEDetId,EcalPh1CubicPulseShape>"/>
+<class name="EcalContainer<EBDetId,EcalPh1CubicPulseShape>"/>
+<class name="EcalCondObjectContainer<EcalPh1CubicPulseShape>">
+   <field name = "eb_" mapping = "blob"/>
+   <field name = "ee_" mapping = "blob"/>
+</class>
+
+
+<!-- base class -->
 <class name="EcalPh2CubicPulseShape"/>
 <!-- templates for EcalCondObjectContainer having the class as template parameter -->
 <class name="std::vector<EcalPh2CubicPulseShape>"/>
@@ -325,17 +337,6 @@
 </class>
 
 <!-- base class -->
-<class name="EcalPh2PulseCovariance"/>
-<!-- templates for EcalCondObjectContainer having the class as template parameter -->
-<class name="std::vector<EcalPh2PulseCovariance>"/>
-<class name="EcalContainer<EEDetId,EcalPh2PulseCovariance>"/>
-<class name="EcalContainer<EBDetId,EcalPh2PulseCovariance>"/>
-<class name="EcalCondObjectContainer<EcalPh2PulseCovariance>">
-   <field name = "eb_" mapping = "blob"/>
-   <field name = "ee_" mapping = "blob"/>
-</class>
-
-<!-- base class -->
 <class name="EcalPulseSymmCovariance"/>
 <!-- templates for EcalCondObjectContainer having the class as template parameter -->
 <class name="std::vector<EcalPulseSymmCovariance>"/>
@@ -353,6 +354,17 @@
 <class name="EcalContainer<EEDetId,EcalPh2PulseSymmCovariance>"/>
 <class name="EcalContainer<EBDetId,EcalPh2PulseSymmCovariance>"/>
 <class name="EcalCondObjectContainer<EcalPh2PulseSymmCovariance>">
+   <field name = "eb_" mapping = "blob"/>
+   <field name = "ee_" mapping = "blob"/>
+</class>
+
+<!-- base class -->
+<class name="EcalPh1PulseSymmCovariance"/>
+<!-- templates for EcalCondObjectContainer having the class as template parameter -->
+<class name="std::vector<EcalPh1PulseSymmCovariance>"/>
+<class name="EcalContainer<EEDetId,EcalPh1PulseSymmCovariance>"/>
+<class name="EcalContainer<EBDetId,EcalPh1PulseSymmCovariance>"/>
+<class name="EcalCondObjectContainer<EcalPh1PulseSymmCovariance>">
    <field name = "eb_" mapping = "blob"/>
    <field name = "ee_" mapping = "blob"/>
 </class>

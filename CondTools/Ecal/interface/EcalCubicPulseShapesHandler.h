@@ -23,7 +23,8 @@
 #include "FWCore/Framework/interface/EventSetupRecordKey.h"
 
 #include "CondFormats/EcalObjects/interface/EcalCubicPulseShapeT.h"
-#include "CondFormats/DataRecord/interface/EcalCubicPulseShapesRcd.h"
+#include "CondFormats/DataRecord/interface/EcalPh1CubicPulseShapesRcd.h"
+#include "CondFormats/DataRecord/interface/EcalPh2CubicPulseShapesRcd.h"
 
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
 #include "DataFormats/EcalDetId/interface/EBDetId.h"
@@ -50,12 +51,12 @@ namespace popcon {
     m_EEPulseShapeTemplate = ps.getParameter<std::vector<double> >("EECubicPulseShapeTemplate");
   }
 
-  ~EcalCubicPulseShapesHandler() override;
+  ~EcalCubicPulseShapesHandler() {};
 
   bool checkPulseShape(P::Item* item) {
     // true means all is standard and OK
     bool result = true;
-    for (int s = 0; s < item.TEMPLATESAMPLES; ++s) {
+    for (int s = 0; s < item->TEMPLATESAMPLES; ++s) {
       if (s % item->PARSPERSAMPLE == 0 && (item->parameters[s] > 1 || item->parameters[s] < 0))
         result = false;
       if (s % item->PARSPERSAMPLE != 0 && (fabs(item->parameters[s]) > 1))
@@ -66,13 +67,15 @@ namespace popcon {
 
   void fillSimPulseShape(P::Item* item, bool isbarrel) {
     for (int s = 0; s < item->TEMPLATESAMPLES; ++s) {
-      item->parameters[s] = isbarrel ? m_EBPulseShapeTemplate[s] : m_EEPulseShapeTemplate[s];
+        for (int c=0; c < item.PARPERSAMPLES; ++c) {
+          item->parameters[s*item.PARPERSAMPLES + c] = isbarrel ? m_EBPulseShapeTemplate[s*item.PARPERSAMPLES + c] : m_EEPulseShapeTemplate[s*item.PARPERSAMPLES + c];
+        }
     }
   }
 
   void getNewObjects() {
     std::cout << "------- Ecal - > getNewObjects\n";
-    
+
   // create the object pukse shapes
   P* pulseshapes = new P();
 
@@ -80,7 +83,7 @@ namespace popcon {
   std::ifstream inputfile;
   inputfile.open(m_filename.c_str());
   typename P::Item item;
-  float templatevals[item.TEMPLATESAMPLES];
+  float templatecoeffvals[item.TEMPLATESAMPLES*item.PARPERSAMPLES];
   unsigned int rawId;
   int isbarrel;
   std::string line;
@@ -97,8 +100,10 @@ namespace popcon {
       linereader >> isbarrel >> rawId;
       // std::cout << "Inserting template for crystal with rawId = " << rawId << " (isbarrel = " << isbarrel << ") " << std::endl;
       for (int s = 0; s < item.TEMPLATESAMPLES; ++s) {
-        linereader >> templatevals[s];
-        // std::cout << templatevals[s] << "\t";
+        for (int c=0; c < item.PARPERSAMPLES; ++c) {
+          linereader >> templatecoeffvals[s*item.PARPERSAMPLES + c];
+        }
+        // std::cout << templatecoeffvals[s] << "\t";
       }
       // std::cout << std::endl;
 
@@ -106,9 +111,11 @@ namespace popcon {
         std::cout << "Wrong format of the text file. Exit." << std::endl;
         return;
       }
-      for (int s = 0; s < item.TEMPLATESAMPLES; ++s)
-        item.parameters[s] = templatevals[s];
-
+      for (int s = 0; s < item.TEMPLATESAMPLES*item.PARPERSAMPLES; ++s)
+        for (int c=0; c < item.PARPERSAMPLES; ++c) {
+          item.parameters[s*item.PARPERSAMPLES + c] = templatecoeffvals[s*item.PARPERSAMPLES + c];
+        }
+      }
       if (isbarrel) {
         EBDetId ebdetid(rawId);
         if (!checkPulseShape(&item))
@@ -169,7 +176,7 @@ namespace popcon {
   unsigned int irun = m_firstRun;
   cond::Time_t snc = (cond::Time_t)irun;
 
-  this->m_to_transfer.push_back(std::make_pair((&item)pulseshapes, snc));
+  this->m_to_transfer.push_back(std::make_pair(pulseshapes, snc));
 
   std::cout << "Ecal - > end of getNewObjects -----------" << std::endl;
   std::cout << "N. bad shapes for EB = " << nEBbad << std::endl;

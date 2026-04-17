@@ -33,30 +33,4 @@ typedef EcalCondObjectContainer<EcalPulseSymmCovariance> EcalPulseSymmCovariance
 typedef EcalPulseSymmCovariancesMap::const_iterator EcalPulseSymmCovariancesMapIterator;
 typedef EcalPulseSymmCovariancesMap EcalPulseSymmCovariances;
 
-
-
-struct EcalPh2PulseSymmCovariance {
-public:
-  static const int TEMPLATESAMPLES = EcalPh2CubicPulseShape::TEMPLATESAMPLES;
-
-  EcalPh2PulseSymmCovariance();
-
-  float covval[TEMPLATESAMPLES * (TEMPLATESAMPLES + 1) / 2];
-
-  int indexFor(int i, int j) const {
-    int m = std::min(i, j);
-    int n = std::max(i, j);
-    return n + TEMPLATESAMPLES * m - m * (m + 1) / 2;
-  }
-
-  float val(int i, int j) const { return covval[indexFor(i, j)]; }
-  float& val(int i, int j) { return covval[indexFor(i, j)]; }
-
-  COND_SERIALIZABLE;
-};
-
-typedef EcalCondObjectContainer<EcalPh2PulseSymmCovariance> EcalPh2PulseSymmCovariancesMap;
-typedef EcalPh2PulseSymmCovariancesMap::const_iterator EcalPh2PulseSymmCovariancesMapIterator;
-typedef EcalPh2PulseSymmCovariancesMap EcalPh2PulseSymmCovariances;
-
 #endif

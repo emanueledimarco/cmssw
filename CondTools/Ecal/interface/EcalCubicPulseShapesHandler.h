@@ -67,7 +67,9 @@ namespace popcon {
 
   void fillSimPulseShape(P::Item* item, bool isbarrel) {
     for (int s = 0; s < item->TEMPLATESAMPLES; ++s) {
-      item->parameters[s] = isbarrel ? m_EBPulseShapeTemplate[s] : m_EEPulseShapeTemplate[s];
+        for (int c=0; c < item.PARPERSAMPLES; ++c) {
+          item->parameters[s*item.PARPERSAMPLES + c] = isbarrel ? m_EBPulseShapeTemplate[s*item.PARPERSAMPLES + c] : m_EEPulseShapeTemplate[s*item.PARPERSAMPLES + c];
+        }
     }
   }
 
@@ -81,7 +83,7 @@ namespace popcon {
   std::ifstream inputfile;
   inputfile.open(m_filename.c_str());
   typename P::Item item;
-  float templatevals[item.TEMPLATESAMPLES];
+  float templatecoeffvals[item.TEMPLATESAMPLES*item.PARPERSAMPLES];
   unsigned int rawId;
   int isbarrel;
   std::string line;
@@ -98,8 +100,10 @@ namespace popcon {
       linereader >> isbarrel >> rawId;
       // std::cout << "Inserting template for crystal with rawId = " << rawId << " (isbarrel = " << isbarrel << ") " << std::endl;
       for (int s = 0; s < item.TEMPLATESAMPLES; ++s) {
-        linereader >> templatevals[s];
-        // std::cout << templatevals[s] << "\t";
+        for (int c=0; c < item.PARPERSAMPLES; ++c) {
+          linereader >> templatecoeffvals[s*item.PARPERSAMPLES + c];
+        }
+        // std::cout << templatecoeffvals[s] << "\t";
       }
       // std::cout << std::endl;
 
@@ -107,9 +111,11 @@ namespace popcon {
         std::cout << "Wrong format of the text file. Exit." << std::endl;
         return;
       }
-      for (int s = 0; s < item.TEMPLATESAMPLES; ++s)
-        item.parameters[s] = templatevals[s];
-
+      for (int s = 0; s < item.TEMPLATESAMPLES*item.PARPERSAMPLES; ++s)
+        for (int c=0; c < item.PARPERSAMPLES; ++c) {
+          item.parameters[s*item.PARPERSAMPLES + c] = templatecoeffvals[s*item.PARPERSAMPLES + c];
+        }
+      }
       if (isbarrel) {
         EBDetId ebdetid(rawId);
         if (!checkPulseShape(&item))

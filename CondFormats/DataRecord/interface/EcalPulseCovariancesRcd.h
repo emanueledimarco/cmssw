@@ -3,4 +3,6 @@
 
 #include "FWCore/Framework/interface/EventSetupRecordImplementation.h"
 class EcalPulseCovariancesRcd : public edm::eventsetup::EventSetupRecordImplementation<EcalPulseCovariancesRcd> {};
+
 #endif
+

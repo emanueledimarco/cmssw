@@ -156,12 +156,20 @@
 #include "CondFormats/DataRecord/interface/EcalPh2SamplesCorrelationRcd.h"
 
 #include "CondFormats/EcalObjects/interface/EcalPulseShapes.h"
+#include "CondFormats/EcalObjects/interface/EcalCubicPulseShapeT.h"
 #include "CondFormats/DataRecord/interface/EcalPulseShapesRcd.h"
+#include "CondFormats/DataRecord/interface/EcalPh1CubicPulseShapesRcd.h"
+#include "CondFormats/DataRecord/interface/EcalPh2CubicPulseShapesRcd.h"
 
 #include "CondFormats/EcalObjects/interface/EcalPulseCovariances.h"
 #include "CondFormats/DataRecord/interface/EcalPulseCovariancesRcd.h"
+
 #include "CondFormats/EcalObjects/interface/EcalPulseSymmCovariances.h"
 #include "CondFormats/DataRecord/interface/EcalPulseSymmCovariancesRcd.h"
+
+#include "CondFormats/EcalObjects/interface/EcalPulseSymmCovarianceT.h"
+#include "CondFormats/DataRecord/interface/EcalPh1PulseSymmCovariancesRcd.h"
+#include "CondFormats/DataRecord/interface/EcalPh2PulseSymmCovariancesRcd.h"
 
 #include "CondFormats/EcalObjects/interface/EcalPFRecHitThresholds.h"
 #include "CondFormats/DataRecord/interface/EcalPFRecHitThresholdsRcd.h"
@@ -250,6 +258,12 @@ REGISTER_PLUGIN(EcalPulseShapesRcd, EcalPulseShapes);            //is EcalCondOb
 REGISTER_PLUGIN(EcalPulseCovariancesRcd, EcalPulseCovariances);  //is EcalCondObjectContainer<EcalPulseCovariance>
 REGISTER_PLUGIN(EcalPulseSymmCovariancesRcd,
                 EcalPulseSymmCovariances);  //is EcalCondObjectContainer<EcalPulseSymmCovariance>
+
+REGISTER_PLUGIN(EcalPh1CubicPulseShapesRcd, EcalPh1CubicPulseShapes);            //is EcalCondObjectContainer<EcalPulseShape>
+REGISTER_PLUGIN(EcalPh2CubicPulseShapesRcd, EcalPh2CubicPulseShapes);            //is EcalCondObjectContainer<EcalPulseShape>
+
+REGISTER_PLUGIN(EcalPh1PulseSymmCovariancesRcd, EcalPh1PulseSymmCovariances);  //is EcalCondObjectContainer<EcalPh1PulseSymmCovariance>
+REGISTER_PLUGIN(EcalPh2PulseSymmCovariancesRcd, EcalPh2PulseSymmCovariances);  //is EcalCondObjectContainer<EcalPh2PulseSymmCovariance>
 
 REGISTER_PLUGIN(EcalMustacheSCParametersRcd, EcalMustacheSCParameters);
 REGISTER_PLUGIN(EcalSCDynamicDPhiParametersRcd, EcalSCDynamicDPhiParameters);

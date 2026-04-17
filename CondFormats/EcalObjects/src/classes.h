@@ -1,3 +1,4 @@
+
 #include <cstdint>
 #include "CondFormats/EcalObjects/interface/EcalCondObjectContainer.h"
 #include "CondFormats/EcalObjects/interface/EcalCondTowerObjectContainer.h"
@@ -73,7 +74,7 @@
 //ECAL PH2:
 #include "CondFormats/EcalObjects/interface/EcalTBWeightsT.h"
 #include "CondFormats/EcalObjects/interface/EcalWeightSetT.h"
-#include "CondFormats/EcalObjects/interface/EcalPulseCovarianceT.h"
+#include "CondFormats/EcalObjects/interface/EcalPulseSymmCovarianceT.h"
 #include "CondFormats/EcalObjects/interface/EcalCubicPulseShapeT.h"
 #include "CondFormats/EcalObjects/interface/EcalLiteDTUPedestals.h"
 #include "CondFormats/EcalObjects/interface/EcalCATIAGainRatios.h"

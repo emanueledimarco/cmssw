@@ -18,7 +18,7 @@
 #include "CondFormats/EcalObjects/interface/EcalTimeBiasCorrections.h"
 #include "CondFormats/EcalObjects/interface/EcalPh2SamplesCorrelation.h"
 #include "CondFormats/EcalObjects/interface/EcalCubicPulseShapeT.h"
-#include "CondFormats/EcalObjects/interface/EcalPulseCovarianceT.h"
+#include "CondFormats/EcalObjects/interface/EcalPulseSymmCovarianceT.h"
 #include "CondFormats/DataRecord/interface/EcalCATIAGainRatiosRcd.h"
 #include "CondFormats/DataRecord/interface/EcalLiteDTUPedestalsRcd.h"
 #include "CondFormats/DataRecord/interface/EcalWeightXtalGroupsRcd.h"
@@ -28,8 +28,8 @@
 #include "CondFormats/DataRecord/interface/EcalTimeOffsetConstantRcd.h"
 #include "CondFormats/DataRecord/interface/EcalTimeBiasCorrectionsRcd.h"
 #include "CondFormats/DataRecord/interface/EcalPh2SamplesCorrelationRcd.h"
-#include "CondFormats/DataRecord/interface/EcalPh2CubicPulseShapesRcd.h"
-#include "CondFormats/DataRecord/interface/EcalPh2PulseCovariancesRcd.h"
+#include "CondFormats/DataRecord/interface/EcalCubicPulseShapesRcd.h"
+#include "CondFormats/DataRecord/interface/EcalPh2PulseSymmCovariancesRcd.h"
 #include "DataFormats/EcalDigi/interface/EcalConstants.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitTimingCCAlgo.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitMultiFitAlgoPh2.h"
@@ -73,8 +73,8 @@ private:
   edm::ESGetToken<EcalPh2SamplesCorrelation, EcalPh2SamplesCorrelationRcd> noiseConvariancesToken_;
   edm::ESHandle<EcalPh2CubicPulseShapes> pulseshapes_;
   edm::ESGetToken<EcalPh2CubicPulseShapes, EcalPh2CubicPulseShapesRcd> pulseShapesToken_;
-  edm::ESHandle<EcalPh2PulseCovariances> pulsecovariances_;
-  edm::ESGetToken<EcalPh2PulseCovariances, EcalPh2PulseCovariancesRcd> pulseConvariancesToken_;
+  edm::ESHandle<EcalPh2PulseSymmCovariances> pulsesymmcovariances_;
+  edm::ESGetToken<EcalPh2PulseSymmCovariances, EcalPh2PulseSymmCovariancesRcd> pulseSymmConvariancesToken_;
 
   // multifit method
   EcalUncalibRecHitMultiFitAlgoPh2 multiFitMethod_;
@@ -182,7 +182,7 @@ EcalUncalibRecHitWorkerMultiFitPh2::EcalUncalibRecHitWorkerMultiFitPh2(const edm
   gainsToken_ = c.esConsumes<EcalCATIAGainRatios, EcalCATIAGainRatiosRcd>();
   noiseConvariancesToken_ = c.esConsumes<EcalPh2SamplesCorrelation, EcalPh2SamplesCorrelationRcd>();
   pulseShapesToken_ = c.esConsumes<EcalPh2CubicPulseShapes, EcalPh2CubicPulseShapesRcd>();
-  pulseConvariancesToken_ = c.esConsumes<EcalPh2PulseCovariances, EcalPh2PulseCovariancesRcd>();
+  pulseSymmConvariancesToken_ = c.esConsumes<EcalPh2PulseSymmCovariances, EcalPh2PulseSymmCovariancesRcd>();
 
   // algorithm to be used for timing and required configurations
   auto const& timeAlgoName = ps.getParameter<std::string>("timealgo");
@@ -237,7 +237,7 @@ void EcalUncalibRecHitWorkerMultiFitPh2::set(const edm::EventSetup& es) {
     multiFitMethod_.disableErrorCalculation();
   const auto& noisecovariances = es.getData(noiseConvariancesToken_);
   pulseshapes_ = es.getHandle(pulseShapesToken_);
-  pulsecovariances_ = es.getHandle(pulseConvariancesToken_);
+  pulsesymmcovariances_ = es.getHandle(pulseSymmConvariancesToken_);
 
   // parameters for the time reconstruction
   if (timealgo_ == ratioMethod) {
@@ -372,7 +372,7 @@ void EcalUncalibRecHitWorkerMultiFitPh2::run(const edm::Event& evt,
     const auto* aped = &peds_->barrel(hashedIndex);
     const auto* aGain = &gains_->barrel(hashedIndex);
     const auto* aPulse = &pulseshapes_->barrel(hashedIndex);
-    const auto* aPulseCov = &pulsecovariances_->barrel(hashedIndex);
+    const auto* aPulseCov = &pulsesymmcovariances_->barrel(hashedIndex);
 
     double pedVec[ecalPh2::NGAINS];
     double pedRMSVec[ecalPh2::NGAINS];

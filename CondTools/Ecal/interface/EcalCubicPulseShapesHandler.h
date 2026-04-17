@@ -23,7 +23,8 @@
 #include "FWCore/Framework/interface/EventSetupRecordKey.h"
 
 #include "CondFormats/EcalObjects/interface/EcalCubicPulseShapeT.h"
-#include "CondFormats/DataRecord/interface/EcalCubicPulseShapesRcd.h"
+#include "CondFormats/DataRecord/interface/EcalPh1CubicPulseShapesRcd.h"
+#include "CondFormats/DataRecord/interface/EcalPh2CubicPulseShapesRcd.h"
 
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
 #include "DataFormats/EcalDetId/interface/EBDetId.h"
@@ -50,12 +51,12 @@ namespace popcon {
     m_EEPulseShapeTemplate = ps.getParameter<std::vector<double> >("EECubicPulseShapeTemplate");
   }
 
-  ~EcalCubicPulseShapesHandler() override;
+  ~EcalCubicPulseShapesHandler() {};
 
   bool checkPulseShape(P::Item* item) {
     // true means all is standard and OK
     bool result = true;
-    for (int s = 0; s < item.TEMPLATESAMPLES; ++s) {
+    for (int s = 0; s < item->TEMPLATESAMPLES; ++s) {
       if (s % item->PARSPERSAMPLE == 0 && (item->parameters[s] > 1 || item->parameters[s] < 0))
         result = false;
       if (s % item->PARSPERSAMPLE != 0 && (fabs(item->parameters[s]) > 1))
@@ -72,7 +73,7 @@ namespace popcon {
 
   void getNewObjects() {
     std::cout << "------- Ecal - > getNewObjects\n";
-    
+
   // create the object pukse shapes
   P* pulseshapes = new P();
 
@@ -169,7 +170,7 @@ namespace popcon {
   unsigned int irun = m_firstRun;
   cond::Time_t snc = (cond::Time_t)irun;
 
-  this->m_to_transfer.push_back(std::make_pair((&item)pulseshapes, snc));
+  this->m_to_transfer.push_back(std::make_pair(pulseshapes, snc));
 
   std::cout << "Ecal - > end of getNewObjects -----------" << std::endl;
   std::cout << "N. bad shapes for EB = " << nEBbad << std::endl;

@@ -15,15 +15,16 @@ public:
 
   float parameters[TEMPLATESAMPLES*PARSPERSAMPLE];
 
-  float pdfval(int ipar) const { 
-    int baseIndex = (ipar / PARSPERSAMPLE) * PARSPERSAMPLE;
+  const float pdfval(int iSample) const {
+    int baseIndex = (iSample / PARSPERSAMPLE) * PARSPERSAMPLE;
     return parameters[baseIndex];
   }
 
-  const float* splinepars(int ipar) const {
-    int baseIndex = (ipar / PARSPERSAMPLE) * PARSPERSAMPLE;
-    return &parameters[baseIndex + 1];
+  const float* splinepars(int iSample) const {
+    int baseIndex = (iSample / PARSPERSAMPLE) * PARSPERSAMPLE;
+    return &parameters[baseIndex]; // returns pointer to part of array
   }
+
 
   COND_SERIALIZABLE;
 };

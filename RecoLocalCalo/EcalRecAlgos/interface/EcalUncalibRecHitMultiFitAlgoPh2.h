@@ -11,16 +11,18 @@
 #include "DataFormats/EcalDigi/interface/EcalConstants.h"
 #include "DataFormats/EcalRecHit/interface/EcalUncalibratedRecHit.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/PulseChiSqSNNLS.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "RecoLocalCalo/EcalRecAlgos/interface/PiecewiseCubicSpline.h"
 
 class EcalUncalibRecHitMultiFitAlgoPh2 {
 public:
-  using SampleVector = typename EigenMatrixTypes<ecalPh2>::SampleVector;
-  using FullSampleVector = typename EigenMatrixTypes<ecalPh2>::FullSampleVector;
-  using BXVector = typename EigenMatrixTypes<ecalPh2>::BXVector;
-  using SampleGainVector = typename EigenMatrixTypes<ecalPh2>::SampleGainVector;
-  using SampleMatrix = typename EigenMatrixTypes<ecalPh2>::SampleMatrix;
-  using FullSampleMatrix = typename EigenMatrixTypes<ecalPh2>::FullSampleMatrix;
-  using SampleMatrixGainArray = typename EigenMatrixTypes<ecalPh2>::SampleMatrixGainArray;
+  using SampleVector = typename EigenMatrixTypes<P>::SampleVector;
+  using FullSampleVector = typename EigenMatrixTypes<P>::FullSampleVector;
+  using BXVector = typename EigenMatrixTypes<P>::BXVector;
+  using SampleGainVector = typename EigenMatrixTypes<P>::SampleGainVector;
+  using SampleMatrix = typename EigenMatrixTypes<P>::SampleMatrix;
+  using FullSampleMatrix = typename EigenMatrixTypes<P>::FullSampleMatrix;
+  using SampleMatrixGainArray = typename EigenMatrixTypes<P>::SampleMatrixGainArray;
 
   EcalUncalibRecHitMultiFitAlgoPh2();
   ~EcalUncalibRecHitMultiFitAlgoPh2(){};
@@ -30,7 +32,8 @@ public:
                                     const SampleMatrixGainArray &noisecors,
                                     const FullSampleVector &fullpulse,
                                     const FullSampleMatrix &fullpulsecov,
-                                    const BXVector &activeBX);
+                                    const BXVector &activeBX
+                                    const PiecewiseCubicSpline &spline);
   void disableErrorCalculation() { computeErrors_ = false; }
   void setDoPrefit(const bool b) { doPrefit_ = b; }
   void setPrefitMaxChiSq(const double x) { prefitMaxChiSq_ = x; }
@@ -42,8 +45,8 @@ public:
   void setGainSwitchUseMaxSample(const bool b) { gainSwitchUseMaxSample_ = b; }
 
 private:
-  PulseChiSqSNNLS<ecalPh2> pulsefunc_;
-  PulseChiSqSNNLS<ecalPh2> pulsefuncSingle_;
+  PulseChiSqSNNLS<P> pulsefunc_;
+  PulseChiSqSNNLS<P> pulsefuncSingle_;
   bool computeErrors_;
   bool doPrefit_;
   double prefitMaxChiSq_;
@@ -56,4 +59,5 @@ private:
   BXVector singlebx_;
 };
 
-#endif
+
+

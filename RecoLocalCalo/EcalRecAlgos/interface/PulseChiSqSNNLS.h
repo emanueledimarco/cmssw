@@ -3,6 +3,7 @@
 
 #define EIGEN_NO_DEBUG  // kill throws in eigen code
 #include "RecoLocalCalo/EcalRecAlgos/interface/EigenMatrixTypes.h"
+#include "RecoLocalCalo/EcalRecAlgos/interface/PiecewiseCubicSpline.h"
 
 #include <set>
 #include <array>
@@ -35,7 +36,8 @@ public:
              const FullSampleVector &fullpulse,
              const FullSampleMatrix &fullpulsecov,
              const SampleGainVector &gains = -1 * SampleGainVector::Ones(),
-             const SampleGainVector &badSamples = SampleGainVector::Zero());
+             const SampleGainVector &badSamples = SampleGainVector::Zero()
+             const PiecewiseCubicSpline &spline);
 
   const SamplePulseMatrix &pulsemat() const { return _pulsemat; }
   const SampleMatrix &invcov() const { return _invcov; }

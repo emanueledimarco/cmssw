@@ -27,7 +27,10 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitAlgoPh2::makeRecHit(const EcalDa
                                                                     const SampleMatrixGainArray &noisecors,
                                                                     const FullSampleVector &fullpulse,
                                                                     const FullSampleMatrix &fullpulsecov,
-                                                                    const BXVector &activeBX) {
+                                                                    const BXVector &activeBX,
+                                                                    const PiecewiseCubicSpline &spline
+                                                                    ) {
+
   const uint32_t flags = 0;
 
   constexpr unsigned int nsample = EcalDataFrame_Ph2::MAXSAMPLES;
@@ -153,7 +156,7 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitAlgoPh2::makeRecHit(const EcalDa
   bool usePrefit = false;
   if (doPrefit_) {
     status =
-        pulsefuncSingle_.DoFit(amplitudes, noisecov, singlebx_, fullpulse, fullpulsecov, gainsPedestal, badSamples);
+        pulsefuncSingle_.DoFit(amplitudes, noisecov, singlebx_, fullpulse, fullpulsecov, gainsPedestal, badSamples, spline);
     amplitude = status ? pulsefuncSingle_.X()[0] : 0.;
     amperr = status ? pulsefuncSingle_.Errors()[0] : 0.;
     chisq = pulsefuncSingle_.ChiSq();

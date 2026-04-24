@@ -69,7 +69,9 @@ bool PulseChiSqSNNLS<P>::DoFit(const SampleVector &samples,
                                const FullSampleVector &fullpulse,
                                const FullSampleMatrix &fullpulsecov,
                                const SampleGainVector &gains,
-                               const SampleGainVector &badSamples) {
+                               const SampleGainVector &badSamples,
+                               const PiecewiseCubicSpline &spline
+                               ) {
   int npulse = bxs.rows();
 
   _sampvec = samples;

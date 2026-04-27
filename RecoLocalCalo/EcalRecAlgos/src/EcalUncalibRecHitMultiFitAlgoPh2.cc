@@ -156,7 +156,7 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitAlgoPh2::makeRecHit(const EcalDa
   bool usePrefit = false;
   if (doPrefit_) {
     status =
-        pulsefuncSingle_.DoFit(amplitudes, noisecov, singlebx_, fullpulse, fullpulsecov, gainsPedestal, badSamples, spline);
+        pulsefuncSingle_.DoFit(amplitudes, noisecov, singlebx_, fullpulse, fullpulsecov, spline, gainsPedestal, badSamples);
     amplitude = status ? pulsefuncSingle_.X()[0] : 0.;
     amperr = status ? pulsefuncSingle_.Errors()[0] : 0.;
     chisq = pulsefuncSingle_.ChiSq();
@@ -169,7 +169,7 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitAlgoPh2::makeRecHit(const EcalDa
   if (!usePrefit) {
     if (!computeErrors_)
       pulsefunc_.disableErrorCalculation();
-    status = pulsefunc_.DoFit(amplitudes, noisecov, activeBX, fullpulse, fullpulsecov, gainsPedestal, badSamples);
+    status = pulsefunc_.DoFit(amplitudes, noisecov, activeBX, fullpulse, fullpulsecov, spline, gainsPedestal, badSamples);
     chisq = pulsefunc_.ChiSq();
 
     if (!status) {

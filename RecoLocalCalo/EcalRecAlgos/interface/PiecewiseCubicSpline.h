@@ -3,9 +3,11 @@
 
 #include <vector>
 #include <iostream>
+#include <sstream>
+#include <fstream>
 
 struct CubicSegment {
-    std::vector<double> values;
+    std::vector<float> values;
     double xc; // center of interval
 };
 
@@ -23,40 +25,21 @@ public:
         _segs = s;
     }
 
-    void SetParameter(const int n_segment, const int n_parameter, const double value){
+    void SetParameter(const int n_segment, const int n_parameter, const float value){
          _segs[n_segment].values[n_parameter] = value;
     }
 
-    void SetSampleParameters(const int n_parameters, const int n_sample, double *splinepars){
-        _segs[k].assign(splinepars, splinepars + (size_t)(sizeof(double)*n_parameters));
+    void SetSampleParameters(const int n_parameters, const int n_sample, const float *splinepars){
+        _segs[n_sample].values.assign(splinepars, splinepars + (size_t)(sizeof(float)*n_parameters));
     }
 
-    PiecewiseCubicSpline(const int n_samples, const int n_parameters)
-    {
-        _n_samples = n_samples;
-        _n_parameters = n_parameters;
+    PiecewiseCubicSpline() = default;
 
-        for (int iSample=0; iSample<n_samples; iSample++) {
-            CubicSegment s;
-            s.xc = iSample * P::Samp_Period:
-            for (int iPar=0; iPar < n_parameters; iPar++) {
-              s.values.push_back(0.);
-            }
-            _segs.push_back(s);
-        }
-    }
+    PiecewiseCubicSpline(const char* f);
+
+    PiecewiseCubicSpline(const int n_samples, const int n_parameters, const double sampling_period);
 
     double Eval(int iSample, double x) const;
-    {
-        double dx = x - _segs[iSample].xc;
-        double sum = 0;
-        for (int iPar=0; i<_n_parameters; i++){
-            double power = 1;
-            for (int jPar=0; j<iPar; j++) power *= dx; // to avoid pow(...)
-            sum += _segs[k].values[iPar]*power;
-         }
-         return sum;
-    }
 
     size_t Size() const { return _segs.size(); }
 

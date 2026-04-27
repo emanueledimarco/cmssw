@@ -1,4 +1,4 @@
-#include "RecoLocalCalo/EcalRecAlgos/interface/PulseChiSqSNNLS.h"
+#include "RecoLocalCalo/EcalRecAlgos/interface/CubicPulseChiSqSNNLS.h"
 #include <cmath>
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
@@ -57,19 +57,21 @@ void eigen_solve_submatrix(const typename C::PulseMatrix &mat,
 }
 
 template <class P>
-PulseChiSqSNNLS<P>::PulseChiSqSNNLS() : _chisq(0.), _computeErrors(true), _maxiters(50), _maxiterwarnings(true) {}
+CubicPulseChiSqSNNLS<P>::CubicPulseChiSqSNNLS() : _chisq(0.), _computeErrors(true), _maxiters(50), _maxiterwarnings(true) {}
 
 template <class P>
-PulseChiSqSNNLS<P>::~PulseChiSqSNNLS() {}
+CubicPulseChiSqSNNLS<P>::~CubicPulseChiSqSNNLS() {}
 
 template <class P>
-bool PulseChiSqSNNLS<P>::DoFit(const SampleVector &samples,
+bool CubicPulseChiSqSNNLS<P>::DoFit(const SampleVector &samples,
                                const SampleMatrix &samplecov,
                                const BXVector &bxs,
                                const FullSampleVector &fullpulse,
                                const FullSampleMatrix &fullpulsecov,
+                               const PiecewiseCubicSpline&,
                                const SampleGainVector &gains,
-                               const SampleGainVector &badSamples) {
+                               const SampleGainVector &badSamples
+                               ) {
   int npulse = bxs.rows();
 
   _sampvec = samples;
@@ -219,7 +221,7 @@ bool PulseChiSqSNNLS<P>::DoFit(const SampleVector &samples,
 }
 
 template <class P>
-bool PulseChiSqSNNLS<P>::Minimize(const SampleMatrix &samplecov, const FullSampleMatrix &fullpulsecov) {
+bool CubicPulseChiSqSNNLS<P>::Minimize(const SampleMatrix &samplecov, const FullSampleMatrix &fullpulsecov) {
   const unsigned int npulse = _bxs.rows();
 
   int iter = 0;
@@ -227,7 +229,7 @@ bool PulseChiSqSNNLS<P>::Minimize(const SampleMatrix &samplecov, const FullSampl
   while (true) {
     if (iter >= _maxiters) {
       if (_maxiterwarnings) {
-        LogDebug("PulseChiSqSNNLS::Minimize") << "Max Iterations reached at iter " << iter;
+        LogDebug("CubicPulseChiSqSNNLS::Minimize") << "Max Iterations reached at iter " << iter;
       }
       break;
     }
@@ -258,7 +260,7 @@ bool PulseChiSqSNNLS<P>::Minimize(const SampleMatrix &samplecov, const FullSampl
 }
 
 template <class P>
-bool PulseChiSqSNNLS<P>::updateCov(const SampleMatrix &samplecov, const FullSampleMatrix &fullpulsecov) {
+bool CubicPulseChiSqSNNLS<P>::updateCov(const SampleMatrix &samplecov, const FullSampleMatrix &fullpulsecov) {
   const unsigned int nsample = SampleVector::RowsAtCompileTime;
   const unsigned int npulse = _bxs.rows();
 
@@ -289,7 +291,7 @@ bool PulseChiSqSNNLS<P>::updateCov(const SampleMatrix &samplecov, const FullSamp
 }
 
 template <class P>
-double PulseChiSqSNNLS<P>::ComputeChiSq() {
+double CubicPulseChiSqSNNLS<P>::ComputeChiSq() {
   //   SampleVector resvec = _pulsemat*_ampvec - _sampvec;
   //   return resvec.transpose()*_covdecomp.solve(resvec);
 
@@ -297,7 +299,7 @@ double PulseChiSqSNNLS<P>::ComputeChiSq() {
 }
 
 template <class P>
-double PulseChiSqSNNLS<P>::ComputeApproxUncertainty(unsigned int ipulse) {
+double CubicPulseChiSqSNNLS<P>::ComputeApproxUncertainty(unsigned int ipulse) {
   //compute approximate uncertainties
   //(using 1/second derivative since full Hessian is not meaningful in
   //presence of positive amplitude boundaries.)
@@ -306,7 +308,7 @@ double PulseChiSqSNNLS<P>::ComputeApproxUncertainty(unsigned int ipulse) {
 }
 
 template <class P>
-bool PulseChiSqSNNLS<P>::NNLS() {
+bool CubicPulseChiSqSNNLS<P>::NNLS() {
   //Fast NNLS (fnnls) algorithm as per http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.157.9203&rep=rep1&type=pdf
 
   const unsigned int npulse = _bxs.rows();
@@ -339,7 +341,7 @@ bool PulseChiSqSNNLS<P>::NNLS() {
 
       //worst case protection
       if (iter >= 500) {
-        LogDebug("PulseChiSqSNNLS::NNLS()") << "Max Iterations reached at iter " << iter;
+        LogDebug("CubicPulseChiSqSNNLS::NNLS()") << "Max Iterations reached at iter " << iter;
         break;
       }
 
@@ -407,7 +409,7 @@ bool PulseChiSqSNNLS<P>::NNLS() {
 }
 
 template <class P>
-void PulseChiSqSNNLS<P>::NNLSUnconstrainParameter(Index idxp) {
+void CubicPulseChiSqSNNLS<P>::NNLSUnconstrainParameter(Index idxp) {
   aTamat.col(_nP).swap(aTamat.col(idxp));
   aTamat.row(_nP).swap(aTamat.row(idxp));
   _pulsemat.col(_nP).swap(_pulsemat.col(idxp));
@@ -418,7 +420,7 @@ void PulseChiSqSNNLS<P>::NNLSUnconstrainParameter(Index idxp) {
 }
 
 template <class P>
-void PulseChiSqSNNLS<P>::NNLSConstrainParameter(Index minratioidx) {
+void CubicPulseChiSqSNNLS<P>::NNLSConstrainParameter(Index minratioidx) {
   aTamat.col(_nP - 1).swap(aTamat.col(minratioidx));
   aTamat.row(_nP - 1).swap(aTamat.row(minratioidx));
   _pulsemat.col(_nP - 1).swap(_pulsemat.col(minratioidx));
@@ -429,7 +431,7 @@ void PulseChiSqSNNLS<P>::NNLSConstrainParameter(Index minratioidx) {
 }
 
 template <class P>
-bool PulseChiSqSNNLS<P>::OnePulseMinimize() {
+bool CubicPulseChiSqSNNLS<P>::OnePulseMinimize() {
   //Fast NNLS (fnnls) algorithm as per http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.157.9203&rep=rep1&type=pdf
 
   //   const unsigned int npulse = 1;
@@ -446,5 +448,5 @@ bool PulseChiSqSNNLS<P>::OnePulseMinimize() {
 }
 
 #include "DataFormats/EcalDigi/interface/EcalConstants.h"
-template class PulseChiSqSNNLS<ecalPh1>;
-template class PulseChiSqSNNLS<ecalPh2>;
+template class CubicPulseChiSqSNNLS<ecalPh1>;
+template class CubicPulseChiSqSNNLS<ecalPh2>;

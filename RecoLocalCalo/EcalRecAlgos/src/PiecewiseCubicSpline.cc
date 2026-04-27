@@ -17,8 +17,7 @@ PiecewiseCubicSpline::PiecewiseCubicSpline(const char* file="coeffs_global.txt")
         std::istringstream ss(line);
 
         CubicSegment s;
-        ss >> s.xc >> s.x0 >> s.x1
-           >> s.values[0] >> s.values[1] >> s.values[2] >> s.values[3];
+        ss >> s.xc >> s.values[0] >> s.values[1] >> s.values[2] >> s.values[3];
 
         if(ss.fail()) continue;
 
@@ -30,19 +29,29 @@ PiecewiseCubicSpline::PiecewiseCubicSpline(const char* file="coeffs_global.txt")
 };
 
 
-double PiecewiseCubicSpline::Eval(double x) const {
-    if(_segs.empty()) return 0.0;
+PiecewiseCubicSpline::PiecewiseCubicSpline(const int n_samples, const int n_parameters, const double sampling_period)
+{
+ 	_n_samples = n_samples;
+    _n_parameters = n_parameters;
 
-    // find interval (linear search, same as your code)
-    size_t k = 0;
-    for(; k < _segs.size(); ++k){
-        if(x >= _segs[k].x0 && x <= _segs[k].x1)
-            break;
+    for (int iSample=0; iSample<n_samples; iSample++) {
+        CubicSegment s;
+        s.xc = iSample * sampling_period;
+        for (int iPar=0; iPar < n_parameters; iPar++) {
+          s.values.push_back(0.);
+        }
+        _segs.push_back(s);
     }
+}
 
-    if(k == _segs.size()) k = _segs.size() - 1;
-    double dx = x - seg.xc;
-    return _segs[k].values[0] + _segs[k].values[1]*dx + _segs[k].values[2]*dx*dx + _segs[k].values[3]*dx*dx*dx;
-
-};
-
+double PiecewiseCubicSpline::Eval(int iSample, double x) const
+{
+ 	double dx = x - _segs[iSample].xc;
+    double sum = 0;
+    for (int iPar=0; iPar<_n_parameters; iPar++){
+        double power = 1;
+        for (int jExp=0; jExp<iPar; jExp++) power *= dx; // to avoid pow(...)
+        sum += _segs[iSample].values[iPar]*power;
+     }
+     return sum;
+}

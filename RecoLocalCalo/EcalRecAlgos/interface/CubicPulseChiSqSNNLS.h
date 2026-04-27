@@ -1,14 +1,15 @@
-#ifndef RecoLocalCalo_EcalRecAlgos_PulseChiSqSNNLS_h
-#define RecoLocalCalo_EcalRecAlgos_PulseChiSqSNNLS_h
+#ifndef RecoLocalCalo_EcalRecAlgos_CubicPulseChiSqSNNLS_h
+#define RecoLocalCalo_EcalRecAlgos_CubicPulseChiSqSNNLS_h
 
 #define EIGEN_NO_DEBUG  // kill throws in eigen code
 #include "RecoLocalCalo/EcalRecAlgos/interface/EigenMatrixTypes.h"
+#include "RecoLocalCalo/EcalRecAlgos/interface/PiecewiseCubicSpline.h"
 
 #include <set>
 #include <array>
 
 template <class P>
-class PulseChiSqSNNLS {
+class CubicPulseChiSqSNNLS {
 public:
   using SampleVector = typename EigenMatrixTypes<P>::SampleVector;
   using FullSampleVector = typename EigenMatrixTypes<P>::FullSampleVector;
@@ -26,14 +27,15 @@ public:
 
   using Index = typename BXVector::Index;
 
-  PulseChiSqSNNLS();
-  ~PulseChiSqSNNLS();
+  CubicPulseChiSqSNNLS();
+  ~CubicPulseChiSqSNNLS();
 
   bool DoFit(const SampleVector &samples,
              const SampleMatrix &samplecov,
              const BXVector &bxs,
              const FullSampleVector &fullpulse,
              const FullSampleMatrix &fullpulsecov,
+             const PiecewiseCubicSpline &spline,
              const SampleGainVector &gains = -1 * SampleGainVector::Ones(),
              const SampleGainVector &badSamples = SampleGainVector::Zero());
 

@@ -172,7 +172,7 @@ EcalUncalibRecHitWorkerMultiFitPh2::EcalUncalibRecHitWorkerMultiFitPh2(const edm
       addPedestalUncertainty_(ps.getParameter<double>("addPedestalUncertainty")),
       simplifiedNoiseModelForGainSwitch_(ps.getParameter<bool>("simplifiedNoiseModelForGainSwitch")) {
 
-  _spline = PiecewiseCubicSpline(ecalPh2::kPulseShapeTemplateSampleSize, ecalPh2::kParsPerTemplateSample);
+  _spline = PiecewiseCubicSpline(ecalPh2::kPulseShapeTemplateSampleSize, ecalPh2::kParsPerTemplateSample, ecalPh2::Samp_Period);
 
   // get the BX for the pulses to be activated
   std::vector<int32_t> activeBXs = ps.getParameter<std::vector<int32_t>>("activeBXs");
@@ -362,7 +362,7 @@ void EcalUncalibRecHitWorkerMultiFitPh2::run(const edm::Event& evt,
   multiFitMethod_.setSimplifiedNoiseModelForGainSwitch(simplifiedNoiseModelForGainSwitch_);
   multiFitMethod_.setDoPrefit(doPrefit_);
   multiFitMethod_.setPrefitMaxChiSq(prefitMaxChiSq_);
-  multiFitMethod_.setDynamicPedestals(dynRecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitMultiFitAlgoPh2.hamicPedestals_);
+  multiFitMethod_.setDynamicPedestals(dynamicPedestals_);
   multiFitMethod_.setMitigateBadSamples(mitigateBadSamples_);
   multiFitMethod_.setGainSwitchUseMaxSample(gainSwitchUseMaxSample_);
   multiFitMethod_.setSelectiveBadSampleCriteria(selectiveBadSampleCriteria_);
@@ -394,7 +394,7 @@ void EcalUncalibRecHitWorkerMultiFitPh2::run(const edm::Event& evt,
 
     for (int i = 0; i < EcalPh2CubicPulseShape::TEMPLATESAMPLES; ++i){
       fullpulse(i + indexOffset) = aPulse->pdfval(i);
-      _spline->SetSampleParameters( ecalPh2::kParsPerTemplateSample, i, aPulse->splinepars(i) ));
+      _spline.SetSampleParameters( ecalPh2::kParsPerTemplateSample, i, aPulse->splinepars(i) );
     }
 
     for (int i = 0; i < EcalPh2CubicPulseShape::TEMPLATESAMPLES; ++i)

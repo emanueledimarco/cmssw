@@ -34,7 +34,7 @@
 #include "CondFormats/DataRecord/interface/EcalPh2PulseSymmCovariancesRcd.h"
 #include "DataFormats/EcalDigi/interface/EcalConstants.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitTimingCCAlgo.h"
-#include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitMultiFitAlgoPh2.h"
+#include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitMultiFitCubicAlgoPh2.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitTimeWeightsAlgoPh2.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitRecChi2Algo.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitRatioMethodAlgo.h"
@@ -45,11 +45,11 @@
 #include <cmath>
 
 
-class EcalUncalibRecHitWorkerMultiFitPh2 final : public EcalUncalibRecHitWorkerBaseClass {
+class EcalUncalibRecHitWorkerMultiFitCubicPh2 final : public EcalUncalibRecHitWorkerBaseClass {
 public:
-  EcalUncalibRecHitWorkerMultiFitPh2();
-  EcalUncalibRecHitWorkerMultiFitPh2(const edm::ParameterSet&, edm::ConsumesCollector& c);
-  ~EcalUncalibRecHitWorkerMultiFitPh2() override{};
+  EcalUncalibRecHitWorkerMultiFitCubicPh2();
+  EcalUncalibRecHitWorkerMultiFitCubicPh2(const edm::ParameterSet&, edm::ConsumesCollector& c);
+  ~EcalUncalibRecHitWorkerMultiFitCubicPh2() override{};
 
   edm::ParameterSetDescription getAlgoDescription() override;
 
@@ -82,7 +82,7 @@ private:
   edm::ESGetToken<EcalPh2PulseSymmCovariances, EcalPh2PulseSymmCovariancesRcd> pulseSymmConvariancesToken_;
 
   // multifit method
-  EcalUncalibRecHitMultiFitAlgoPh2 multiFitMethod_;
+  EcalUncalibRecHitMultiFitCubicAlgoPh2 multiFitMethod_;
   SampleMatrixGainArray noisecors_;
   BXVector activeBX_;
   PiecewiseCubicSpline _spline;
@@ -145,7 +145,7 @@ private:
   double CCtargetTimePrecisionForDelayedPulses_;
 };
 
-EcalUncalibRecHitWorkerMultiFitPh2::EcalUncalibRecHitWorkerMultiFitPh2()
+EcalUncalibRecHitWorkerMultiFitCubicPh2::EcalUncalibRecHitWorkerMultiFitCubicPh2()
     : EcalUncalibRecHitWorkerBaseClass(),
       ampErrorCalculation_(false),
       useLumiInfoRunHeader_(false),
@@ -158,7 +158,7 @@ EcalUncalibRecHitWorkerMultiFitPh2::EcalUncalibRecHitWorkerMultiFitPh2()
       addPedestalUncertainty_(0.),
       simplifiedNoiseModelForGainSwitch_(false) {}
 
-EcalUncalibRecHitWorkerMultiFitPh2::EcalUncalibRecHitWorkerMultiFitPh2(const edm::ParameterSet& ps,
+EcalUncalibRecHitWorkerMultiFitCubicPh2::EcalUncalibRecHitWorkerMultiFitCubicPh2(const edm::ParameterSet& ps,
                                                                        edm::ConsumesCollector& c)
     : EcalUncalibRecHitWorkerBaseClass(ps, c),
       ampErrorCalculation_(ps.getParameter<bool>("ampErrorCalculation")),
@@ -237,7 +237,7 @@ EcalUncalibRecHitWorkerMultiFitPh2::EcalUncalibRecHitWorkerMultiFitPh2(const edm
   }
 }
 
-void EcalUncalibRecHitWorkerMultiFitPh2::set(const edm::EventSetup& es) {
+void EcalUncalibRecHitWorkerMultiFitCubicPh2::set(const edm::EventSetup& es) {
   // common setup
   gains_ = es.getHandle(gainsToken_);
   peds_ = es.getHandle(pedsToken_);
@@ -275,7 +275,7 @@ void EcalUncalibRecHitWorkerMultiFitPh2::set(const edm::EventSetup& es) {
   }
 }
 
-void EcalUncalibRecHitWorkerMultiFitPh2::set(const edm::Event& evt) {
+void EcalUncalibRecHitWorkerMultiFitCubicPh2::set(const edm::Event& evt) {
   unsigned int bunchspacing = 450;
 
   if (useLumiInfoRunHeader_) {
@@ -303,7 +303,7 @@ void EcalUncalibRecHitWorkerMultiFitPh2::set(const edm::Event& evt) {
  *
  * @return Jitter (in clock cycles) which will be added to UncalibRechit.setJitter(), 0 if no correction is applied.
  */
-double EcalUncalibRecHitWorkerMultiFitPh2::timeCorrection(const float ampli,
+double EcalUncalibRecHitWorkerMultiFitCubicPh2::timeCorrection(const float ampli,
                                                           const std::vector<float>& amplitudeBins,
                                                           const std::vector<float>& shiftBins) const {
   // computed initially in ns. Than turned in the BX's, as
@@ -347,7 +347,7 @@ double EcalUncalibRecHitWorkerMultiFitPh2::timeCorrection(const float ampli,
   return theCorrection * invPeriod;
 }
 
-void EcalUncalibRecHitWorkerMultiFitPh2::run(const edm::Event& evt,
+void EcalUncalibRecHitWorkerMultiFitCubicPh2::run(const edm::Event& evt,
                                              const edm::DataFrameContainer& digis,
                                              EcalUncalibratedRecHitCollection& result) {
   if (digis.empty())
@@ -554,7 +554,7 @@ void EcalUncalibRecHitWorkerMultiFitPh2::run(const edm::Event& evt,
   }
 }
 
-edm::ParameterSetDescription EcalUncalibRecHitWorkerMultiFitPh2::getAlgoDescription() {
+edm::ParameterSetDescription EcalUncalibRecHitWorkerMultiFitCubicPh2::getAlgoDescription() {
   edm::ParameterSetDescription psd;
 
   // parameters for the different time algos
@@ -610,9 +610,9 @@ edm::ParameterSetDescription EcalUncalibRecHitWorkerMultiFitPh2::getAlgoDescript
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "RecoLocalCalo/EcalRecProducers/interface/EcalUncalibRecHitWorkerFactory.h"
 DEFINE_EDM_PLUGIN(EcalUncalibRecHitWorkerFactory,
-                  EcalUncalibRecHitWorkerMultiFitPh2,
-                  "EcalUncalibRecHitWorkerMultiFitPh2");
+                  EcalUncalibRecHitWorkerMultiFitCubicPh2,
+                  "EcalUncalibRecHitWorkerMultiFitCubicPh2");
 #include "RecoLocalCalo/EcalRecProducers/interface/EcalUncalibRecHitFillDescriptionWorkerFactory.h"
 DEFINE_EDM_PLUGIN(EcalUncalibRecHitFillDescriptionWorkerFactory,
-                  EcalUncalibRecHitWorkerMultiFitPh2,
-                  "EcalUncalibRecHitWorkerMultiFitPh2");
+                  EcalUncalibRecHitWorkerMultiFitCubicPh2,
+                  "EcalUncalibRecHitWorkerMultiFitCubicPh2");

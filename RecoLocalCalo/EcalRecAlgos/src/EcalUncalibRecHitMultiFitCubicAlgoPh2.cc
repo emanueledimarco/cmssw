@@ -1,8 +1,8 @@
-#include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitMultiFitAlgoPh2.h"
+#include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitMultiFitCubicAlgoPh2.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-EcalUncalibRecHitMultiFitAlgoPh2::EcalUncalibRecHitMultiFitAlgoPh2()
+EcalUncalibRecHitMultiFitCubicAlgoPh2::EcalUncalibRecHitMultiFitCubicAlgoPh2()
     : computeErrors_(true),
       doPrefit_(false),
       prefitMaxChiSq_(1.),
@@ -21,7 +21,7 @@ EcalUncalibRecHitMultiFitAlgoPh2::EcalUncalibRecHitMultiFitAlgoPh2()
 }
 
 /// compute rechits
-EcalUncalibratedRecHit EcalUncalibRecHitMultiFitAlgoPh2::makeRecHit(const EcalDataFrame_Ph2 &dataFrame,
+EcalUncalibratedRecHit EcalUncalibRecHitMultiFitCubicAlgoPh2::makeRecHit(const EcalDataFrame_Ph2 &dataFrame,
                                                                     const EcalLiteDTUPedestalsMap::Item *aped,
                                                                     const EcalCATIAGainRatio *aGain,
                                                                     const SampleMatrixGainArray &noisecors,
@@ -173,7 +173,7 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitAlgoPh2::makeRecHit(const EcalDa
     chisq = pulsefunc_.ChiSq();
 
     if (!status) {
-      edm::LogWarning("EcalUncalibRecHitMultiFitAlgoPh2::makeRecHit") << "Failed Fit" << std::endl;
+      edm::LogWarning("EcalUncalibRecHitMultiFitCubicAlgoPh2::makeRecHit") << "Failed Fit" << std::endl;
     }
 
     unsigned int ipulseintime = 0;

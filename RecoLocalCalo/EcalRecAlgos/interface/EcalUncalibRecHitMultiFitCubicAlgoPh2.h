@@ -1,7 +1,7 @@
-#ifndef RecoLocalCalo_EcalRecAlgos_EcalUncalibRecHitMultiFitAlgoPh2_h
-#define RecoLocalCalo_EcalRecAlgos_EcalUncalibRecHitMultiFitAlgoPh2_h
+#ifndef RecoLocalCalo_EcalRecAlgos_EcalUncalibRecHitMultiFitCubicAlgoPh2_h
+#define RecoLocalCalo_EcalRecAlgos_EcalUncalibRecHitMultiFitCubicAlgoPh2_h
 
-/** \class EcalUncalibRecHitMultiFitAlgoPh2
+/** \class EcalUncalibRecHitMultiFitCubicAlgoPh2
   *  Amplitude reconstucted from Phase 2 digis by the multi-template fit
   */
 
@@ -14,7 +14,7 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/PiecewiseCubicSpline.h"
 
-class EcalUncalibRecHitMultiFitAlgoPh2 {
+class EcalUncalibRecHitMultiFitCubicAlgoPh2 {
 public:
   using SampleVector = typename EigenMatrixTypes<ecalPh2>::SampleVector;
   using FullSampleVector = typename EigenMatrixTypes<ecalPh2>::FullSampleVector;
@@ -24,8 +24,8 @@ public:
   using FullSampleMatrix = typename EigenMatrixTypes<ecalPh2>::FullSampleMatrix;
   using SampleMatrixGainArray = typename EigenMatrixTypes<ecalPh2>::SampleMatrixGainArray;
 
-  EcalUncalibRecHitMultiFitAlgoPh2();
-  ~EcalUncalibRecHitMultiFitAlgoPh2(){};
+  EcalUncalibRecHitMultiFitCubicAlgoPh2();
+  ~EcalUncalibRecHitMultiFitCubicAlgoPh2(){};
   EcalUncalibratedRecHit makeRecHit(const EcalDataFrame_Ph2 &dataFrame,
                                     const EcalLiteDTUPedestalsMap::Item *aped,
                                     const EcalCATIAGainRatio *aGain,

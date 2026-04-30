@@ -6,7 +6,7 @@ ecalMultiFitUncalibRecHitPh2 = cms.EDProducer("EcalUncalibRecHitProducer",
     EBhitCollection = cms.string("EcalUncalibRecHitsEB"),
     EEhitCollection = cms.string(""),
     IsPhase2 = cms.bool(True),
-    algo = cms.string("EcalUncalibRecHitWorkerMultiFitPh2"),
+    algo = cms.string("EcalUncalibRecHitWorkerMultiFitCubicPh2"),
     algoPSet = cms.PSet(
       # for multifit method
       activeBXs = cms.vint32(-2,-1,0,1,2),

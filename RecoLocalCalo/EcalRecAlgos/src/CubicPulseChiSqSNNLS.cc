@@ -1,6 +1,49 @@
+//#define PulseChiSqSNNLS_cxx
+#include "RecoLocalCalo/EcalRecAlgos/interface/EigenMatrixTypes.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/CubicPulseChiSqSNNLS.h"
-#include <cmath>
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include <math.h>
+#include <iostream>
+
+
+template <class P>
+CubicPulseChiSqSNNLS<P>::CubicPulseChiSqSNNLS() : _chisq(0.), _computeErrors(true), _maxiters(50), _maxiterwarnings(true) {
+  Eigen::initParallel();
+  _invcov.setZero();
+}
+
+template <class P>
+CubicPulseChiSqSNNLS<P>::~CubicPulseChiSqSNNLS() {}
+
+template <class P>
+int CubicPulseChiSqSNNLS<P>::GetSignalPulseIndex(){
+  unsigned int ipulseSignal = 0;
+  bool foundSignal = false;
+  for (unsigned int ip = 0; ip < _bxs.rows(); ++ip) {
+      if (_bxs.coeff(ip) == 0) {
+          ipulseSignal = ip;
+          foundSignal = true;
+          break;
+      }
+  }
+  return ipulseSignal;
+}
+
+
+template <class P>
+int CubicPulseChiSqSNNLS<P>::GetDerivativePulseIndex(){
+  unsigned int ipulseDer = 0;
+  bool foundDer = false;
+  for (unsigned int ip = 0; ip < _bxs.rows(); ++ip) {
+      if (_bxs.coeff(ip) == _derivativeBxOffset) {
+          ipulseDer = ip;
+          foundDer = true;
+          break;
+      }
+  }
+  return ipulseDer;
+}
+
 
 template <class C>
 void eigen_solve_submatrix(const typename C::PulseMatrix &mat,
@@ -56,11 +99,6 @@ void eigen_solve_submatrix(const typename C::PulseMatrix &mat,
   }
 }
 
-template <class P>
-CubicPulseChiSqSNNLS<P>::CubicPulseChiSqSNNLS() : _chisq(0.), _computeErrors(true), _maxiters(50), _maxiterwarnings(true) {}
-
-template <class P>
-CubicPulseChiSqSNNLS<P>::~CubicPulseChiSqSNNLS() {}
 
 template <class P>
 bool CubicPulseChiSqSNNLS<P>::DoFit(const SampleVector &samples,
@@ -68,13 +106,17 @@ bool CubicPulseChiSqSNNLS<P>::DoFit(const SampleVector &samples,
                                const BXVector &bxs,
                                const FullSampleVector &fullpulse,
                                const FullSampleMatrix &fullpulsecov,
-                               const PiecewiseCubicSpline&,
+                               const PiecewiseCubicSpline &spline,
                                const SampleGainVector &gains,
-                               const SampleGainVector &badSamples
-                               ) {
-  int npulse = bxs.rows();
+                               const SampleGainVector &badSamples) {
+
+  _spline = spline;
+
+  const unsigned int nsample = SampleVector::RowsAtCompileTime;
+  const unsigned int npulse = bxs.rows();
 
   _sampvec = samples;
+
   _bxs = bxs;
   _pulsemat.resize(Eigen::NoChange, npulse);
 
@@ -83,19 +125,21 @@ bool CubicPulseChiSqSNNLS<P>::DoFit(const SampleVector &samples,
   int nPedestals = 0;
   for (int gainidx = 0; gainidx < ngains; ++gainidx) {
     SampleGainVector mask = gainidx * SampleGainVector::Ones();
-    SampleVector pedestal = (gains.array() == mask.array()).template cast<typename SampleVector::value_type>();
+    SampleVector pedestal = (gains.array() == mask.array()).cast<SampleVector::value_type>();
     if (pedestal.maxCoeff() > 0.) {
       ++nPedestals;
       _bxs.resize(npulse + nPedestals);
-      _bxs[npulse + nPedestals - 1] = 100 + gainidx;  //bx values >=100 indicate dynamic pedestals
+      _bxs[npulse + nPedestals - 1] = _pedestalBxOffset + gainidx;  //bx values >=100 indicate dynamic pedestals
       _pulsemat.resize(Eigen::NoChange, npulse + nPedestals);
       _pulsemat.col(npulse + nPedestals - 1) = pedestal;
     }
   }
 
+
   //construct negative step functions for saturated or potentially slew-rate-limited samples
   for (int isample = 0; isample < SampleVector::RowsAtCompileTime; ++isample) {
     if (badSamples.coeff(isample) > 0) {
+      std::cout << "sample #" << isample << " bad!!" << std::endl;
       SampleVector step = SampleVector::Zero();
       //step correction has negative sign for saturated or slew-limited samples which have been forced to zero
       step[isample] = -1.;
@@ -103,310 +147,505 @@ bool CubicPulseChiSqSNNLS<P>::DoFit(const SampleVector &samples,
       ++nPedestals;
       _bxs.resize(npulse + nPedestals);
       _bxs[npulse + nPedestals - 1] =
-          -100 - isample;  //bx values <=-100 indicate step corrections for saturated or slew-limited samples
+          _stepCorrBxOffset - isample;  //bx values <=-100 indicate step corrections for saturated or slew-limited samples
       _pulsemat.resize(Eigen::NoChange, npulse + nPedestals);
       _pulsemat.col(npulse + nPedestals - 1) = step;
     }
   }
 
-  _npulsetot = npulse + nPedestals;
 
+  _bxs.resize(npulse + nPedestals + 1);
+  _bxs[npulse + nPedestals] = _derivativeBxOffset;
+  _pulsemat.resize(Eigen::NoChange, npulse + nPedestals + 1);
+  _pulsemat.col(npulse + nPedestals) = SampleVector::Zero();
+
+
+  _npulsetot = npulse + nPedestals + 1;
+  
   _ampvec = PulseVector::Zero(_npulsetot);
   _errvec = PulseVector::Zero(_npulsetot);
   _nP = 0;
   _chisq = 0.;
-
-  if (_bxs.rows() == 1 && std::abs(_bxs.coeff(0)) < 100) {
-    _ampvec.coeffRef(0) = _sampvec.coeff(_bxs.coeff(0) + 5);
-  }
-
+  
   aTamat.resize(_npulsetot, _npulsetot);
 
+  _time      = PulseVector::Zero(_npulsetot);  // Δt = 0 for all pulses initially
+  _timeErr   = PulseVector::Zero(_npulsetot);
+
   //initialize pulse template matrix
-  for (int ipulse = 0; ipulse < npulse; ++ipulse) {
+  for (unsigned int ipulse=0; ipulse<_npulsetot; ++ipulse) {
     int bx = _bxs.coeff(ipulse);
-    int offset = 7 - 3 - bx;
-    _pulsemat.col(ipulse) = fullpulse.template segment<SampleVector::RowsAtCompileTime>(offset);
+    if (abs(bx) < 10) {
+      int firstsamplet = std::max(0,bx * int(25./P::Samp_Period) + P::nPreSamples);
+      int offset = P::maxShift - P::nPreSamples - bx*int(25./P::Samp_Period);
+      _pulsemat.col(ipulse) = fullpulse.segment<SampleVector::RowsAtCompileTime>(offset);
+      if (bx == 0) {
+          _signalTemplateError = fullpulse_signal_template_error.segment<SampleVector::RowsAtCompileTime>(offset);
+      }
+    }
+    if (bx == _derivativeBxOffset){
+      int bx_s = _bxs.coeff(GetSignalPulseIndex());
+      int firstsamplet = std::max(0,bx_s * int(25./P::Samp_Period) + P::nPreSamples);
+      int offset = P::maxShift - P::nPreSamples - bx_s*int(25./P::Samp_Period);
+      _pulsemat.col(ipulse) = fullpulse_deriv.segment<SampleVector::RowsAtCompileTime>(offset);
+    }
   }
 
   //unconstrain pedestals already for first iteration since they should always be non-zero
   if (nPedestals > 0) {
     for (int i = 0; i < _bxs.rows(); ++i) {
       int bx = _bxs.coeff(i);
-      if (bx >= 100) {
+      if (abs(bx - _pedestalBxOffset) < 10) {
         NNLSUnconstrainParameter(i);
       }
+      if (bx == _derivativeBxOffset) NNLSUnconstrainParameter(i);
+      if (std::abs(bx - _stepCorrBxOffset) < 20) NNLSUnconstrainParameter(i);
     }
   }
 
   //do the actual fit
-  bool status = Minimize(samplecov, fullpulsecov);
+  bool status = Minimize(samplecov,pederr,fullpulsecov);
+
   _ampvecmin = _ampvec;
+
+  // std::cout << " _sampvec = " << _sampvec << std::endl;
+  // std::cout << " bxs = " << bxs << std::endl;
+  // std::cout << " fullpulse = " << fullpulse << std::endl;
+  // std::cout << " _ampvecmin = " << _ampvecmin << std::endl;
+  
   _bxsmin = _bxs;
-
-  if (!status)
-    return status;
-
-  if (!_computeErrors)
-    return status;
-
+  
+  if (!status) return status;
+  
+  //   std::cout << " _computeErrors = " << _computeErrors << std::endl;
+  
+  if(!_computeErrors) return status;
+  
   //compute MINOS-like uncertainties for in-time amplitude
   bool foundintime = false;
   unsigned int ipulseintime = 0;
-  for (unsigned int ipulse = 0; ipulse < _npulsetot; ++ipulse) {
-    if (_bxs.coeff(ipulse) == 0) {
+  //   std::cout << " npulse = " << npulse << std::endl;
+  for (unsigned int ipulse=0; ipulse<npulse; ++ipulse) {
+    //     std::cout << " _bxs.coeff( " << ipulse << "::" << npulse << " ) = " << _bxs.coeff(ipulse) << std::endl;
+    if (_bxs.coeff(ipulse)==0) {
       ipulseintime = ipulse;
       foundintime = true;
       break;
     }
   }
-  if (!foundintime)
-    return status;
-
+  // std::cout << " foundintime = " << foundintime << std::endl;
+  if (!foundintime) return status;
+  
+  
+  
   const unsigned int ipulseintimemin = ipulseintime;
-
+  
   double approxerr = ComputeApproxUncertainty(ipulseintime);
   double chisq0 = _chisq;
   double x0 = _ampvecmin[ipulseintime];
-
+  
   //move in time pulse first to active set if necessary
-  if (ipulseintime < _nP) {
-    _pulsemat.col(_nP - 1).swap(_pulsemat.col(ipulseintime));
-    std::swap(_ampvec.coeffRef(_nP - 1), _ampvec.coeffRef(ipulseintime));
-    std::swap(_bxs.coeffRef(_nP - 1), _bxs.coeffRef(ipulseintime));
+  if (ipulseintime<_nP) {
+    _pulsemat.col(_nP-1).swap(_pulsemat.col(ipulseintime));
+    std::swap(_ampvec.coeffRef(_nP-1),_ampvec.coeffRef(ipulseintime));
+    std::swap(_bxs.coeffRef(_nP-1),_bxs.coeffRef(ipulseintime));
     ipulseintime = _nP - 1;
-    --_nP;
+    --_nP;    
   }
-
+  
+  
   SampleVector pulseintime = _pulsemat.col(ipulseintime);
   _pulsemat.col(ipulseintime).setZero();
-
+  
   //two point interpolation for upper uncertainty when amplitude is away from boundary
   double xplus100 = x0 + approxerr;
   _ampvec.coeffRef(ipulseintime) = xplus100;
-  _sampvec = samples - _ampvec.coeff(ipulseintime) * pulseintime;
-  status &= Minimize(samplecov, fullpulsecov);
-  if (!status)
-    return status;
+  _sampvec = samples - _ampvec.coeff(ipulseintime)*pulseintime;
+
+  status &= Minimize(samplecov,pederr,fullpulsecov);
+  if (!status) return status;
   double chisqplus100 = ComputeChiSq();
-
-  double sigmaplus = std::abs(xplus100 - x0) / sqrt(chisqplus100 - chisq0);
-
+  
+  double sigmaplus = std::abs(xplus100-x0)/sqrt(chisqplus100-chisq0);
+  
   //if amplitude is sufficiently far from the boundary, compute also the lower uncertainty and average them
-  if ((x0 / sigmaplus) > 0.5) {
-    for (unsigned int ipulse = 0; ipulse < _npulsetot; ++ipulse) {
-      if (_bxs.coeff(ipulse) == 0) {
+  if ( (x0/sigmaplus) > 0.5 ) {
+    for (unsigned int ipulse=0; ipulse<npulse; ++ipulse) {
+      if (_bxs.coeff(ipulse)==0) {
         ipulseintime = ipulse;
         break;
       }
-    }
-    double xminus100 = std::max(0., x0 - approxerr);
+    }    
+    double xminus100 = std::max(0.,x0-approxerr);
     _ampvec.coeffRef(ipulseintime) = xminus100;
-    _sampvec = samples - _ampvec.coeff(ipulseintime) * pulseintime;
-    status &= Minimize(samplecov, fullpulsecov);
-    if (!status)
-      return status;
+    _sampvec = samples - _ampvec.coeff(ipulseintime)*pulseintime;
+    status &= Minimize(samplecov,pederr,fullpulsecov);
+    if (!status) return status;
     double chisqminus100 = ComputeChiSq();
-
-    double sigmaminus = std::abs(xminus100 - x0) / sqrt(chisqminus100 - chisq0);
-    _errvec[ipulseintimemin] = 0.5 * (sigmaplus + sigmaminus);
-
-  } else {
+    
+    double sigmaminus = std::abs(xminus100-x0)/sqrt(chisqminus100-chisq0);
+    _errvec[ipulseintimemin] = 0.5*(sigmaplus + sigmaminus);
+    
+  }
+  else {
     _errvec[ipulseintimemin] = sigmaplus;
   }
-
-  _chisq = chisq0;
-
+  
+  _chisq = chisq0;  
+  
   return status;
+  
 }
 
 template <class P>
-bool CubicPulseChiSqSNNLS<P>::Minimize(const SampleMatrix &samplecov, const FullSampleMatrix &fullpulsecov) {
+void CubicPulseChiSqSNNLS<P>::AdjustSignalPulseShape(){
+  const unsigned int npulsetot = _bxs.rows();
+
+  unsigned int ipulseSignal = GetSignalPulseIndex();
+
+  const int nTemplateBins = 11;
+  float pulseShapeTemplate[nTemplateBins], signalTemplateError[nTemplateBins];
+  FullSampleVector fullpulse(FullSampleVector::Zero());
+  FullSampleVector fullpulse_deriv(FullSampleVector::Zero());
+  FullSampleVector fullpulse_signal_template_error(FullSampleVector::Zero());
+
+  //   intime sample is [3] // edm
+  for(int i=0; i<nTemplateBins; i++){
+    //     double x = double( IDSTART + P::Samp_Period * (i + 3) - WFLENGTH / 2);
+    double x = double( P::Samp_Period * i - P::kPulseShapePeakShift_ns );
+    pulseShapeTemplate[i] = _spline.Eval(x -_time[ipulseSignal]);
+    signalTemplateError[i] = 0.001; //FIX ME!!
+  }
+
+  for (int i=0; i<nTemplateBins; ++i){
+    fullpulse(i+14) = pulseShapeTemplate[i];
+    fullpulse_signal_template_error(i+14) = signalTemplateError[i];
+  }
+
+  for (int i = 0; i < nTemplateBins; ++i) {
+    double x  = P::Samp_Period * i;
+    double dp = _spline.Eval(x + 0.001 - P::kPulseShapePeakShift_ns - _time[ipulseSignal]);
+    double dm = _spline.Eval(x - 0.001 - P::kPulseShapePeakShift_ns - _time[ipulseSignal]);
+    fullpulse_deriv(i + 14) = (dp - dm)/0.002;
+  }
+
+  //std::cout << "pre: _pulsemat.col(ipulse) " <<_pulsemat.col(ipulseSignal) << std::endl;
+
+  //initialize pulse template matrix
+  for (unsigned int ipulse=0; ipulse<npulsetot; ++ipulse) {
+    int bx = _bxs.coeff(ipulse);
+    if (abs(bx) < 10) {
+      if (ipulse != ipulseSignal) continue;
+      int firstsamplet = std::max(0,bx * int(25./P::Samp_Period) + P::nPreSamples);
+      int offset = P::maxShift - P::nPreSamples - bx*int(25./P::Samp_Period);
+      _pulsemat.col(ipulse) = fullpulse.segment<SampleVector::RowsAtCompileTime>(offset);
+      if (bx == 0) {
+          _signalTemplateError = fullpulse_signal_template_error.segment<SampleVector::RowsAtCompileTime>(offset);
+      }
+    }
+    if (bx == 1000){
+      int bx_s = _bxs.coeff(GetSignalPulseIndex());
+      int firstsamplet = std::max(0,bx_s * int(25./P::Samp_Period) + P::nPreSamples);
+      int offset = P::maxShift - P::nPreSamples - bx_s*int(25./P::Samp_Period);
+      _pulsemat.col(ipulse) = fullpulse_deriv.segment<SampleVector::RowsAtCompileTime>(offset);
+    }
+  }
+
+  //std::cout << "post: _pulsemat.col(ipulse) " <<_pulsemat.col(ipulseSignal) << std::endl;
+
+}
+
+template <class P>
+bool CubicPulseChiSqSNNLS<P>::Minimize(const SampleMatrix &samplecov, double pederr, const FullSampleMatrix &fullpulsecov) {
+
+
   const unsigned int npulse = _bxs.rows();
 
+  const int maxiter = 50;
   int iter = 0;
   bool status = false;
   while (true) {
-    if (iter >= _maxiters) {
-      if (_maxiterwarnings) {
-        LogDebug("CubicPulseChiSqSNNLS::Minimize") << "Max Iterations reached at iter " << iter;
-      }
+
+    if (iter>=maxiter) {
+      std::cout << "CubicPulseChiSqSNNLS::Minimize ===> " << "Max Iterations reached at iter " << iter <<  std::endl;
+      std::cout << " maxiter =  " << iter << " :: " << maxiter << std::endl;
       break;
     }
 
-    status = updateCov(samplecov, fullpulsecov);
-    if (!status)
-      break;
+    status = updateCov(samplecov,pederr,fullpulsecov);
+    if (!status) break;
     if (npulse > 1) {
       status = NNLS();
     } else {
       //special case for one pulse fit (performance optimized)
       status = OnePulseMinimize();
     }
-    if (!status)
-      break;
+    AdjustSignalPulseShape(); // Adjusting!!
+    if (!status) break;
 
     double chisqnow = ComputeChiSq();
-    double deltachisq = chisqnow - _chisq;
+    double deltachisq = chisqnow-_chisq;
 
+    //std::cout << "Iter = " << iter << "  chisq now = " << chisqnow <<  "   deltachisq = " << std::abs(deltachisq) << std::endl;
+    //std::cout << "N active pulses = " << _nP << std::endl;
     _chisq = chisqnow;
-    if (std::abs(deltachisq) < 1e-3) {
+    if (std::abs(deltachisq)<1e-3) {
       break;
     }
+
+    //std::cout << "              _deltachisq = " << _deltachisq << " doubleDelta = " << std::abs(std::abs(_deltachisq)-std::abs(deltachisq)) << std::endl;
+    // to avoid bouncing between two degenerate solutions
+    if (std::abs(std::abs(_deltachisq)-std::abs(deltachisq))<1e-3) {
+      break;
+    }
+
     ++iter;
   }
 
   return status;
+
 }
 
+
 template <class P>
-bool CubicPulseChiSqSNNLS<P>::updateCov(const SampleMatrix &samplecov, const FullSampleMatrix &fullpulsecov) {
+bool CubicPulseChiSqSNNLS<P>::updateCov(const SampleMatrix &samplecov, double pederr, const FullSampleMatrix &fullpulsecov) {
+
+  // std::cout << " updateCov " << std::endl;
+
   const unsigned int nsample = SampleVector::RowsAtCompileTime;
   const unsigned int npulse = _bxs.rows();
 
-  _invcov = samplecov;  //
+  // std::cout << "_bxs = " << std::endl << _bxs << "   npulse = " << npulse << std::endl;
 
-  for (unsigned int ipulse = 0; ipulse < npulse; ++ipulse) {
-    if (_ampvec.coeff(ipulse) == 0.)
-      continue;
+  _invcov.triangularView<Eigen::Lower>() = (pederr*pederr)*samplecov;
+
+  //std::cout << " samplecov :(  = " << std::endl << samplecov << std::endl;
+
+  //std::cout << " invcov (only noise) = " << std::endl << _invcov << std::endl;
+
+  for (unsigned int ipulse=0; ipulse<npulse; ++ipulse) {
+    if (_ampvec.coeff(ipulse)==0.) continue;
     int bx = _bxs.coeff(ipulse);
-    if (std::abs(bx) >= 100)
+    if (std::abs(bx- _pedestalBxOffset) < 10)
       continue;  //no contribution to covariance from pedestal or saturation/slew step correction
+    if (bx == _derivativeBxOffset)
+      continue;  //no contribution to covariance from pedestal or saturation/slew step correction
+    if (std::abs(bx - _stepCorrBxOffset) < 20)
+      continue;
 
-    int firstsamplet = std::max(0, bx + 3);
-    int offset = 7 - 3 - bx;
+    //std::cout << "in update cov, bx number: " << bx << std::endl;
 
-    const double ampveccoef = _ampvec.coeff(ipulse);
-    const double ampsq = ampveccoef * ampveccoef;
+    int firstsamplet = std::max(0,bx * int(25./P::Samp_Period) + P::nPreSamples);
+    int offset = P::maxShift - P::nPreSamples - bx*int(25./P::Samp_Period);
 
-    const unsigned int nsamplepulse = nsample - firstsamplet;
-    _invcov.block(firstsamplet, firstsamplet, nsamplepulse, nsamplepulse) +=
-        ampsq * fullpulsecov.block(firstsamplet + offset, firstsamplet + offset, nsamplepulse, nsamplepulse);
+    double ampsq = _ampvec.coeff(ipulse)*_ampvec.coeff(ipulse);
+    // std::cout << "     >>> ipulse = " << ipulse << "    ampsq = " << ampsq << std::endl;
+    const unsigned int nsamplepulse = nsample-firstsamplet;
+
+    if (_bxs.coeff(ipulse) == 0) {
+   // Create a dynamic matrix with the right size
+    Eigen::MatrixXd block_allocated(nsamplepulse, nsamplepulse);
+    block_allocated.setZero();
+
+    // Fill the diagonal with the squared entries
+    // Make sure sizes match: only take as many entries as nsamplepulse
+    block_allocated.diagonal().head(nsamplepulse) =
+        _signalTemplateError.head(nsamplepulse).cwiseProduct(
+        _signalTemplateError.head(nsamplepulse));
+
+    // Add to the lower-triangular part
+    _invcov.block(firstsamplet, firstsamplet, nsamplepulse, nsamplepulse)
+           .triangularView<Eigen::Lower>() += ampsq * block_allocated;
+
+    } else {
+        auto block_allocated = fullpulsecov.block(firstsamplet+offset,firstsamplet+offset,nsamplepulse,nsamplepulse);
+        _invcov.block(firstsamplet,firstsamplet,nsamplepulse,nsamplepulse).triangularView<Eigen::Lower>() += ampsq*block_allocated;
+        //std::cout << "block_allocated: " << block_allocated << std::endl;
+    }
+
+    // Symmetrize just in case
+    //Eigen::MatrixXd block_sym = block_allocated.template triangularView<Eigen::Lower>();
+    //block_sym = block_sym + block_sym.transpose().triangularView<Eigen::StrictlyUpper>();
+
+    //std::cout << "block_allocated: " << block_allocated << std::endl;
+
   }
 
-  _covdecomp.compute(_invcov);
+  // std::cout << " updateCov " << " here "  << std::endl;
+  //std::cout << " invcov after adding pulse covariance= " << std::endl << _invcov << std::endl;
 
+
+  _invcov.triangularView<Eigen::Upper>() =
+    _invcov.transpose().triangularView<Eigen::Upper>();
+
+
+
+   // Quick PD check via LLT
+   Eigen::LLT<SampleMatrix> llt(_invcov);
+   if (llt.info() == Eigen::NumericalIssue) {
+      std::cout << "WARNING: _invcov not PD" << std::endl;
+   }
+
+   _covdecomp.compute(_invcov);
+    //  std::cout << " updateCov " << " done "  << std::endl;
+  
   bool status = true;
   return status;
+  
 }
+
+
 
 template <class P>
 double CubicPulseChiSqSNNLS<P>::ComputeChiSq() {
-  //   SampleVector resvec = _pulsemat*_ampvec - _sampvec;
-  //   return resvec.transpose()*_covdecomp.solve(resvec);
 
-  return _covdecomp.matrixL().solve(_pulsemat * _ampvec - _sampvec).squaredNorm();
+    SampleVector model = _pulsemat*_ampvec;
+
+    //std::cout << "model pre-time: " << model << std::endl;
+    // add timing shifts
+    //for (unsigned int ipulse=0; ipulse<_bxs.rows(); ++ipulse) {
+    //    if (_timeActive(ipulse)) {
+    //        //std::cout << "ipulse (time Active here): " << ipulse << ", _time(ipulse): " << _time(ipulse) << ", _pulsemat_t.col(ipulse): " << _pulsemat_t.col(ipulse) << ", _ampvec(ipulse): " << _ampvec(ipulse) << std::endl;
+    //        model -= _time(ipulse) * _pulsemat_t.col(ipulse) * _ampvec(ipulse);
+    //    }
+    //}
+    //std::cout << "model: " << std::endl << model << std::endl;
+    //std::cout << "sampVec: " << std::endl << _sampvec << std::endl;
+
+    //std::cout << "_invcov at chi2 / residuals step: " << std::endl << _invcov << std::endl;
+//
+//    SampleMatrix L_debug = _covdecomp.matrixL();
+//    std::cout << "_covdecomp.matrixL at chi2 / residuals step: " << std::endl << L_debug << std::endl;
+    SampleVector normResVec = SampleVector::Zero();
+    normResVec = _covdecomp.matrixL().solve(model - _sampvec);
+//    std::cout << "_normResVec: " << std::endl << _normResVec << std::endl;
+//    std::cout << "_absResVec: " << std::endl << _absResVec << std::endl;
+
+    return normResVec.squaredNorm();
 }
+
 
 template <class P>
 double CubicPulseChiSqSNNLS<P>::ComputeApproxUncertainty(unsigned int ipulse) {
   //compute approximate uncertainties
   //(using 1/second derivative since full Hessian is not meaningful in
   //presence of positive amplitude boundaries.)
-
-  return 1. / _covdecomp.matrixL().solve(_pulsemat.col(ipulse)).norm();
+  
+  return 1./_covdecomp.matrixL().solve(_pulsemat.col(ipulse)).norm();
+  
 }
 
 template <class P>
 bool CubicPulseChiSqSNNLS<P>::NNLS() {
+
   //Fast NNLS (fnnls) algorithm as per http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.157.9203&rep=rep1&type=pdf
 
   const unsigned int npulse = _bxs.rows();
-  constexpr unsigned int nsamples = SampleVector::RowsAtCompileTime;
 
-  invcovp = _covdecomp.matrixL().solve(_pulsemat);
-  aTamat.noalias() = invcovp.transpose().lazyProduct(invcovp);
-  aTbvec.noalias() = invcovp.transpose().lazyProduct(_covdecomp.matrixL().solve(_sampvec));
+  SamplePulseMatrix invcovp = _covdecomp.matrixL().solve(_pulsemat);
+  aTamat.triangularView<Eigen::Lower>() = invcovp.transpose()*invcovp;
+  aTamat = aTamat.selfadjointView<Eigen::Lower>();
+  aTbvec = invcovp.transpose()*_covdecomp.matrixL().solve(_sampvec);  
 
+  PulseVector wvec(npulse);
+  
+  
   int iter = 0;
-  Index idxwmax = 0;
-  double wmax = 0.0;
-  double threshold = 1e-11;
-  while (true) {
+  while (true) {    
     //can only perform this step if solution is guaranteed viable
-    if (iter > 0 || _nP == 0) {
-      if (_nP == std::min(npulse, nsamples))
-        break;
-
+    if (iter>0 || _nP==0) {
+      if ( _nP==npulse ) break;                  
+      
       const unsigned int nActive = npulse - _nP;
-
-      updatework = aTbvec - aTamat * _ampvec;
-      Index idxwmaxprev = idxwmax;
-      double wmaxprev = wmax;
-      wmax = updatework.tail(nActive).maxCoeff(&idxwmax);
-
+      
+      wvec.tail(nActive) = aTbvec.tail(nActive) - (aTamat.selfadjointView<Eigen::Lower>()*_ampvec).tail(nActive);       
+      
+      Index idxwmax;
+      double wmax = wvec.tail(nActive).maxCoeff(&idxwmax);
+      
       //convergence
-      if (wmax < threshold || (idxwmax == idxwmaxprev && wmax == wmaxprev))
-        break;
+      if (wmax<1e-11) break;
 
       //worst case protection
       if (iter >= 500) {
-        LogDebug("CubicPulseChiSqSNNLS::NNLS()") << "Max Iterations reached at iter " << iter;
+      	std::cout << "CubicPulseChiSqSNNLS::NNLS()" << "\tMax Iterations reached at iter " << iter << std::endl;
         break;
       }
-
+      
       //unconstrain parameter
       Index idxp = _nP + idxwmax;
       NNLSUnconstrainParameter(idxp);
+      // std::cout << "adding index " << int(idxp) << " orig index " << int(_bxs.coeff(idxp)) << std::endl;
     }
-
+    
+    
     while (true) {
-      //printf("iter in, idxsP = %i\n",int(_idxsP.size()));
-
-      if (_nP == 0)
-        break;
-
+      // std::cout << "iter in, _nP = " << _nP << std::endl;
+      
+      // std::cout << " >>  iter = " << iter << std::endl;
+      
+      if (_nP==0) break;     
+      
       ampvecpermtest = _ampvec;
+      
+      //solve for unconstrained parameters      
+      //ampvecpermtest.head(_nP) = aTamat.topLeftCorner(_nP,_nP).ldlt().solve(aTbvec.head(_nP));     
 
-      //solve for unconstrained parameters
       //need to have specialized function to call optimized versions
       // of matrix solver... this is truly amazing...
-      eigen_solve_submatrix<EigenMatrixTypes<P>>(aTamat, aTbvec, ampvecpermtest, _nP);
+      eigen_solve_submatrix(aTamat, aTbvec, ampvecpermtest, _nP);
 
       //check solution
       bool positive = true;
-      for (unsigned int i = 0; i < _nP; ++i)
+      for (unsigned int i = 0; i < _nP; ++i){
+        if (i == GetDerivativePulseIndex()) continue;
         positive &= (ampvecpermtest(i) > 0);
+      }
       if (positive) {
         _ampvec.head(_nP) = ampvecpermtest.head(_nP);
         break;
       }
-
+      
       //update parameter vector
-      Index minratioidx = 0;
-
-      // no realizable optimization here (because it autovectorizes!)
+      Index minratioidx=0;
+      
       double minratio = std::numeric_limits<double>::max();
-      for (unsigned int ipulse = 0; ipulse < _nP; ++ipulse) {
-        if (ampvecpermtest.coeff(ipulse) <= 0.) {
-          const double c_ampvec = _ampvec.coeff(ipulse);
-          const double ratio = c_ampvec / (c_ampvec - ampvecpermtest.coeff(ipulse));
-          if (ratio < minratio) {
+      for (unsigned int ipulse=0; ipulse<_nP; ++ipulse) {
+        if (ipulse == GetDerivativePulseIndex()) continue;
+        if (ampvecpermtest.coeff(ipulse)<=0.) {
+      	  const double c_ampvec = _ampvec.coeff(ipulse);
+          const double ratio = c_ampvec/(c_ampvec - ampvecpermtest.coeff(ipulse));
+          if (ratio<minratio) {
             minratio = ratio;
             minratioidx = ipulse;
           }
         }
       }
-
-      _ampvec.head(_nP) += minratio * (ampvecpermtest.head(_nP) - _ampvec.head(_nP));
-
+      
+      _ampvec.head(_nP) += minratio*(ampvecpermtest.head(_nP) - _ampvec.head(_nP));
+      
       //avoid numerical problems with later ==0. check
       _ampvec.coeffRef(minratioidx) = 0.;
-
-      //printf("removing index %i, orig idx %i\n",int(minratioidx),int(_bxs.coeff(minratioidx)));
-      NNLSConstrainParameter(minratioidx);
+      
+      // std::cout << "removing index " << int(minratioidx) << " orig idx " << int(_bxs.coeff(minratioidx)) << std::endl;
+      NNLSConstrainParameter(minratioidx);      
     }
     ++iter;
-
-    //adaptive convergence threshold to avoid infinite loops but still
-    //ensure best value is used
-    if (iter % 16 == 0) {
-      threshold *= 2;
-    }
+    
+    
+    //---- AM:: add this new check to stop
+    if (iter > 1000) break;
+    
   }
+  
+  // std::cout << "     -> _ampvec = " << std::endl << _ampvec << std::endl;
+
+  _time[GetSignalPulseIndex()] += - _ampvec.coeff(GetDerivativePulseIndex())/_ampvec.coeff(GetSignalPulseIndex()) / 2.;
 
   return true;
+
 }
+
 
 template <class P>
 void CubicPulseChiSqSNNLS<P>::NNLSUnconstrainParameter(Index idxp) {
@@ -430,6 +669,7 @@ void CubicPulseChiSqSNNLS<P>::NNLSConstrainParameter(Index minratioidx) {
   --_nP;
 }
 
+
 template <class P>
 bool CubicPulseChiSqSNNLS<P>::OnePulseMinimize() {
   //Fast NNLS (fnnls) algorithm as per http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.157.9203&rep=rep1&type=pdf
@@ -446,7 +686,3 @@ bool CubicPulseChiSqSNNLS<P>::OnePulseMinimize() {
 
   return true;
 }
-
-#include "DataFormats/EcalDigi/interface/EcalConstants.h"
-template class CubicPulseChiSqSNNLS<ecalPh1>;
-template class CubicPulseChiSqSNNLS<ecalPh2>;

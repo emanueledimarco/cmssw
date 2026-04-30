@@ -52,6 +52,9 @@ public:
   void setMaxIterWarnings(bool b) { _maxiterwarnings = b; }
 
 protected:
+  int GetSignalPulseIndex();
+  int GetDerivativePulseIndex();
+  void AdjustSignalPulseShape();
   bool Minimize(const SampleMatrix &samplecov, const FullSampleMatrix &fullpulsecov);
   bool NNLS();
   void NNLSUnconstrainParameter(Index idxp);
@@ -83,12 +86,21 @@ protected:
   PulseVector aTbvec;
   PulseVector updatework;
 
+  PulseVector _time;
+  PulseVector _timeErr;
+
   PulseVector ampvecpermtest;
 
   double _chisq;
   bool _computeErrors;
   int _maxiters;
   bool _maxiterwarnings;
+
+  const int _pedestalBxOffset = 100;
+  const int _stepCorrBxOffset = -100;
+  const int _derivativeBxOffset = 50;
+
+  PiecewiseCubicSpline _spline;
 };
 
 #endif

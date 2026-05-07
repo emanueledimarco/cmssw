@@ -58,6 +58,8 @@ public:
 
   static constexpr unsigned int nPreSamples = 3; // Number of pre-samples in multifit
   static constexpr unsigned int maxShift = 7; // Max shift in multifit
+  static constexpr float kPulseShapesStatRelError = 0.01;
+
 };
 
 class ecalPh1 {
@@ -86,6 +88,8 @@ public:
 
   static constexpr unsigned int nPreSamples = 3; // Number of pre-samples in multifit
   static constexpr unsigned int maxShift = 7; // Max shift in multifit
+
+  static constexpr float kPulseShapesStatRelError = 0.01;
 
 
 };

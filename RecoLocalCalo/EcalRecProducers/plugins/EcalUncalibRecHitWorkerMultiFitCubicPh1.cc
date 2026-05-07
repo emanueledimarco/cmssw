@@ -49,10 +49,10 @@
 #include "DataFormats/EcalDigi/interface/EcalConstants.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/PiecewiseCubicSpline.h"
 
-class EcalUncalibRecHitWorkerMultiFit final : public EcalUncalibRecHitWorkerBaseClass {
+class EcalUncalibRecHitWorkerMultiFitCubicPh1 final : public EcalUncalibRecHitWorkerBaseClass {
 public:
-  EcalUncalibRecHitWorkerMultiFit(const edm::ParameterSet&, edm::ConsumesCollector& c);
-  EcalUncalibRecHitWorkerMultiFit() {}
+  EcalUncalibRecHitWorkerMultiFitCubicPh1(const edm::ParameterSet&, edm::ConsumesCollector& c);
+  EcalUncalibRecHitWorkerMultiFitCubicPh1() {}
 
 private:
   void set(const edm::EventSetup& es) override;
@@ -186,7 +186,7 @@ private:
   bool crossCorrelationUseSlewCorrectionEE_;
 };
 
-EcalUncalibRecHitWorkerMultiFit::EcalUncalibRecHitWorkerMultiFit(const edm::ParameterSet& ps, edm::ConsumesCollector& c)
+EcalUncalibRecHitWorkerMultiFitCubicPh1::EcalUncalibRecHitWorkerMultiFitCubicPh1(const edm::ParameterSet& ps, edm::ConsumesCollector& c)
     : EcalUncalibRecHitWorkerBaseClass(ps, c) {
 
   _spline = PiecewiseCubicSpline(ecalPh1::kPulseShapeTemplateSampleSize, ecalPh1::kParsPerTemplateSample, ecalPh1::Samp_Period);
@@ -287,7 +287,7 @@ EcalUncalibRecHitWorkerMultiFit::EcalUncalibRecHitWorkerMultiFit(const edm::Para
   amplitudeThreshEE_ = ps.getParameter<double>("amplitudeThresholdEE");
 }
 
-void EcalUncalibRecHitWorkerMultiFit::set(const edm::EventSetup& es) {
+void EcalUncalibRecHitWorkerMultiFitCubicPh1::set(const edm::EventSetup& es) {
   // common setup
   gains = es.getHandle(gainsToken_);
   peds = es.getHandle(pedsToken_);
@@ -334,7 +334,7 @@ void EcalUncalibRecHitWorkerMultiFit::set(const edm::EventSetup& es) {
   }
 }
 
-void EcalUncalibRecHitWorkerMultiFit::set(const edm::Event& evt) {
+void EcalUncalibRecHitWorkerMultiFitCubicPh1::set(const edm::Event& evt) {
   unsigned int bunchspacing = 450;
 
   if (useLumiInfoRunHeader_) {
@@ -366,7 +366,7 @@ void EcalUncalibRecHitWorkerMultiFit::set(const edm::Event& evt) {
  *
  * @return Jitter (in clock cycles) which will be added to UncalibRechit.setJitter(), 0 if no correction is applied.
  */
-double EcalUncalibRecHitWorkerMultiFit::timeCorrection(float ampli,
+double EcalUncalibRecHitWorkerMultiFitCubicPh1::timeCorrection(float ampli,
                                                        const std::vector<float>& amplitudeBins,
                                                        const std::vector<float>& shiftBins) {
   // computed initially in ns. Than turned in the BX's, as
@@ -413,7 +413,7 @@ double EcalUncalibRecHitWorkerMultiFit::timeCorrection(float ampli,
   return theCorrection * inv25;
 }
 
-void EcalUncalibRecHitWorkerMultiFit::run(const edm::Event& evt,
+void EcalUncalibRecHitWorkerMultiFitCubicPh1::run(const edm::Event& evt,
                                           const edm::DataFrameContainer& digis,
                                           EcalUncalibratedRecHitCollection& result) {
   if (digis.empty())
@@ -750,7 +750,7 @@ void EcalUncalibRecHitWorkerMultiFit::run(const edm::Event& evt,
   }
 }
 
-edm::ParameterSetDescription EcalUncalibRecHitWorkerMultiFit::getAlgoDescription() {
+edm::ParameterSetDescription EcalUncalibRecHitWorkerMultiFitCubicPh1::getAlgoDescription() {
   edm::ParameterSetDescription psd;
   psd.addNode(edm::ParameterDescription<std::vector<int>>("activeBXs", {-5, -4, -3, -2, -1, 0, 1, 2, 3, 4}, true) and
               edm::ParameterDescription<bool>("ampErrorCalculation", true, true) and
@@ -829,8 +829,8 @@ edm::ParameterSetDescription EcalUncalibRecHitWorkerMultiFit::getAlgoDescription
 
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "RecoLocalCalo/EcalRecProducers/interface/EcalUncalibRecHitWorkerFactory.h"
-DEFINE_EDM_PLUGIN(EcalUncalibRecHitWorkerFactory, EcalUncalibRecHitWorkerMultiFit, "EcalUncalibRecHitWorkerMultiFit");
+DEFINE_EDM_PLUGIN(EcalUncalibRecHitWorkerFactory, EcalUncalibRecHitWorkerMultiFitCubicPh1, "EcalUncalibRecHitWorkerMultiFitCubicPh1");
 #include "RecoLocalCalo/EcalRecProducers/interface/EcalUncalibRecHitFillDescriptionWorkerFactory.h"
 DEFINE_EDM_PLUGIN(EcalUncalibRecHitFillDescriptionWorkerFactory,
-                  EcalUncalibRecHitWorkerMultiFit,
-                  "EcalUncalibRecHitWorkerMultiFit");
+                  EcalUncalibRecHitWorkerMultiFitCubicPh1,
+                  "EcalUncalibRecHitWorkerMultiFitCubicPh1");

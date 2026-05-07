@@ -71,6 +71,8 @@ protected:
   PulseVector _errvec;
   PulseVector _ampvecmin;
 
+  SampleVector _signalTemplateError;
+
   SampleDecompLLT _covdecomp;
   SampleMatrix _covdecompLinv;
   PulseMatrix _topleft_work;

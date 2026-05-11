@@ -1,7 +1,7 @@
-#ifndef RecoLocalCalo_EcalRecAlgos_EcalUncalibRecHitMultiFitAlgoPh2_h
-#define RecoLocalCalo_EcalRecAlgos_EcalUncalibRecHitMultiFitAlgoPh2_h
+#ifndef RecoLocalCalo_EcalRecAlgos_EcalUncalibRecHitMultiFitCubicAlgoPh2_h
+#define RecoLocalCalo_EcalRecAlgos_EcalUncalibRecHitMultiFitCubicAlgoPh2_h
 
-/** \class EcalUncalibRecHitMultiFitAlgoPh2
+/** \class EcalUncalibRecHitMultiFitCubicAlgoPh2
   *  Amplitude reconstucted from Phase 2 digis by the multi-template fit
   */
 
@@ -10,9 +10,11 @@
 #include "DataFormats/EcalDigi/interface/EcalDataFrame_Ph2.h"
 #include "DataFormats/EcalDigi/interface/EcalConstants.h"
 #include "DataFormats/EcalRecHit/interface/EcalUncalibratedRecHit.h"
-#include "RecoLocalCalo/EcalRecAlgos/interface/PulseChiSqSNNLS.h"
+#include "RecoLocalCalo/EcalRecAlgos/interface/CubicPulseChiSqSNNLS.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "RecoLocalCalo/EcalRecAlgos/interface/PiecewiseCubicSpline.h"
 
-class EcalUncalibRecHitMultiFitAlgoPh2 {
+class EcalUncalibRecHitMultiFitCubicAlgoPh2 {
 public:
   using SampleVector = typename EigenMatrixTypes<ecalPh2>::SampleVector;
   using FullSampleVector = typename EigenMatrixTypes<ecalPh2>::FullSampleVector;
@@ -22,15 +24,17 @@ public:
   using FullSampleMatrix = typename EigenMatrixTypes<ecalPh2>::FullSampleMatrix;
   using SampleMatrixGainArray = typename EigenMatrixTypes<ecalPh2>::SampleMatrixGainArray;
 
-  EcalUncalibRecHitMultiFitAlgoPh2();
-  ~EcalUncalibRecHitMultiFitAlgoPh2(){};
+  EcalUncalibRecHitMultiFitCubicAlgoPh2();
+  ~EcalUncalibRecHitMultiFitCubicAlgoPh2(){};
   EcalUncalibratedRecHit makeRecHit(const EcalDataFrame_Ph2 &dataFrame,
                                     const EcalLiteDTUPedestalsMap::Item *aped,
                                     const EcalCATIAGainRatio *aGain,
                                     const SampleMatrixGainArray &noisecors,
                                     const FullSampleVector &fullpulse,
                                     const FullSampleMatrix &fullpulsecov,
-                                    const BXVector &activeBX);
+                                    const BXVector &activeBX,
+                                    const PiecewiseCubicSpline &spline);
+
   void disableErrorCalculation() { computeErrors_ = false; }
   void setDoPrefit(const bool b) { doPrefit_ = b; }
   void setPrefitMaxChiSq(const double x) { prefitMaxChiSq_ = x; }
@@ -42,8 +46,8 @@ public:
   void setGainSwitchUseMaxSample(const bool b) { gainSwitchUseMaxSample_ = b; }
 
 private:
-  PulseChiSqSNNLS<ecalPh2> pulsefunc_;
-  PulseChiSqSNNLS<ecalPh2> pulsefuncSingle_;
+  CubicPulseChiSqSNNLS<ecalPh2> pulsefunc_;
+  CubicPulseChiSqSNNLS<ecalPh2> pulsefuncSingle_;
   bool computeErrors_;
   bool doPrefit_;
   double prefitMaxChiSq_;

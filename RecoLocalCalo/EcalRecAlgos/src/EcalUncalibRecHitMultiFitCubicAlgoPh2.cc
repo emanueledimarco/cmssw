@@ -1,8 +1,8 @@
-#include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitMultiFitAlgoPh2.h"
+#include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitMultiFitCubicAlgoPh2.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-EcalUncalibRecHitMultiFitAlgoPh2::EcalUncalibRecHitMultiFitAlgoPh2()
+EcalUncalibRecHitMultiFitCubicAlgoPh2::EcalUncalibRecHitMultiFitCubicAlgoPh2()
     : computeErrors_(true),
       doPrefit_(false),
       prefitMaxChiSq_(1.),
@@ -21,13 +21,16 @@ EcalUncalibRecHitMultiFitAlgoPh2::EcalUncalibRecHitMultiFitAlgoPh2()
 }
 
 /// compute rechits
-EcalUncalibratedRecHit EcalUncalibRecHitMultiFitAlgoPh2::makeRecHit(const EcalDataFrame_Ph2 &dataFrame,
+EcalUncalibratedRecHit EcalUncalibRecHitMultiFitCubicAlgoPh2::makeRecHit(const EcalDataFrame_Ph2 &dataFrame,
                                                                     const EcalLiteDTUPedestalsMap::Item *aped,
                                                                     const EcalCATIAGainRatio *aGain,
                                                                     const SampleMatrixGainArray &noisecors,
                                                                     const FullSampleVector &fullpulse,
                                                                     const FullSampleMatrix &fullpulsecov,
-                                                                    const BXVector &activeBX) {
+                                                                    const BXVector &activeBX,
+                                                                    const PiecewiseCubicSpline &spline
+                                                                    ) {
+
   const uint32_t flags = 0;
 
   constexpr unsigned int nsample = EcalDataFrame_Ph2::MAXSAMPLES;
@@ -153,7 +156,7 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitAlgoPh2::makeRecHit(const EcalDa
   bool usePrefit = false;
   if (doPrefit_) {
     status =
-        pulsefuncSingle_.DoFit(amplitudes, noisecov, singlebx_, fullpulse, fullpulsecov, gainsPedestal, badSamples);
+        pulsefuncSingle_.DoFit(amplitudes, noisecov, singlebx_, fullpulse, fullpulsecov, spline, gainsPedestal, badSamples);
     amplitude = status ? pulsefuncSingle_.X()[0] : 0.;
     amperr = status ? pulsefuncSingle_.Errors()[0] : 0.;
     chisq = pulsefuncSingle_.ChiSq();
@@ -166,11 +169,11 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitAlgoPh2::makeRecHit(const EcalDa
   if (!usePrefit) {
     if (!computeErrors_)
       pulsefunc_.disableErrorCalculation();
-    status = pulsefunc_.DoFit(amplitudes, noisecov, activeBX, fullpulse, fullpulsecov, gainsPedestal, badSamples);
+    status = pulsefunc_.DoFit(amplitudes, noisecov, activeBX, fullpulse, fullpulsecov, spline, gainsPedestal, badSamples);
     chisq = pulsefunc_.ChiSq();
 
     if (!status) {
-      edm::LogWarning("EcalUncalibRecHitMultiFitAlgoPh2::makeRecHit") << "Failed Fit" << std::endl;
+      edm::LogWarning("EcalUncalibRecHitMultiFitCubicAlgoPh2::makeRecHit") << "Failed Fit" << std::endl;
     }
 
     unsigned int ipulseintime = 0;

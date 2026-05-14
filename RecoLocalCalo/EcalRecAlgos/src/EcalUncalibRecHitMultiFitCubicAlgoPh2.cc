@@ -3,21 +3,21 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 EcalUncalibRecHitMultiFitCubicAlgoPh2::EcalUncalibRecHitMultiFitCubicAlgoPh2()
-    : computeErrors_(true),
-      doPrefit_(false),
-      prefitMaxChiSq_(1.),
-      dynamicPedestals_(false),
-      mitigateBadSamples_(false),
-      selectiveBadSampleCriteria_(false),
-      addPedestalUncertainty_(0.),
-      simplifiedNoiseModelForGainSwitch_(true),
-      gainSwitchUseMaxSample_(false) {
-  singlebx_.resize(1);
-  singlebx_ << 0;
+    : _computeErrors(true),
+      _doPrefit(false),
+      _prefitMaxChiSq(1.),
+      _dynamicPedestals(false),
+      _mitigateBadSamples(false),
+      _selectiveBadSampleCriteria(false),
+      _addPedestalUncertainty(0.),
+      _simplifiedNoiseModelForGainSwitch(true),
+      _gainSwitchUseMaxSample(false) {
+  _singlebx.resize(1);
+  _singlebx << 0;
 
-  pulsefuncSingle_.disableErrorCalculation();
-  pulsefuncSingle_.setMaxIters(1);
-  pulsefuncSingle_.setMaxIterWarnings(false);
+  _pulsefuncSingle.disableErrorCalculation();
+  _pulsefuncSingle.setMaxIters(1);
+  _pulsefuncSingle.setMaxIterWarnings(false);
 }
 
 /// compute rechits
@@ -48,7 +48,7 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitCubicAlgoPh2::makeRecHit(const E
   const bool hasGainSwitch = false;
 
   //no dynamic pedestal in case of gain switch, since then the fit becomes too underconstrained
-  bool dynamicPedestal = dynamicPedestals_ && !hasGainSwitch;
+  bool dynamicPedestal = _dynamicPedestals && !hasGainSwitch;
 
   for (unsigned int iSample = 0; iSample < nsample; ++iSample) {
     const auto &sample = dataFrame.sample(iSample);
@@ -81,18 +81,18 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitCubicAlgoPh2::makeRecHit(const E
     }
   }
 
-  double amplitude, amperr, chisq;
+  double amplitude, amperr, time, chisq;
   bool status = false;
 
   //special handling for gain switch, where sample before maximum is potentially affected by slew rate limitation
   //optionally apply a stricter criteria, assuming slew rate limit is only reached in case where maximum sample has gain switched but previous sample has not
   //option 1: use simple max-sample algorithm
-  if (hasGainSwitch && gainSwitchUseMaxSample_) {
+  if (hasGainSwitch && _gainSwitchUseMaxSample) {
     double maxpulseamplitude = maxamplitude / fullpulse[iFullPulseMax];
     EcalUncalibratedRecHit rh(dataFrame.id(), maxpulseamplitude, pedval, 0., 0., flags);
     rh.setAmplitudeError(0.);
-    for (unsigned int ipulse = 0; ipulse < pulsefunc_.BXs().rows(); ++ipulse) {
-      int bx = pulsefunc_.BXs().coeff(ipulse);
+    for (unsigned int ipulse = 0; ipulse < _pulsefunc.BXs().rows(); ++ipulse) {
+      int bx = _pulsefunc.BXs().coeff(ipulse);
       if (bx != 0) {
         rh.setOutOfTimeAmplitude(bx + 5, 0.0);
       }
@@ -102,9 +102,9 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitCubicAlgoPh2::makeRecHit(const E
 
   //option2: A floating negative single-sample offset is added to the fit
   //such that the affected sample is treated only as a lower limit for the true amplitude
-  bool mitigateBadSample = mitigateBadSamples_ && hasGainSwitch && iSampleMax > 0;
+  bool mitigateBadSample = _mitigateBadSamples && hasGainSwitch && iSampleMax > 0;
   mitigateBadSample &=
-      (!selectiveBadSampleCriteria_ || (gainsNoise.coeff(iSampleMax - 1) != gainsNoise.coeff(iSampleMax)));
+      (!_selectiveBadSampleCriteria || (gainsNoise.coeff(iSampleMax - 1) != gainsNoise.coeff(iSampleMax)));
   if (mitigateBadSample) {
     badSamples[iSampleMax - 1] = 1;
   }
@@ -118,13 +118,13 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitCubicAlgoPh2::makeRecHit(const E
       pedrmss[i] = aped->rms(i);
       gainratios[i] = ecalPh2::gains[i];
     }
-    if (simplifiedNoiseModelForGainSwitch_) {
+    if (_simplifiedNoiseModelForGainSwitch) {
       int gainidxmax = gainsNoise[iSampleMax];
       noisecov = gainratios[gainidxmax] * gainratios[gainidxmax] * pedrmss[gainidxmax] * pedrmss[gainidxmax] *
                  noisecors[gainidxmax];
-      if (!dynamicPedestal && addPedestalUncertainty_ > 0.) {
+      if (!dynamicPedestal && _addPedestalUncertainty > 0.) {
         //add fully correlated component to noise covariance to inflate pedestal uncertainty
-        noisecov += addPedestalUncertainty_ * addPedestalUncertainty_ * SampleMatrix::Ones();
+        noisecov += _addPedestalUncertainty * _addPedestalUncertainty * SampleMatrix::Ones();
       }
     } else {
       noisecov = SampleMatrix::Zero();
@@ -136,9 +136,9 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitCubicAlgoPh2::makeRecHit(const E
           //different gain
           noisecov += gainratios[gainidx] * gainratios[gainidx] * pedrmss[gainidx] * pedrmss[gainidx] *
                       pedestal.asDiagonal() * noisecors[gainidx] * pedestal.asDiagonal();
-          if (!dynamicPedestal && addPedestalUncertainty_ > 0.) {
+          if (!dynamicPedestal && _addPedestalUncertainty > 0.) {
             //add fully correlated component to noise covariance to inflate pedestal uncertainty
-            noisecov += gainratios[gainidx] * gainratios[gainidx] * addPedestalUncertainty_ * addPedestalUncertainty_ *
+            noisecov += gainratios[gainidx] * gainratios[gainidx] * _addPedestalUncertainty * _addPedestalUncertainty *
                         pedestal.asDiagonal() * SampleMatrix::Ones() * pedestal.asDiagonal();
           }
         }
@@ -146,60 +146,61 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitCubicAlgoPh2::makeRecHit(const E
     }
   } else {
     noisecov = aped->rms(ecalPh2::gainId10) * aped->rms(ecalPh2::gainId10) * noisecors[0];
-    if (!dynamicPedestal && addPedestalUncertainty_ > 0.) {
+    if (!dynamicPedestal && _addPedestalUncertainty > 0.) {
       //add fully correlated component to noise covariance to inflate pedestal uncertainty
-      noisecov += addPedestalUncertainty_ * addPedestalUncertainty_ * SampleMatrix::Ones();
+      noisecov += _addPedestalUncertainty * _addPedestalUncertainty * SampleMatrix::Ones();
     }
   }
 
   //optimized one-pulse fit for hlt
   bool usePrefit = false;
-  if (doPrefit_) {
+  if (_doPrefit) {
     status =
-        pulsefuncSingle_.DoFit(amplitudes, noisecov, singlebx_, fullpulse, fullpulsecov, spline, gainsPedestal, badSamples);
-    amplitude = status ? pulsefuncSingle_.X()[0] : 0.;
-    amperr = status ? pulsefuncSingle_.Errors()[0] : 0.;
-    chisq = pulsefuncSingle_.ChiSq();
+        _pulsefuncSingle.DoFit(amplitudes, noisecov, _singlebx, fullpulse, fullpulsecov, spline, gainsPedestal, badSamples);
+    amplitude = status ? _pulsefuncSingle.X()[0] : 0.;
+    amperr = status ? _pulsefuncSingle.Errors()[0] : 0.;
+    time = status ? _pulsefuncSingle.T()[0] : 0.;
+    chisq = _pulsefuncSingle.ChiSq();
 
-    if (chisq < prefitMaxChiSq_) {
+    if (chisq < _prefitMaxChiSq) {
       usePrefit = true;
     }
   }
 
   if (!usePrefit) {
-    if (!computeErrors_)
-      pulsefunc_.disableErrorCalculation();
-    status = pulsefunc_.DoFit(amplitudes, noisecov, activeBX, fullpulse, fullpulsecov, spline, gainsPedestal, badSamples);
-    chisq = pulsefunc_.ChiSq();
+    if (!_computeErrors)
+      _pulsefunc.disableErrorCalculation();
+    status = _pulsefunc.DoFit(amplitudes, noisecov, activeBX, fullpulse, fullpulsecov, spline, gainsPedestal, badSamples);
+    chisq = _pulsefunc.ChiSq();
 
     if (!status) {
       edm::LogWarning("EcalUncalibRecHitMultiFitCubicAlgoPh2::makeRecHit") << "Failed Fit" << std::endl;
     }
 
     unsigned int ipulseintime = 0;
-    for (unsigned int ipulse = 0; ipulse < pulsefunc_.BXs().rows(); ++ipulse) {
-      if (pulsefunc_.BXs().coeff(ipulse) == 0) {
+    for (unsigned int ipulse = 0; ipulse < _pulsefunc.BXs().rows(); ++ipulse) {
+      if (_pulsefunc.BXs().coeff(ipulse) == 0) {
         ipulseintime = ipulse;
         break;
       }
     }
 
-    amplitude = status ? pulsefunc_.X()[ipulseintime] : 0.;
-    amperr = status ? pulsefunc_.Errors()[ipulseintime] : 0.;
+    amplitude = status ? _pulsefunc.X()[ipulseintime] : 0.;
+    amperr = status ? _pulsefunc.Errors()[ipulseintime] : 0.;
+    time = status ? _pulsefunc.T()[ipulseintime] : 0.;
   }
 
-  double jitter = 0.;
-
-  EcalUncalibratedRecHit rh(dataFrame.id(), amplitude, pedval, jitter, chisq, flags);
+  EcalUncalibratedRecHit rh(dataFrame.id(), amplitude, pedval, time, chisq, flags);
   rh.setAmplitudeError(amperr);
+  rh.setJitterError(0.);
 
   if (!usePrefit) {
-    for (unsigned int ipulse = 0; ipulse < pulsefunc_.BXs().rows(); ++ipulse) {
-      int bx = pulsefunc_.BXs().coeff(ipulse);
+    for (unsigned int ipulse = 0; ipulse < _pulsefunc.BXs().rows(); ++ipulse) {
+      int bx = _pulsefunc.BXs().coeff(ipulse);
       if (bx != 0 && std::abs(bx) < 100) {
-        rh.setOutOfTimeAmplitude(bx + 5, status ? pulsefunc_.X().coeff(ipulse) : 0.);
+        rh.setOutOfTimeAmplitude(bx + 5, status ? _pulsefunc.X().coeff(ipulse) : 0.);
       } else if (bx == (100 + gainsPedestal[iSampleMax])) {
-        rh.setPedestal(status ? pulsefunc_.X().coeff(ipulse) : 0.);
+        rh.setPedestal(status ? _pulsefunc.X().coeff(ipulse) : 0.);
       }
     }
   }

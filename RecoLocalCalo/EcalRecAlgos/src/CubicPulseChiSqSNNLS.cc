@@ -215,6 +215,7 @@ bool CubicPulseChiSqSNNLS<P>::DoFit(const SampleVector &samples,
   bool status = Minimize(samplecov,fullpulsecov);
 
   _ampvecmin = _ampvec;
+  _timevecmin = _time;
 
   // std::cout << " _sampvec = " << _sampvec << std::endl;
   // std::cout << " bxs = " << bxs << std::endl;

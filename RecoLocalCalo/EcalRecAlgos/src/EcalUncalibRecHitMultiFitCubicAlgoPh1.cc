@@ -104,7 +104,7 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitCubicAlgoPh1::makeRecHit(const E
     }
   }
 
-  double amplitude, amperr, chisq;
+  double amplitude, amperr, time, chisq;
   bool status = false;
 
   //special handling for gain switch, where sample before maximum is potentially affected by slew rate limitation
@@ -178,6 +178,7 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitCubicAlgoPh1::makeRecHit(const E
         _pulsefuncSingle.DoFit(amplitudes, noisecov, _singlebx, fullpulse, fullpulsecov, spline, gainsPedestal, badSamples);
     amplitude = status ? _pulsefuncSingle.X()[0] : 0.;
     amperr = status ? _pulsefuncSingle.Errors()[0] : 0.;
+    time = status ? _pulsefuncSingle.T()[0] : 0.;
     chisq = _pulsefuncSingle.ChiSq();
 
     if (chisq < _prefitMaxChiSq) {
@@ -205,12 +206,12 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitCubicAlgoPh1::makeRecHit(const E
 
     amplitude = status ? _pulsefunc.X()[ipulseintime] : 0.;
     amperr = status ? _pulsefunc.Errors()[ipulseintime] : 0.;
+    time = status ? _pulsefunc.T()[ipulseintime] : 0.;
   }
 
-  double jitter = 0.;
-
-  EcalUncalibratedRecHit rh(dataFrame.id(), amplitude, pedval, jitter, chisq, flags);
+  EcalUncalibratedRecHit rh(dataFrame.id(), amplitude, pedval, time, chisq, flags);
   rh.setAmplitudeError(amperr);
+  rh.setJitterError(0.);
 
   if (!usePrefit) {
     for (unsigned int ipulse = 0; ipulse < _pulsefunc.BXs().rows(); ++ipulse) {

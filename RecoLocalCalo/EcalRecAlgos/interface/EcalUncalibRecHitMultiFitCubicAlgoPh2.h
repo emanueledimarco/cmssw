@@ -35,29 +35,29 @@ public:
                                     const BXVector &activeBX,
                                     const PiecewiseCubicSpline &spline);
 
-  void disableErrorCalculation() { computeErrors_ = false; }
-  void setDoPrefit(const bool b) { doPrefit_ = b; }
-  void setPrefitMaxChiSq(const double x) { prefitMaxChiSq_ = x; }
-  void setDynamicPedestals(const bool b) { dynamicPedestals_ = b; }
-  void setMitigateBadSamples(const bool b) { mitigateBadSamples_ = b; }
-  void setSelectiveBadSampleCriteria(const bool b) { selectiveBadSampleCriteria_ = b; }
-  void setAddPedestalUncertainty(const double x) { addPedestalUncertainty_ = x; }
-  void setSimplifiedNoiseModelForGainSwitch(const bool b) { simplifiedNoiseModelForGainSwitch_ = b; }
-  void setGainSwitchUseMaxSample(const bool b) { gainSwitchUseMaxSample_ = b; }
+  void disableErrorCalculation() { _computeErrors = false; }
+  void setDoPrefit(const bool b) { _doPrefit = b; }
+  void setPrefitMaxChiSq(const double x) { _prefitMaxChiSq = x; }
+  void setDynamicPedestals(const bool b) { _dynamicPedestals = b; }
+  void setMitigateBadSamples(const bool b) { _mitigateBadSamples = b; }
+  void setSelectiveBadSampleCriteria(const bool b) { _selectiveBadSampleCriteria = b; }
+  void setAddPedestalUncertainty(const double x) { _addPedestalUncertainty = x; }
+  void setSimplifiedNoiseModelForGainSwitch(const bool b) { _simplifiedNoiseModelForGainSwitch = b; }
+  void setGainSwitchUseMaxSample(const bool b) { _gainSwitchUseMaxSample = b; }
 
 private:
-  CubicPulseChiSqSNNLS<ecalPh2> pulsefunc_;
-  CubicPulseChiSqSNNLS<ecalPh2> pulsefuncSingle_;
-  bool computeErrors_;
-  bool doPrefit_;
-  double prefitMaxChiSq_;
-  bool dynamicPedestals_;
-  bool mitigateBadSamples_;
-  bool selectiveBadSampleCriteria_;
-  double addPedestalUncertainty_;
-  bool simplifiedNoiseModelForGainSwitch_;
-  bool gainSwitchUseMaxSample_;
-  BXVector singlebx_;
+  CubicPulseChiSqSNNLS<ecalPh2> _pulsefunc;
+  CubicPulseChiSqSNNLS<ecalPh2> _pulsefuncSingle;
+  bool _computeErrors;
+  bool _doPrefit;
+  double _prefitMaxChiSq;
+  bool _dynamicPedestals;
+  bool _mitigateBadSamples;
+  bool _selectiveBadSampleCriteria;
+  double _addPedestalUncertainty;
+  bool _simplifiedNoiseModelForGainSwitch;
+  bool _gainSwitchUseMaxSample;
+  BXVector _singlebx;
 };
 
 #endif

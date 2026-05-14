@@ -4,7 +4,7 @@
 /** \class EcalUncalibRecHitMultiFitCubicAlgoPh1
   *  Amplitude reconstucted by the multi-template fit
   *
-  *  \author J.Bendavid, E.Di Marco
+  *  \author J.Bendavid, E.Di Marco, R. Gargiulo
   */
 
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalUncalibRecHitRecAbsAlgo.h"

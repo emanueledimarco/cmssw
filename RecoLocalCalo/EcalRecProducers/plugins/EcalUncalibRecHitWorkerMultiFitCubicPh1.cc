@@ -3,7 +3,7 @@
  *                           time using a ratio method
  *                           chi2 using express method
  *
- *  \author R. Bruneliere - A. Zabi
+ *  \author E. Di Marco, R. Gargiulo
  */
 
 #include "CondFormats/DataRecord/interface/EcalGainRatiosRcd.h"
@@ -105,8 +105,8 @@ private:
   edm::ESGetToken<EcalSampleMask, EcalSampleMaskRcd> sampleMaskToken_;
 
   // time algorithm to be used to set the jitter and its uncertainty
-  enum TimeAlgo { noMethod, ratioMethod, weightsMethod, crossCorrelationMethod };
-  TimeAlgo timealgo_ = noMethod;
+  enum TimeAlgo { multifitMethod, ratioMethod};
+  TimeAlgo timealgo_ = multifitMethod;
 
   // time weights method
   edm::ESHandle<EcalWeightXtalGroups> grps;
@@ -244,23 +244,7 @@ EcalUncalibRecHitWorkerMultiFitCubicPh1::EcalUncalibRecHitWorkerMultiFitCubicPh1
   auto const& timeAlgoName = ps.getParameter<std::string>("timealgo");
   if (timeAlgoName == "RatioMethod")
     timealgo_ = ratioMethod;
-  else if (timeAlgoName == "WeightsMethod")
-    timealgo_ = weightsMethod;
-  else if (timeAlgoName == "crossCorrelationMethod") {
-    timealgo_ = crossCorrelationMethod;
-    double startTime = ps.getParameter<double>("crossCorrelationStartTime");
-    double stopTime = ps.getParameter<double>("crossCorrelationStopTime");
-    CCtargetTimePrecision_ = ps.getParameter<double>("crossCorrelationTargetTimePrecision");
-    CCtargetTimePrecisionForDelayedPulses_ =
-        ps.getParameter<double>("crossCorrelationTargetTimePrecisionForDelayedPulses");
-    CCminTimeToBeLateMin_ = ps.getParameter<double>("crossCorrelationMinTimeToBeLateMin") / ecalcctiming::clockToNS;
-    CCminTimeToBeLateMax_ = ps.getParameter<double>("crossCorrelationMinTimeToBeLateMax") / ecalcctiming::clockToNS;
-    CCTimeShiftWrtRations_ = ps.getParameter<double>("crossCorrelationTimeShiftWrtRations");
-    crossCorrelationUseSlewCorrectionEB_ = ps.getParameter<bool>("crossCorrelationUseSlewCorrectionEB");
-    crossCorrelationUseSlewCorrectionEE_ = ps.getParameter<bool>("crossCorrelationUseSlewCorrectionEE");
-    computeCC_ = std::make_unique<EcalUncalibRecHitTimingCCAlgo>(startTime, stopTime);
-  } else if (timeAlgoName != "None")
-    edm::LogError("EcalUncalibRecHitError") << "No time estimation algorithm defined";
+  else timealgo_ = multifitMethod;
 
   // time reco parameters
   EBtimeFitParameters_ = ps.getParameter<std::vector<double>>("EBtimeFitParameters");
@@ -456,7 +440,6 @@ void EcalUncalibRecHitWorkerMultiFitCubicPh1::run(const edm::Event& evt,
 
     const EcalPedestals::Item* aped = nullptr;
     const EcalMGPAGainRatio* aGain = nullptr;
-    const EcalXtalGroupId* gid = nullptr;
     const EcalPh1CubicPulseShapes::Item* aPulse = nullptr;
     const EcalPulseCovariances::Item* aPulseCov = nullptr;
 
@@ -464,7 +447,6 @@ void EcalUncalibRecHitWorkerMultiFitCubicPh1::run(const edm::Event& evt,
       unsigned int hashedIndex = EBDetId(detid).hashedIndex();
       aped = &peds->barrel(hashedIndex);
       aGain = &gains->barrel(hashedIndex);
-      gid = &grps->barrel(hashedIndex);
       aPulse = &pulseshapes->barrel(hashedIndex);
       aPulseCov = &pulsecovariances->barrel(hashedIndex);
       offsetTime = offtime->getEBValue();
@@ -472,7 +454,6 @@ void EcalUncalibRecHitWorkerMultiFitCubicPh1::run(const edm::Event& evt,
       unsigned int hashedIndex = EEDetId(detid).hashedIndex();
       aped = &peds->endcap(hashedIndex);
       aGain = &gains->endcap(hashedIndex);
-      gid = &grps->endcap(hashedIndex);
       aPulse = &pulseshapes->endcap(hashedIndex);
       aPulseCov = &pulsecovariances->endcap(hashedIndex);
       offsetTime = offtime->getEEValue();
@@ -537,7 +518,35 @@ void EcalUncalibRecHitWorkerMultiFitCubicPh1::run(const edm::Event& evt,
       result.push_back(multiFitMethod_.makeRecHit(*itdg, aped, aGain, noisecors, fullpulse, fullpulsecov, activeBX, _spline));
       auto& uncalibRecHit = result.back();
 
-      // === time computation ===
+      // consider flagging as kOutOfTime only if above noise
+      float amplitudeThresh = barrel ? amplitudeThreshEB_ : amplitudeThreshEE_;
+      if (uncalibRecHit.amplitude() > pedRMSVec[0] * amplitudeThresh) {
+        float outOfTimeThreshP = barrel ? outOfTimeThreshG12pEB_ : outOfTimeThreshG12pEE_;
+        float outOfTimeThreshM = barrel ? outOfTimeThreshG12mEB_ : outOfTimeThreshG12mEE_;
+        // determine if gain has switched away from gainId==1 (x12 gain)
+        // and determine cuts (number of 'sigmas') to ose for kOutOfTime
+        // >3k ADC is necessasry condition for gain switch to occur
+        if (uncalibRecHit.amplitude() > 3000.) {
+          for (int iSample = 0; iSample < EEDataFrame::MAXSAMPLES; iSample++) {
+            int GainId = ((EcalDataFrame)(*itdg)).sample(iSample).gainId();
+            if (GainId != 1) {
+              outOfTimeThreshP = barrel ? outOfTimeThreshG61pEB_ : outOfTimeThreshG61pEE_;
+              outOfTimeThreshM = barrel ? outOfTimeThreshG61mEB_ : outOfTimeThreshG61mEE_;
+              break;
+            }
+          }
+        }
+        float cterm = barrel ? EBtimeConstantTerm_ : EEtimeConstantTerm_;
+        float sigmaped = pedRMSVec[0];  // approx for lower gains
+        float nterm = barrel ? EBtimeNconst_ : EEtimeNconst_;
+        nterm *= sigmaped / uncalibRecHit.amplitude();
+        float sigmat = std::sqrt(nterm * nterm + cterm * cterm);
+        if ((uncalibRecHit.jitter() > sigmat * outOfTimeThreshP) || (uncalibRecHit.jitter() < -sigmat * outOfTimeThreshM)) {
+          uncalibRecHit.setFlagBit(EcalUncalibratedRecHit::kOutOfTime);
+        }
+      }
+      
+      // === alternative time computation ===
       if (timealgo_ == ratioMethod) {
         // ratio method
         constexpr float clockToNsConstant = 25.;
@@ -623,121 +632,6 @@ void EcalUncalibRecHitWorkerMultiFitCubicPh1::run(const edm::Event& evt,
             }
           }
         }
-      } else if (timealgo_ == weightsMethod) {
-        //  weights method on the PU subtracted pulse shape
-        std::vector<double> amplitudes;
-        amplitudes.reserve(activeBX.size());
-        for (unsigned int ibx = 0; ibx < activeBX.size(); ++ibx)
-          amplitudes.push_back(uncalibRecHit.outOfTimeAmplitude(ibx));
-
-        EcalTBWeights::EcalTDCId tdcid(1);
-        EcalTBWeights::EcalTBWeightMap const& wgtsMap = wgts->getMap();
-        EcalTBWeights::EcalTBWeightMap::const_iterator wit;
-        wit = wgtsMap.find(std::make_pair(*gid, tdcid));
-        if (wit == wgtsMap.end()) {
-          edm::LogError("EcalUncalibRecHitError")
-              << "No weights found for EcalGroupId: " << gid->id() << " and  EcalTDCId: " << tdcid
-              << "\n  skipping digi with id: " << detid.rawId();
-          result.pop_back();
-          continue;
-        }
-        const auto& wset = wit->second;  // this is the EcalWeightSet
-
-        const auto& mat1 = wset.getWeightsBeforeGainSwitch();
-        const auto& mat2 = wset.getWeightsAfterGainSwitch();
-
-        weights[0] = &mat1;
-        weights[1] = &mat2;
-
-        double timerh;
-        if (detid.subdetId() == EcalEndcap) {
-          timerh = weightsMethod_endcap_.time(*itdg, amplitudes, aped, aGain, fullpulse, weights);
-        } else {
-          timerh = weightsMethod_barrel_.time(*itdg, amplitudes, aped, aGain, fullpulse, weights);
-        }
-        uncalibRecHit.setJitter(timerh);
-        uncalibRecHit.setJitterError(0.);  // not computed with weights
-
-      } else if (timealgo_ == crossCorrelationMethod) {
-        std::vector<double> amplitudes(activeBX.size());
-        for (unsigned int ibx = 0; ibx < activeBX.size(); ++ibx)
-          amplitudes[ibx] = uncalibRecHit.outOfTimeAmplitude(ibx);
-
-        bool const doSlewCorrection =
-            barrel ? crossCorrelationUseSlewCorrectionEB_ : crossCorrelationUseSlewCorrectionEE_;
-
-        float jitter = computeCC_->computeTimeCC(
-                           *itdg, amplitudes, aped, aGain, fullpulse, CCtargetTimePrecision_, true, doSlewCorrection) +
-                       CCTimeShiftWrtRations_ / ecalcctiming::clockToNS;
-        float noCorrectedJitter = computeCC_->computeTimeCC(*itdg,
-                                                            amplitudes,
-                                                            aped,
-                                                            aGain,
-                                                            fullpulse,
-                                                            CCtargetTimePrecisionForDelayedPulses_,
-                                                            false,
-                                                            doSlewCorrection) +
-                                  CCTimeShiftWrtRations_ / ecalcctiming::clockToNS;
-
-        uncalibRecHit.setJitter(jitter);
-        uncalibRecHit.setNonCorrectedTime(jitter, noCorrectedJitter);
-
-        float retreivedNonCorrectedTime = uncalibRecHit.nonCorrectedTime();
-        float noCorrectedTime = ecalcctiming::clockToNS * noCorrectedJitter;
-        if (retreivedNonCorrectedTime > -29.0 && std::abs(retreivedNonCorrectedTime - noCorrectedTime) > 0.05) {
-          edm::LogError("EcalUncalibRecHitError") << "Problem with noCorrectedJitter: true value:" << noCorrectedTime
-                                                  << "\t received: " << retreivedNonCorrectedTime << std::endl;
-        }  //<<>>if (abs(retreivedNonCorrectedTime - noCorrectedJitter)>1);
-
-        // consider flagging as kOutOfTime only if above noise
-        float threshold, cterm, timeNconst;
-        float timeThrP = 0.;
-        float timeThrM = 0.;
-        if (barrel) {
-          threshold = pedRMSVec[0] * amplitudeThreshEB_;
-          cterm = EBtimeConstantTerm_;
-          timeNconst = EBtimeNconst_;
-          timeThrP = outOfTimeThreshG12pEB_;
-          timeThrM = outOfTimeThreshG12mEB_;
-          if (uncalibRecHit.amplitude() > 3000.) {  // Gain switch
-            for (int iSample = 0; iSample < EBDataFrame::MAXSAMPLES; iSample++) {
-              int GainId = ((EcalDataFrame)(*itdg)).sample(iSample).gainId();
-              if (GainId != 1) {
-                timeThrP = outOfTimeThreshG61pEB_;
-                timeThrM = outOfTimeThreshG61mEB_;
-                break;
-              }
-            }
-          }
-        } else {  //EndCap
-          threshold = pedRMSVec[0] * amplitudeThreshEE_;
-          cterm = EEtimeConstantTerm_;
-          timeNconst = EEtimeNconst_;
-          timeThrP = outOfTimeThreshG12pEE_;
-          timeThrM = outOfTimeThreshG12mEE_;
-          if (uncalibRecHit.amplitude() > 3000.) {  // Gain switch
-            for (int iSample = 0; iSample < EEDataFrame::MAXSAMPLES; iSample++) {
-              int GainId = ((EcalDataFrame)(*itdg)).sample(iSample).gainId();
-              if (GainId != 1) {
-                timeThrP = outOfTimeThreshG61pEE_;
-                timeThrM = outOfTimeThreshG61mEE_;
-                break;
-              }
-            }
-          }
-        }
-        if (uncalibRecHit.amplitude() > threshold) {
-          float correctedTime = noCorrectedJitter * ecalcctiming::clockToNS + itimeconst + offsetTime;
-          float sigmaped = pedRMSVec[0];  // approx for lower gains
-          float nterm = timeNconst * sigmaped / uncalibRecHit.amplitude();
-          float sigmat = std::sqrt(nterm * nterm + cterm * cterm);
-          if ((correctedTime > sigmat * timeThrP) || (correctedTime < -sigmat * timeThrM))
-            uncalibRecHit.setFlagBit(EcalUncalibratedRecHit::kOutOfTime);
-        }
-
-      } else {  // no time method;
-        uncalibRecHit.setJitter(0.);
-        uncalibRecHit.setJitterError(0.);
       }
     }
 

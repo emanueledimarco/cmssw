@@ -44,6 +44,7 @@ public:
 
   const PulseVector &X() const { return _ampvecmin; }
   const PulseVector &Errors() const { return _errvec; }
+  const PulseVector &T() const { return _timevecmin; }
   const BXVector &BXs() const { return _bxsmin; }
 
   double ChiSq() const { return _chisq; }
@@ -90,6 +91,7 @@ protected:
 
   PulseVector _time;
   PulseVector _timeErr;
+  PulseVector _timevecmin;
 
   PulseVector ampvecpermtest;
 

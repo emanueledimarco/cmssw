@@ -57,10 +57,26 @@ namespace popcon {
       // true means all is standard and OK
       bool result = true;
       for (int s = 0; s < item->TEMPLATESAMPLES; ++s) {
-        if (s % item->PARSPERSAMPLE == 0 && (item->parameters[s] > 1 || item->parameters[s] < 0))
+        // check on the template bin values: it's normalized to max-sample, so 0<=t<=1
+        if (s % item->PARSPERSAMPLE == 0 && (item->parameters[s] > 1+3e-3 || item->parameters[s] < 0)) {
+          std::cout << "Error template = " << item->parameters[s] << std::endl;
           result = false;
-        if (s % item->PARSPERSAMPLE != 0 && (fabs(item->parameters[s]) > 1))
+        }
+        // check the first derivative
+        if (s % item->PARSPERSAMPLE == 1 && (fabs(item->parameters[s]) > 1e-1)) {
+          std::cout << "Error 1st deriv = " << item->parameters[s] << std::endl;
           result = false;
+        }
+        // check the second derivative
+        if (s % item->PARSPERSAMPLE == 2 && (fabs(item->parameters[s]) > 2e-3)) {
+          std::cout << "Error 2nd deriv = " << item->parameters[s] << std::endl;
+          result = false;
+        }
+        // check the third derivative
+        if (s % item->PARSPERSAMPLE == 3 && (fabs(item->parameters[s]) > 1e-5)) {
+          std::cout << "Error 3rd deriv = " << item->parameters[s] << std::endl;
+          result = false;
+        }
       }
       return result;
     }
@@ -85,7 +101,6 @@ namespace popcon {
       typename P::Item item;
       float templatecoeffvals[(item.TEMPLATESAMPLES)*(item.PARSPERSAMPLE)];
       unsigned int rawId;
-      int isbarrel;
       std::string line;
 
       // keep track of bad crystals
@@ -97,13 +112,13 @@ namespace popcon {
       if (m_firstRun > 1) {
         while (std::getline(inputfile, line)) {
           std::istringstream linereader(line);
-          linereader >> isbarrel >> rawId;
-          // std::cout << "Inserting template for crystal with rawId = " << rawId << " (isbarrel = " << isbarrel << ") " << std::endl;
+          linereader >> rawId;
+          // std::cout << "Inserting template for crystal with rawId = " << rawId << std::endl;
           for (int s = 0; s < item.TEMPLATESAMPLES; ++s) {
             for (int c=0; c < item.PARSPERSAMPLE; ++c) {
               linereader >> templatecoeffvals[s*(item.PARSPERSAMPLE) + c];
             }
-            // std::cout << templatecoeffvals[s] << "\t";
+            // std::cout << templatecoeffvals[s*(item.PARSPERSAMPLE) + c] << "\t";
           }
           // std::cout << std::endl;
 
@@ -111,26 +126,32 @@ namespace popcon {
             std::cout << "Wrong format of the text file. Exit." << std::endl;
             return;
           }
-          for (int s = 0; s < item.TEMPLATESAMPLES; ++s)
+          for (int s = 0; s < item.TEMPLATESAMPLES; ++s) {
             for (int c=0; c < item.PARSPERSAMPLE; ++c) {
               item.parameters[s*(item.PARSPERSAMPLE) + c] = templatecoeffvals[s*(item.PARSPERSAMPLE) + c];
             }
-        }
-        if (isbarrel) {
-          EBDetId ebdetid(rawId);
-          if (!checkPulseShape(&item))
-            nEBbad++;
-          else {
-            ebgood.push_back(ebdetid);
-            pulseshapes->insert(std::make_pair(ebdetid.rawId(), item));
           }
-        } else {
-          EEDetId eedetid(rawId);
-          if (!checkPulseShape(&item))
-            nEEbad++;
+          
+          DetId id(rawId);
+          if (id.subdetId()==EcalBarrel) {
+            EBDetId ebdetid(rawId);
+            if (!checkPulseShape(&item))
+              nEBbad++;
+            else {
+              ebgood.push_back(ebdetid);
+              pulseshapes->insert(std::make_pair(ebdetid.rawId(), item));
+            }
+          } else if (id.subdetId()==EcalEndcap) {
+            EEDetId eedetid(rawId);
+            if (!checkPulseShape(&item))
+              nEEbad++;
+            else {
+              eegood.push_back(eedetid);
+              pulseshapes->insert(std::make_pair(eedetid.rawId(), item));
+            }
+          }
           else {
-            eegood.push_back(eedetid);
-            pulseshapes->insert(std::make_pair(eedetid.rawId(), item));
+            std::cout << "ERROR: Encountered rawId = " << rawId << " which is neither EcalBarrel nor EcalEndcap. Skipped from insertion." << std::endl;
           }
         }
       }

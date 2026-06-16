@@ -81,7 +81,7 @@ public:
                                                                            // multifit Eigen matrix types
   static constexpr unsigned int kFullSampleVectorSize =
       (kNActiveLHCPeriods - 1) * kNSamplesPerLHCPeriod + sampleSize;  // Size of full sample vector for multifit
-  static constexpr unsigned int kParsPerTemplateSample = 1; // Number of parameters per template sample of multifit
+  static constexpr unsigned int kParsPerTemplateSample = 4; // Number of parameters per template sample of multifit
 
 
   static constexpr unsigned int kPulseShapePeakShift_ns = 4; // Time shift in pulse shape for multifit

@@ -104,8 +104,8 @@ private:
   const bool simplifiedNoiseModelForGainSwitch_;
 
   // time algorithm to be used to set the jitter and its uncertainty
-  enum TimeAlgo { noMethod, ratioMethod, weightsMethod, crossCorrelationMethod };
-  TimeAlgo timealgo_ = noMethod;
+  enum TimeAlgo { multifitMethod, ratioMethod};
+  TimeAlgo timealgo_ = multifitMethod;
 
   // ratio method method for timing
   std::unique_ptr<EcalUncalibRecHitRatioMethodAlgo<EcalDataFrame_Ph2, EcalPh2SampleMask>> ratioMethodAlgo_;
@@ -128,21 +128,6 @@ private:
   double outOfTimeThreshG1m_;
   double amplitudeThresh_;
 
-  // time weights method
-  std::unique_ptr<EcalUncalibRecHitTimeWeightsAlgoPh2> weightsMethodAlgo_;
-  edm::ESHandle<EcalWeightXtalGroups> grps_;
-  edm::ESGetToken<EcalWeightXtalGroups, EcalWeightXtalGroupsRcd> grpsToken_;
-  edm::ESHandle<EcalPh2TBWeights> wgts_;
-  edm::ESGetToken<EcalPh2TBWeights, EcalPh2TBWeightsRcd> wgtsToken_;
-  const EcalPh2WeightSet::EcalWeightMatrix* weights_[2];
-
-  //Timing Cross Correlation Algo
-  std::unique_ptr<EcalUncalibRecHitTimingCCAlgo> computeCC_;
-  double CCminTimeToBeLateMin_;
-  double CCminTimeToBeLateMax_;
-  double CCTimeShiftWrtRations_;
-  double CCtargetTimePrecision_;
-  double CCtargetTimePrecisionForDelayedPulses_;
 };
 
 EcalUncalibRecHitWorkerMultiFitCubicPh2::EcalUncalibRecHitWorkerMultiFitCubicPh2()
@@ -214,26 +199,8 @@ EcalUncalibRecHitWorkerMultiFitCubicPh2::EcalUncalibRecHitWorkerMultiFitCubicPh2
     outOfTimeThreshG1p_ = ps.getParameter<double>("outOfTimeThresholdGain1p");
     outOfTimeThreshG1m_ = ps.getParameter<double>("outOfTimeThresholdGain1m");
     amplitudeThresh_ = ps.getParameter<double>("amplitudeThreshold");
-  } else if (timeAlgoName == "WeightsMethod") {
-    timealgo_ = weightsMethod;
-    grpsToken_ = c.esConsumes<EcalWeightXtalGroups, EcalWeightXtalGroupsRcd>();
-    wgtsToken_ = c.esConsumes<EcalPh2TBWeights, EcalPh2TBWeightsRcd>();
-    weightsMethodAlgo_ = std::make_unique<EcalUncalibRecHitTimeWeightsAlgoPh2>();
-  } else if (timeAlgoName == "crossCorrelationMethod") {
-    timealgo_ = crossCorrelationMethod;
-    const auto startTime = ps.getParameter<double>("crossCorrelationStartTime");
-    const auto stopTime = ps.getParameter<double>("crossCorrelationStopTime");
-    CCtargetTimePrecision_ = ps.getParameter<double>("crossCorrelationTargetTimePrecision");
-    CCtargetTimePrecisionForDelayedPulses_ =
-        ps.getParameter<double>("crossCorrelationTargetTimePrecisionForDelayedPulses");
-    CCminTimeToBeLateMin_ = ps.getParameter<double>("crossCorrelationMinTimeToBeLateMin") / ecalcctiming::clockToNS;
-    CCminTimeToBeLateMax_ = ps.getParameter<double>("crossCorrelationMinTimeToBeLateMax") / ecalcctiming::clockToNS;
-    CCTimeShiftWrtRations_ = ps.getParameter<double>("crossCorrelationTimeShiftWrtRations");
-    computeCC_ = std::make_unique<EcalUncalibRecHitTimingCCAlgo>(startTime, stopTime);
-  } else if (timeAlgoName != "None") {
-    edm::LogInfo("EcalUncalibRecHit") << "No time estimation algorithm requested";
   } else {
-    edm::LogWarning("EcalUncalibRecHit") << "Unknown time estimation algorithm '" << timeAlgoName << "'";
+    timealgo_ = multifitMethod;
   }
 }
 
@@ -257,9 +224,6 @@ void EcalUncalibRecHitWorkerMultiFitCubicPh2::set(const edm::EventSetup& es) {
     sampleMaskHand_ = es.getHandle(sampleMaskToken_);
     // for the time correction methods
     timeCorrBias_ = es.getHandle(timeCorrBiasToken_);
-  } else if (timealgo_ == weightsMethod) {
-    grps_ = es.getHandle(grpsToken_);
-    wgts_ = es.getHandle(wgtsToken_);
   }
 
   const int nnoise = SampleVector::RowsAtCompileTime;
@@ -489,66 +453,6 @@ void EcalUncalibRecHitWorkerMultiFitCubicPh2::run(const edm::Event& evt,
             uncalibRecHit.setFlagBit(EcalUncalibratedRecHit::kOutOfTime);
           }
         }
-      } else if (timealgo_ == weightsMethod) {
-        //  weights method on the PU subtracted pulse shape
-        std::vector<double> amplitudes;
-        for (unsigned int ibx = 0; ibx < activeBX_.size(); ++ibx)
-          amplitudes.push_back(uncalibRecHit.outOfTimeAmplitude(ibx));
-
-        const auto& gid = grps_->barrel(hashedIndex);
-        EcalPh2TBWeights::EcalTDCId tdcid(1);
-        EcalPh2TBWeights::EcalTBWeightMap const& wgtsMap = wgts_->getMap();
-        EcalPh2TBWeights::EcalTBWeightMap::const_iterator wit;
-        wit = wgtsMap.find(std::make_pair(gid, tdcid));
-        if (wit == wgtsMap.end()) {
-          edm::LogWarning("EcalUncalibRecHit")
-              << "No weights found for EcalGroupId: " << gid.id() << " and  EcalTDCId: " << tdcid
-              << "\n  skipping digi with id: " << detid.rawId();
-          result.pop_back();
-          continue;
-        }
-        const auto& wset = wit->second;  // this is the EcalWeightSet
-
-        const auto& mat1 = wset.getWeightsBeforeGainSwitch();
-        const auto& mat2 = wset.getWeightsAfterGainSwitch();
-
-        weights_[0] = &mat1;
-        weights_[1] = &mat2;
-
-        const double timerh = weightsMethodAlgo_->time(df, amplitudes, aped, aGain, fullpulse, weights_);
-        uncalibRecHit.setJitter(timerh);
-        uncalibRecHit.setJitterError(0.);  // not computed with weights
-
-      } else if (timealgo_ == crossCorrelationMethod) {
-        std::vector<double> amplitudes(activeBX_.size());
-        for (unsigned int ibx = 0; ibx < activeBX_.size(); ++ibx)
-          amplitudes[ibx] = uncalibRecHit.outOfTimeAmplitude(ibx);
-
-        float jitterError = 0.;
-        const float jitter = 0.;  // cross correlation timing for Phase 2 not yet implemented
-        const float noCorrectedJitter = 0.;
-        //float jitter =
-        //    computeCC_->computeTimeCC(
-        //        *itdg, amplitudes, aped, aGain, fullpulse, uncalibRecHit, jitterError, CCtargetTimePrecision_, true) +
-        //    CCTimeShiftWrtRations_ / ecalcctiming::clockToNS;
-        //float noCorrectedJitter = computeCC_->computeTimeCC(*itdg,
-        //                                                    amplitudes,
-        //                                                    aped,
-        //                                                    aGain,
-        //                                                    fullpulse,
-        //                                                    uncalibRecHit,
-        //                                                    jitterError,
-        //                                                    CCtargetTimePrecisionForDelayedPulses_,
-        //                                                    false) +
-        //                          CCTimeShiftWrtRations_ / ecalcctiming::clockToNS;
-
-        uncalibRecHit.setJitter(jitter);
-        uncalibRecHit.setNonCorrectedTime(jitter, noCorrectedJitter);
-        uncalibRecHit.setJitterError(jitterError);
-
-      } else {  // no time method;
-        uncalibRecHit.setJitter(0.);
-        uncalibRecHit.setJitterError(0.);
       }
     }
   }
@@ -581,15 +485,7 @@ edm::ParameterSetDescription EcalUncalibRecHitWorkerMultiFitCubicPh2::getAlgoDes
                edm::ParameterDescription<double>("outOfTimeThresholdGain1p", 5, true) and
                edm::ParameterDescription<double>("outOfTimeThresholdGain1m", 5, true) and
                edm::ParameterDescription<double>("amplitudeThreshold", 10, true)) or
-          "WeightsMethod" >> edm::EmptyGroupDescription() or
-          "crossCorrelationMethod" >>
-              (edm::ParameterDescription<double>("crossCorrelationStartTime", -15.0, true) and
-               edm::ParameterDescription<double>("crossCorrelationStopTime", 25.0, true) and
-               edm::ParameterDescription<double>("crossCorrelationTargetTimePrecision", 0.01, true) and
-               edm::ParameterDescription<double>("crossCorrelationTargetTimePrecisionForDelayedPulses", 0.05, true) and
-               edm::ParameterDescription<double>("crossCorrelationTimeShiftWrtRations", 1., true) and
-               edm::ParameterDescription<double>("crossCorrelationMinTimeToBeLateMin", 2., true) and
-               edm::ParameterDescription<double>("crossCorrelationMinTimeToBeLateMax", 5., true)));
+      "WeightsMethod" >> edm::EmptyGroupDescription());
 
   psd.addNode(edm::ParameterDescription<std::vector<int>>("activeBXs", {-5, -4, -3, -2, -1, 0, 1, 2, 3, 4}, true) and
               edm::ParameterDescription<bool>("ampErrorCalculation", true, true) and

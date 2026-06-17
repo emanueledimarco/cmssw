@@ -7,8 +7,8 @@ POPULATE_MC = FIRST_RUN < 2
 
 txtfile = sys.argv[1]
 
-if POPULATE_MC: suffix = "phase2-ecaltb2025"
-else: suffix = "phase2-data"
+if POPULATE_MC: suffix = "phase1-run3data"
+else: suffix = "phase1-data-test"
 
 print(f"reading txt file {txtfile}")
 print("writing into ",suffix)
@@ -38,8 +38,8 @@ process.PoolDBOutputService = cms.Service("PoolDBOutputService",
     logconnect = cms.untracked.string('sqlite_file:logecaltemplates_popcon_'+suffix+'.db'),
     timetype = cms.untracked.string('runnumber'),
     toPut = cms.VPSet(cms.PSet(
-        record = cms.string('EcalPh2CubicPulseShapesRcd'),
-        tag = cms.string(f'EcalPh2CubicPulseShapes_{tag_suffix}')
+        record = cms.string('EcalPh1CubicPulseShapesRcd'),
+        tag = cms.string(f'EcalPh1CubicPulseShapes_{tag_suffix}')
     ))
 )
 
@@ -47,9 +47,9 @@ if os.path.isfile(txtfile)==False:
     print("WARNING: file ",txtfile," does not exist. Exiting... ")
     exit
 
-process.Test1 = cms.EDAnalyzer("ExTestEcalPh2CubicPulseShapesAnalyzer",
+process.Test1 = cms.EDAnalyzer("ExTestEcalPh1CubicPulseShapesAnalyzer",
     SinceAppendMode = cms.bool(True),
-    record = cms.string('EcalPh2CubicPulseShapesRcd'),
+    record = cms.string('EcalPh1CubicPulseShapesRcd'),
     loggingOn = cms.untracked.bool(True),
     Source = cms.PSet(
         firstRun = cms.string('1' if POPULATE_MC else f"{FIRST_RUN}"),

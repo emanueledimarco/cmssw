@@ -420,6 +420,8 @@ void EcalUncalibRecHitWorkerMultiFitCubicPh1::run(const edm::Event& evt,
   FullSampleVector fullpulse(FullSampleVector::Zero());
   FullSampleMatrix fullpulsecov(FullSampleMatrix::Zero());
 
+  assert(ecalPh1::kFullSampleVectorSize >= ecalPh1::kPulseShapeTemplateSampleSize);
+  const auto indexOffset = ecalPh1::kNSamplesPerLHCPeriod * (ecalPh1::kNActiveLHCPeriods / 2);
   result.reserve(result.size() + digis.size());
   for (auto itdg = digis.begin(); itdg != digis.end(); ++itdg) {
     DetId detid(itdg->id());
@@ -455,13 +457,13 @@ void EcalUncalibRecHitWorkerMultiFitCubicPh1::run(const edm::Event& evt,
     double gainRatios[3] = {1., aGain->gain12Over6(), aGain->gain6Over1() * aGain->gain12Over6()};
 
     for (int i = 0; i < EcalPh1CubicPulseShape::TEMPLATESAMPLES; ++i){
-      fullpulse(i + 7) = aPulse->pdfval(i);
+      fullpulse(i + indexOffset) = aPulse->pdfval(i);
       _spline.SetSampleParameters( ecalPh1::kParsPerTemplateSample, i, aPulse->splinepars(i) );
     }
 
     for (int i = 0; i < EcalPh1CubicPulseShape::TEMPLATESAMPLES; i++)
       for (int j = 0; j < EcalPh1CubicPulseShape::TEMPLATESAMPLES; j++)
-        fullpulsecov(i + 7, j + 7) = aPulseCov->covval[i][j];
+        fullpulsecov(i + indexOffset, j + indexOffset) = aPulseCov->covval[i][j];
 
     // compute the right bin of the pulse shape using time calibration constants
     EcalTimeCalibConstantMap::const_iterator it = itime->find(detid);

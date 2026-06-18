@@ -47,14 +47,14 @@ PiecewiseCubicSpline::PiecewiseCubicSpline(const int n_samples, const int n_para
 double PiecewiseCubicSpline::Eval(int iSample, double x) const
 {
   double dx = x - _segs[iSample].xc;
-  std::cout << " ======== PiecewiseCubicSpline iSample " << iSample << " x = " << x << "    _segs[iSample].xc = " << _segs[iSample].xc << "  dx  = " << dx  << std::endl;
+  //std::cout << " ======== PiecewiseCubicSpline iSample " << iSample << " x = " << x << "    _segs[iSample].xc = " << _segs[iSample].xc << "  dx  = " << dx  << std::endl;
   double sum = 0;
   for (int iPar=0; iPar<_n_parameters; iPar++){
     double power = 1;
     for (int jExp=0; jExp<iPar; jExp++) power *= dx; // to avoid pow(...)
     sum += _segs[iSample].values[iPar]*power;
-    std::cout << "########## PiecewiseCubicSpline for iSample " << iSample << " iPar = " << iPar << "   seg = " 
-              << _segs[iSample].values[iPar] << "  sum = " << sum << std::endl;
+    // std::cout << "########## PiecewiseCubicSpline for iSample " << iSample << " iPar = " << iPar << "   seg = " 
+    //           << _segs[iSample].values[iPar] << "  sum = " << sum << std::endl;
   }
   return sum;
 }

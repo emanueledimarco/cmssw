@@ -166,8 +166,6 @@ private:
   edm::ESGetToken<EcalTimeCalibConstants, EcalTimeCalibConstantsRcd> itimeToken_;
   edm::ESHandle<EcalTimeOffsetConstant> offtime;
   edm::ESGetToken<EcalTimeOffsetConstant, EcalTimeOffsetConstantRcd> offtimeToken_;
-  std::vector<double> ebPulseShape_;
-  std::vector<double> eePulseShape_;
 
   // chi2 thresholds for flags settings
   bool kPoorRecoFlagEB_;
@@ -175,15 +173,6 @@ private:
   double chi2ThreshEB_;
   double chi2ThreshEE_;
 
-  //Timing Cross Correlation Algo
-  std::unique_ptr<EcalUncalibRecHitTimingCCAlgo> computeCC_;
-  double CCminTimeToBeLateMin_;
-  double CCminTimeToBeLateMax_;
-  double CCTimeShiftWrtRations_;
-  double CCtargetTimePrecision_;
-  double CCtargetTimePrecisionForDelayedPulses_;
-  bool crossCorrelationUseSlewCorrectionEB_;
-  bool crossCorrelationUseSlewCorrectionEE_;
 };
 
 EcalUncalibRecHitWorkerMultiFitCubicPh1::EcalUncalibRecHitWorkerMultiFitCubicPh1(const edm::ParameterSet& ps, edm::ConsumesCollector& c)
@@ -242,33 +231,35 @@ EcalUncalibRecHitWorkerMultiFitCubicPh1::EcalUncalibRecHitWorkerMultiFitCubicPh1
 
   // algorithm to be used for timing
   auto const& timeAlgoName = ps.getParameter<std::string>("timealgo");
-  if (timeAlgoName == "RatioMethod")
+  if (timeAlgoName == "RatioMethod") {
     timealgo_ = ratioMethod;
-  else timealgo_ = multifitMethod;
-
-  // time reco parameters
-  EBtimeFitParameters_ = ps.getParameter<std::vector<double>>("EBtimeFitParameters");
-  EEtimeFitParameters_ = ps.getParameter<std::vector<double>>("EEtimeFitParameters");
-  EBamplitudeFitParameters_ = ps.getParameter<std::vector<double>>("EBamplitudeFitParameters");
-  EEamplitudeFitParameters_ = ps.getParameter<std::vector<double>>("EEamplitudeFitParameters");
-  EBtimeFitLimits_.first = ps.getParameter<double>("EBtimeFitLimits_Lower");
-  EBtimeFitLimits_.second = ps.getParameter<double>("EBtimeFitLimits_Upper");
-  EEtimeFitLimits_.first = ps.getParameter<double>("EEtimeFitLimits_Lower");
-  EEtimeFitLimits_.second = ps.getParameter<double>("EEtimeFitLimits_Upper");
-  EBtimeConstantTerm_ = ps.getParameter<double>("EBtimeConstantTerm");
-  EEtimeConstantTerm_ = ps.getParameter<double>("EEtimeConstantTerm");
-  EBtimeNconst_ = ps.getParameter<double>("EBtimeNconst");
-  EEtimeNconst_ = ps.getParameter<double>("EEtimeNconst");
-  outOfTimeThreshG12pEB_ = ps.getParameter<double>("outOfTimeThresholdGain12pEB");
-  outOfTimeThreshG12mEB_ = ps.getParameter<double>("outOfTimeThresholdGain12mEB");
-  outOfTimeThreshG61pEB_ = ps.getParameter<double>("outOfTimeThresholdGain61pEB");
-  outOfTimeThreshG61mEB_ = ps.getParameter<double>("outOfTimeThresholdGain61mEB");
-  outOfTimeThreshG12pEE_ = ps.getParameter<double>("outOfTimeThresholdGain12pEE");
-  outOfTimeThreshG12mEE_ = ps.getParameter<double>("outOfTimeThresholdGain12mEE");
-  outOfTimeThreshG61pEE_ = ps.getParameter<double>("outOfTimeThresholdGain61pEE");
-  outOfTimeThreshG61mEE_ = ps.getParameter<double>("outOfTimeThresholdGain61mEE");
-  amplitudeThreshEB_ = ps.getParameter<double>("amplitudeThresholdEB");
-  amplitudeThreshEE_ = ps.getParameter<double>("amplitudeThresholdEE");
+    // time reco parameters
+    EBtimeFitParameters_ = ps.getParameter<std::vector<double>>("EBtimeFitParameters");
+    EEtimeFitParameters_ = ps.getParameter<std::vector<double>>("EEtimeFitParameters");
+    EBamplitudeFitParameters_ = ps.getParameter<std::vector<double>>("EBamplitudeFitParameters");
+    EEamplitudeFitParameters_ = ps.getParameter<std::vector<double>>("EEamplitudeFitParameters");
+    EBtimeFitLimits_.first = ps.getParameter<double>("EBtimeFitLimits_Lower");
+    EBtimeFitLimits_.second = ps.getParameter<double>("EBtimeFitLimits_Upper");
+    EEtimeFitLimits_.first = ps.getParameter<double>("EEtimeFitLimits_Lower");
+    EEtimeFitLimits_.second = ps.getParameter<double>("EEtimeFitLimits_Upper");
+    EBtimeConstantTerm_ = ps.getParameter<double>("EBtimeConstantTerm");
+    EEtimeConstantTerm_ = ps.getParameter<double>("EEtimeConstantTerm");
+    EBtimeNconst_ = ps.getParameter<double>("EBtimeNconst");
+    EEtimeNconst_ = ps.getParameter<double>("EEtimeNconst");
+    outOfTimeThreshG12pEB_ = ps.getParameter<double>("outOfTimeThresholdGain12pEB");
+    outOfTimeThreshG12mEB_ = ps.getParameter<double>("outOfTimeThresholdGain12mEB");
+    outOfTimeThreshG61pEB_ = ps.getParameter<double>("outOfTimeThresholdGain61pEB");
+    outOfTimeThreshG61mEB_ = ps.getParameter<double>("outOfTimeThresholdGain61mEB");
+    outOfTimeThreshG12pEE_ = ps.getParameter<double>("outOfTimeThresholdGain12pEE");
+    outOfTimeThreshG12mEE_ = ps.getParameter<double>("outOfTimeThresholdGain12mEE");
+    outOfTimeThreshG61pEE_ = ps.getParameter<double>("outOfTimeThresholdGain61pEE");
+    outOfTimeThreshG61mEE_ = ps.getParameter<double>("outOfTimeThresholdGain61mEE");
+    amplitudeThreshEB_ = ps.getParameter<double>("amplitudeThresholdEB");
+    amplitudeThreshEE_ = ps.getParameter<double>("amplitudeThresholdEE");  
+  }
+  else {
+    timealgo_ = multifitMethod;
+  }
 }
 
 void EcalUncalibRecHitWorkerMultiFitCubicPh1::set(const edm::EventSetup& es) {
@@ -429,6 +420,8 @@ void EcalUncalibRecHitWorkerMultiFitCubicPh1::run(const edm::Event& evt,
   FullSampleVector fullpulse(FullSampleVector::Zero());
   FullSampleMatrix fullpulsecov(FullSampleMatrix::Zero());
 
+  assert(ecalPh1::kFullSampleVectorSize >= ecalPh1::kPulseShapeTemplateSampleSize);
+  const auto indexOffset = ecalPh1::kNSamplesPerLHCPeriod * (ecalPh1::kNActiveLHCPeriods / 2);
   result.reserve(result.size() + digis.size());
   for (auto itdg = digis.begin(); itdg != digis.end(); ++itdg) {
     DetId detid(itdg->id());
@@ -464,13 +457,13 @@ void EcalUncalibRecHitWorkerMultiFitCubicPh1::run(const edm::Event& evt,
     double gainRatios[3] = {1., aGain->gain12Over6(), aGain->gain6Over1() * aGain->gain12Over6()};
 
     for (int i = 0; i < EcalPh1CubicPulseShape::TEMPLATESAMPLES; ++i){
-      fullpulse(i + 7) = aPulse->pdfval(i);
+      fullpulse(i + indexOffset) = aPulse->pdfval(i);
       _spline.SetSampleParameters( ecalPh1::kParsPerTemplateSample, i, aPulse->splinepars(i) );
     }
 
     for (int i = 0; i < EcalPh1CubicPulseShape::TEMPLATESAMPLES; i++)
       for (int j = 0; j < EcalPh1CubicPulseShape::TEMPLATESAMPLES; j++)
-        fullpulsecov(i + 7, j + 7) = aPulseCov->covval[i][j];
+        fullpulsecov(i + indexOffset, j + indexOffset) = aPulseCov->covval[i][j];
 
     // compute the right bin of the pulse shape using time calibration constants
     EcalTimeCalibConstantMap::const_iterator it = itime->find(detid);
@@ -707,16 +700,7 @@ edm::ParameterSetDescription EcalUncalibRecHitWorkerMultiFitCubicPh1::getAlgoDes
               edm::ParameterDescription<double>("outOfTimeThresholdGain61pEE", 1000, true) and
               edm::ParameterDescription<double>("outOfTimeThresholdGain61mEE", 1000, true) and
               edm::ParameterDescription<double>("amplitudeThresholdEB", 10, true) and
-              edm::ParameterDescription<double>("amplitudeThresholdEE", 10, true) and
-              edm::ParameterDescription<bool>("crossCorrelationUseSlewCorrectionEB", true, true) and
-              edm::ParameterDescription<bool>("crossCorrelationUseSlewCorrectionEE", false, true) and
-              edm::ParameterDescription<double>("crossCorrelationStartTime", -25.0, true) and
-              edm::ParameterDescription<double>("crossCorrelationStopTime", 25.0, true) and
-              edm::ParameterDescription<double>("crossCorrelationTargetTimePrecision", 0.01, true) and
-              edm::ParameterDescription<double>("crossCorrelationTargetTimePrecisionForDelayedPulses", 0.05, true) and
-              edm::ParameterDescription<double>("crossCorrelationTimeShiftWrtRations", 0., true) and
-              edm::ParameterDescription<double>("crossCorrelationMinTimeToBeLateMin", 2., true) and
-              edm::ParameterDescription<double>("crossCorrelationMinTimeToBeLateMax", 5., true));
+              edm::ParameterDescription<double>("amplitudeThresholdEE", 10, true));
 
   return psd;
 }

@@ -38,8 +38,8 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitCubicAlgoPh1::makeRecHit(const E
   const unsigned int nsample = EcalDataFrame::MAXSAMPLES;
 
   double maxamplitude = -std::numeric_limits<double>::max();
-  const unsigned int iSampleMax = 5;
-  const unsigned int iFullPulseMax = 9;
+  const unsigned int iSampleMax = ecalPh1::kMaxSampleIdx;
+  const unsigned int iFullPulseMax = ecalPh1::kMaxSampleIdx - ecalPh1::kMinBX - 1;
 
   double pedval = 0.;
 

@@ -53,8 +53,9 @@ double PiecewiseCubicSpline::Eval(int iSample, double x) const
     double power = 1;
     for (int jExp=0; jExp<iPar; jExp++) power *= dx; // to avoid pow(...)
     sum += _segs[iSample].values[iPar]*power;
-    // std::cout << "########## PiecewiseCubicSpline for iSample " << iSample << " iPar = " << iPar << "   seg = " 
-    //           << _segs[iSample].values[iPar] << "  sum = " << sum << std::endl;
+    //std::cout << "########## PiecewiseCubicSpline for iSample " << iSample << " iPar = " << iPar << "   seg = " 
+     //          << _segs[iSample].values[iPar] << "  sum = " << sum << std::endl;
   }
   return sum;
+  if (sum < 0) return 0;
 }

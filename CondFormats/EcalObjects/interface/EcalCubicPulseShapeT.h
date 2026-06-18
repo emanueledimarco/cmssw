@@ -4,6 +4,7 @@
 #include "CondFormats/Serialization/interface/Serializable.h"
 #include "CondFormats/EcalObjects/interface/EcalCondObjectContainer.h"
 #include "DataFormats/EcalDigi/interface/EcalConstants.h"
+#include <iostream>
 
 template <class P>
 struct EcalCubicPulseShapeT {
@@ -16,15 +17,16 @@ public:
   float parameters[TEMPLATESAMPLES*PARSPERSAMPLE];
 
   const float pdfval(int iSample) const {
-    int baseIndex = (iSample / PARSPERSAMPLE) * PARSPERSAMPLE;
+    //int baseIndex = (iSample / PARSPERSAMPLE) * PARSPERSAMPLE; // it was like that, 18/06/26, don't know why (Ruben)
+    int baseIndex = iSample*PARSPERSAMPLE; // modified 18/06/26 Ruben
     return parameters[baseIndex];
   }
 
   const float* splinepars(int iSample) const {
-    int baseIndex = (iSample / PARSPERSAMPLE) * PARSPERSAMPLE;
+    int baseIndex = iSample * PARSPERSAMPLE;
+    //std::cout << "baseIndex: " << baseIndex << std::endl;
     return &parameters[baseIndex]; // returns pointer to part of array
   }
-
 
   COND_SERIALIZABLE;
 };

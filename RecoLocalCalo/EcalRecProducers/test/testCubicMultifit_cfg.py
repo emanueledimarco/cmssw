@@ -43,7 +43,8 @@ if isMC:
     process.ecalRecHit.ebFEToBeRecovered = ''
     process.ecalRecHit.eeFEToBeRecovered = ''
 
-process.maxEvents = cms.untracked.PSet(  input = cms.untracked.int32(10) )
+process.maxEvents = cms.untracked.PSet(  input = cms.untracked.int32(1) )
+
 path = '/store/data/Run2026D/EGamma4/RAW/v1/000/403/818/00001/0416979a-6a21-4865-a3bd-1f11390322ad.root'
 process.source = cms.Source("PoolSource",
                             duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),

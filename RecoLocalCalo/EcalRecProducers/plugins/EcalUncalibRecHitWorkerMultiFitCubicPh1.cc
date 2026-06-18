@@ -457,13 +457,12 @@ void EcalUncalibRecHitWorkerMultiFitCubicPh1::run(const edm::Event& evt,
     double gainRatios[3] = {1., aGain->gain12Over6(), aGain->gain6Over1() * aGain->gain12Over6()};
 
     for (int i = 0; i < EcalPh1CubicPulseShape::TEMPLATESAMPLES; ++i){
-      fullpulse(i + indexOffset) = aPulse->pdfval(i);
       _spline.SetSampleParameters( ecalPh1::kParsPerTemplateSample, i, aPulse->splinepars(i) );
+      fullpulse(i + ecalPh1::maxShift) = _spline.Eval(i, ecalPh1::Samp_Period * i - ecalPh1::kPulseShapePeakShift_ns);
     }
-
     for (int i = 0; i < EcalPh1CubicPulseShape::TEMPLATESAMPLES; i++)
       for (int j = 0; j < EcalPh1CubicPulseShape::TEMPLATESAMPLES; j++)
-        fullpulsecov(i + indexOffset, j + indexOffset) = aPulseCov->covval[i][j];
+        fullpulsecov(i + ecalPh1::maxShift, j + ecalPh1::maxShift) = aPulseCov->covval[i][j];
 
     // compute the right bin of the pulse shape using time calibration constants
     EcalTimeCalibConstantMap::const_iterator it = itime->find(detid);

@@ -33,6 +33,10 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitCubicAlgoPh1::makeRecHit(const E
                                                                  const BXVector &activeBX,
                                                                  const PiecewiseCubicSpline &spline
 ) {
+
+  _dynamicPedestals = false; //REMOVE !!
+
+
   uint32_t flags = 0;
 
   const unsigned int nsample = EcalDataFrame::MAXSAMPLES;

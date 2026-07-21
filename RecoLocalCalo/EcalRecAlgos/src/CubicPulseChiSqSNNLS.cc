@@ -134,6 +134,7 @@ bool CubicPulseChiSqSNNLS<P>::DoFit(const SampleVector &samples,
   }
 
   _sampvec = samples;
+  kADCFakeOffset = 0; // REMOVE!
   _sampvec.array() += kADCFakeOffset;
 
   _bxs = bxs;
@@ -189,7 +190,7 @@ bool CubicPulseChiSqSNNLS<P>::DoFit(const SampleVector &samples,
   _errvec = PulseVector::Zero(_npulsetot);
   _nP = 0;
   _chisq = 0.;
-  
+
   aTamat.resize(_npulsetot, _npulsetot);
 
   std::cout << "_npulsetot = " << _npulsetot << std::endl;
@@ -259,11 +260,14 @@ bool CubicPulseChiSqSNNLS<P>::DoFit(const SampleVector &samples,
   _bxsmin = _bxs;
   
   if (!status) return status;
-  
+
   // std::cout << " _computeErrors = " << _computeErrors << std::endl;
-  
+
+  std::cout << "time: " << _time << std::endl;
+
+  _computeErrors = false; // .... remove...
   if(!_computeErrors) return status;
-  
+
   //compute MINOS-like uncertainties for in-time amplitude
   bool foundintime = false;
   unsigned int ipulseintime = 0;
@@ -300,8 +304,8 @@ bool CubicPulseChiSqSNNLS<P>::DoFit(const SampleVector &samples,
   SampleVector pulseintime = _pulsemat.col(ipulseintime);
   _pulsemat.col(ipulseintime).setZero();
 
-
   std::cout << "pulseintime vector: " << pulseintime << std::endl;
+
   std::cout << "time: " << _time << std::endl;
 
   //two point interpolation for upper uncertainty when amplitude is away from boundary
@@ -414,7 +418,7 @@ void CubicPulseChiSqSNNLS<P>::AdjustSignalPulseShape(){
     }
   }
 
-  std::cout << "post: fullpulse " << fullpulse << std::endl;
+  //std::cout << "post: fullpulse " << fullpulse << std::endl;
   //std::cout << "post: _pulsemat.col(ipulse) " <<_pulsemat.col(ipulseSignal) << std::endl;
 
   std::cout << std::endl << "LEAVING ADJUST SIGNAL PULSE SHAPE()...." << std::endl << std::endl;
@@ -563,7 +567,7 @@ double CubicPulseChiSqSNNLS<P>::ComputeChiSq() {
 
   // std::cout << "pulsemat = " << _pulsemat << std::endl;
   // std::cout << "ampvec = " << _ampvec << std::endl;
-  
+
   SampleVector model = _pulsemat*_ampvec;
 
     // std::cout << "model pre-time: " << model << std::endl;
@@ -574,8 +578,6 @@ double CubicPulseChiSqSNNLS<P>::ComputeChiSq() {
     //        model -= _time(ipulse) * _pulsemat_t.col(ipulse) * _ampvec(ipulse);
     //    }
     //}
-    std::cout << "model: " << std::endl << model << std::endl;
-    std::cout << "sampVec: " << std::endl << _sampvec << std::endl;
     // std::cout << "_invcov at chi2 / residuals step: " << std::endl << _invcov << std::endl;
 
     //debug
@@ -585,7 +587,15 @@ double CubicPulseChiSqSNNLS<P>::ComputeChiSq() {
 
     SampleVector normResVec = SampleVector::Zero();
     normResVec = _covdecomp.matrixL().solve(model - _sampvec);
-    std::cout << "normResVec: " << std::endl << normResVec << std::endl;
+
+    if ( _ampvec.coeff(GetSignalPulseIndex())> 15 ) {
+      std::cout << "\n\nAFTER 15 ADC cut" << std::endl;
+      std::cout << "Fitted amplitude" << _ampvec.coeff(GetSignalPulseIndex()) << std::endl;
+      std::cout << "model: " << std::endl << model << std::endl;
+      std::cout << "sampVec: " << std::endl << _sampvec << std::endl;
+      std::cout << "normResVec: " << std::endl << normResVec << std::endl;
+      std::cout << std::endl << std::endl;
+    }
 
     return normResVec.squaredNorm();
 }
@@ -643,6 +653,7 @@ bool CubicPulseChiSqSNNLS<P>::NNLS() {
       //unconstrain parameter
       Index idxp = _nP + idxwmax;
       NNLSUnconstrainParameter(idxp);
+      std::cout << "Unconstraining: " << idxp << ", n active pulse: " << _nP << std::endl;
       std::cout << "\t===> NNLS iter " << iter << std::endl; //" pulsemat = " << _pulsemat << std::endl;
 
       // std::cout << "adding index " << int(idxp) << " orig index " << int(_bxs.coeff(idxp)) << std::endl;
@@ -698,18 +709,18 @@ bool CubicPulseChiSqSNNLS<P>::NNLS() {
       _ampvec.coeffRef(minratioidx) = 0.;
       
       // std::cout << "removing index " << int(minratioidx) << " orig idx " << int(_bxs.coeff(minratioidx)) << std::endl;
-      NNLSConstrainParameter(minratioidx);      
+      NNLSConstrainParameter(minratioidx); 
     }
     ++iter;
-        
+
     if (iter > 1000) break;
-    
+
   }
-  
+
   // std::cout << "     -> _ampvec = " << std::endl << _ampvec << std::endl;
-  
-  if ( _ampvec.coeff(GetSignalPulseIndex())>0 ) 
-      _time[GetSignalPulseIndex()] += - _ampvec.coeff(GetDerivativePulseIndex()) / _ampvec.coeff(GetSignalPulseIndex()) / 2.;
+  std::cout << "signal pulse index: " << GetSignalPulseIndex() << std::endl;
+  if ( _ampvec.coeff(GetSignalPulseIndex())>0 )
+      _time[GetSignalPulseIndex()] += - _ampvec.coeff(GetDerivativePulseIndex()) / _ampvec.coeff(GetSignalPulseIndex()) / 2.; //TO UNCOMMENT!!
 
   return true;
 

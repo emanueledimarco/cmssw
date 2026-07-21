@@ -108,6 +108,8 @@ bool CubicPulseChiSqSNNLS<P>::DoFit(const SampleVector &samples,
                                const SampleGainVector &badSamples) {
 
 
+  //NEEDS Sdynamic pedestal = true, but ALSO subtracting DB pedestals from waves!!
+
   float kADCFakeOffset = 10.;
 
   _spline = spline;
@@ -134,8 +136,11 @@ bool CubicPulseChiSqSNNLS<P>::DoFit(const SampleVector &samples,
   }
 
   _sampvec = samples;
-  kADCFakeOffset = 0; // REMOVE!
+  //kADCFakeOffset = 0; // REMOVE!
+  std::cout << "pre adding, _sampvec: " << _sampvec << std::endl;
+  std::cout << "adding fake offset" << std::endl;
   _sampvec.array() += kADCFakeOffset;
+  std::cout << "post adding, _sampvec: " << _sampvec << std::endl;
 
   _bxs = bxs;
   _pulsemat.resize(Eigen::NoChange, npulse);
@@ -554,10 +559,10 @@ bool CubicPulseChiSqSNNLS<P>::updateCov(const SampleMatrix &samplecov, const Ful
 
    _covdecomp.compute(_invcov);
    // std::cout << " updateCov " << " done "  << std::endl;
-  
+
   bool status = true;
   return status;
-  
+
 }
 
 
@@ -588,8 +593,8 @@ double CubicPulseChiSqSNNLS<P>::ComputeChiSq() {
     SampleVector normResVec = SampleVector::Zero();
     normResVec = _covdecomp.matrixL().solve(model - _sampvec);
 
-    if ( _ampvec.coeff(GetSignalPulseIndex())> 15 ) {
-      std::cout << "\n\nAFTER 15 ADC cut" << std::endl;
+    if ( _ampvec.coeff(GetSignalPulseIndex())> 100 ) {
+      std::cout << "\n\nAFTER 100 ADC cut" << std::endl;
       std::cout << "Fitted amplitude" << _ampvec.coeff(GetSignalPulseIndex()) << std::endl;
       std::cout << "model: " << std::endl << model << std::endl;
       std::cout << "sampVec: " << std::endl << _sampvec << std::endl;
@@ -709,7 +714,7 @@ bool CubicPulseChiSqSNNLS<P>::NNLS() {
       _ampvec.coeffRef(minratioidx) = 0.;
       
       // std::cout << "removing index " << int(minratioidx) << " orig idx " << int(_bxs.coeff(minratioidx)) << std::endl;
-      NNLSConstrainParameter(minratioidx); 
+      NNLSConstrainParameter(minratioidx);
     }
     ++iter;
 
@@ -719,7 +724,7 @@ bool CubicPulseChiSqSNNLS<P>::NNLS() {
 
   // std::cout << "     -> _ampvec = " << std::endl << _ampvec << std::endl;
   std::cout << "signal pulse index: " << GetSignalPulseIndex() << std::endl;
-  if ( _ampvec.coeff(GetSignalPulseIndex())>0 )
+  if ( _ampvec.coeff(GetSignalPulseIndex())>0 )  //TO UNCOMMENT!!
       _time[GetSignalPulseIndex()] += - _ampvec.coeff(GetDerivativePulseIndex()) / _ampvec.coeff(GetSignalPulseIndex()) / 2.; //TO UNCOMMENT!!
 
   return true;

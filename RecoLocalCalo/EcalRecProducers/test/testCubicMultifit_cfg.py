@@ -43,7 +43,8 @@ if isMC:
     process.ecalRecHit.ebFEToBeRecovered = ''
     process.ecalRecHit.eeFEToBeRecovered = ''
 
-process.maxEvents = cms.untracked.PSet(  input = cms.untracked.int32(10) )
+process.maxEvents = cms.untracked.PSet(  input = cms.untracked.int32(20) )
+
 path = '/store/data/Run2026D/EGamma4/RAW/v1/000/403/818/00001/0416979a-6a21-4865-a3bd-1f11390322ad.root'
 process.source = cms.Source("PoolSource",
                             duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
@@ -82,7 +83,7 @@ process.MessageLogger.cerr.FastReport = cms.untracked.PSet( limit = cms.untracke
 # remove any instance of the FastTimerService
 if 'FastTimerService' in process.__dict__:
     del process.FastTimerService
-    
+
 # instrument the menu with the FastTimerService
 process.load( "HLTrigger.Timer.FastTimerService_cfi" )
 
@@ -94,7 +95,7 @@ process.FastTimerService.enableDQM                = True
 
 # enable per-module DQM plots
 process.FastTimerService.enableDQMbyModule        = True
-        
+
 # enable per-event DQM plots by lumisection
 process.FastTimerService.enableDQMbyLumiSection   = True
 process.FastTimerService.dqmLumiSectionsRange     = 2500    # lumisections (23.31 s)
@@ -115,4 +116,5 @@ process.FastTimerService.enableDQMbyProcesses     = True
 process.dqmOutput = cms.OutputModule("DQMRootOutputModule",
                                      fileName = cms.untracked.string("DQM_pu40.root")
                                      )
+
 process.FastTimerOutput = cms.EndPath( process.dqmOutput )

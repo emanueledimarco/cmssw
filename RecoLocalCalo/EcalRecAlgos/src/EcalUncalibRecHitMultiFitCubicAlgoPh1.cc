@@ -33,6 +33,9 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitCubicAlgoPh1::makeRecHit(const E
                                                                  const BXVector &activeBX,
                                                                  const PiecewiseCubicSpline &spline
 ) {
+
+  _dynamicPedestals = true; //REMOVE !!
+
   uint32_t flags = 0;
 
   const unsigned int nsample = EcalDataFrame::MAXSAMPLES;
@@ -79,11 +82,7 @@ EcalUncalibratedRecHit EcalUncalibRecHitMultiFitCubicAlgoPh1::makeRecHit(const E
       gainsPedestal[iSample] = dynamicPedestal ? 1 : -1;  //-1 for static pedestals
     }
 
-    if (dynamicPedestal) {
-      amplitude = (double)(sample.adc()) * gainratio;
-    } else {
-      amplitude = ((double)(sample.adc()) - pedestal) * gainratio;
-    }
+    amplitude = ((double)(sample.adc()) - pedestal) * gainratio;
 
     if (gainId == 0) {
       edm::LogError("EcalUncalibRecHitMultiFitCubicAlgoPh1")

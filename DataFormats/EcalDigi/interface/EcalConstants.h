@@ -56,7 +56,7 @@ public:
                                                                       // Eigen matrix types
   static constexpr unsigned int kParsPerTemplateSample = 4; // Number of parameters per template sample of multifit
 
-  static constexpr unsigned int kPulseShapePeakShift_ns = 4; // Time shift in pulse shape for multifit
+  static constexpr unsigned int kPulseShapePeakShift_ns = 0; // Time shift in pulse shape for multifit
 
   static constexpr unsigned int nPreSamples = 6; // Number of pre-samples in multifit
   static constexpr unsigned int maxShift = nPreSamples + kMaxBX*kNSamplesPerLHCPeriod; // Max shift in multifit
@@ -89,7 +89,7 @@ public:
   static constexpr unsigned int kParsPerTemplateSample = 4; // Number of parameters per template sample of multifit
 
 
-  static constexpr unsigned int kPulseShapePeakShift_ns = 4; // Time shift in pulse shape for multifit
+  static constexpr unsigned int kPulseShapePeakShift_ns = 0; // Time shift in pulse shape for multifit
 
   static constexpr unsigned int nPreSamples = 3; // Numb[er of pre-samples in multifit
   static constexpr unsigned int maxShift = nPreSamples + kMaxBX*kNSamplesPerLHCPeriod; // Max shift in multifit

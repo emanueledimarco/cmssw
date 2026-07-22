@@ -10,7 +10,7 @@ ecalMultiFitCubicPh1UncalibRecHit = cms.EDProducer("EcalUncalibRecHitProducer",
     algo = cms.string("EcalUncalibRecHitWorkerMultiFitCubicPh1"),
     algoPSet = cms.PSet(
       # for multifit method
-      activeBXs = cms.vint32(-5,-4,-3,-2,-1,0,1,2,3,4),
+      activeBXs = cms.vint32(-5,-4,-3,-2,-1,0,1,2),
       ampErrorCalculation = cms.bool(True),
       useLumiInfoRunHeader = cms.bool(False),
 
